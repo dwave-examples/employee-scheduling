@@ -34,9 +34,16 @@ Since shift preferences rank from smallest (most preferred) to largest (least pr
 
 An even distribution of employees across shifts would have approximately `num_employees/num_shifts` scheduled employees per shift. To enforce this requirement, both linear and quadratic biases must be adjusted in a specific manner.
 
-To uncover the linear and quadratic bias adjustments, we must consider the underlying binary variables in our DQM. For a DQM with N shifts and M employees, each employee has a single variable constructed with N cases or classes. These are implemented as N binary variables per employee - one for each possible shift. For a specific shift `i`, we require that exactly `M/N` employees are scheduled to shift `i`, or that the employee variable takes case `i`, or, returning to our binary variables, that the binary variable corresponding to case `i` is "selected". In other words, the sum of *all* employee case `i` binary variables should equal `M/N`. An equality over a summation of binary variables can be converted to a minimization expression by moving from the equality:
+To uncover the linear and quadratic bias adjustments, we must consider the underlying binary variables in our DQM. For a DQM with N shifts and M employees, each employee has a single variable constructed with N cases or classes. These are implemented as N binary variables per employee - one for each possible shift. 
+
+For a specific shift `i`, we require that exactly `M/N` employees are scheduled to shift `i`, or that the employee variable takes case `i`, or, returning to our binary variables, that the binary variable corresponding to case `i` is "selected". In other words, the sum of *all* employee case `i` binary variables should equal `M/N`. An equality over a summation of binary variables can be converted to a minimization expression by moving from the equality:
+
 ```sum(shift i binary variables) = M/N```
+
 to a minimization expression:
+
 ```min( ( sum(shift i binary variables) - M/N)**2 )```
+
 Expanding and simplifying this expression of binary variables, it becomes:
+
 ```min( (-2*M/N+1)*sum(shift i linear biases) + 2*sum(shift i quadratic biases) )```
