@@ -23,6 +23,14 @@ num_employees = int(input())
 print("\nEnter number of shifts:")
 num_shifts = int(input())
 
+if num_employees <= num_shifts:
+    print("\n**Number of employees must be at least number of shifts.**")
+
+    print("\nEnter number of employees:")
+    num_employees = int(input())
+    print("\nEnter number of shifts:")
+    num_shifts = int(input())
+
 print("\nScheduling", num_employees, "employees over", num_shifts, "shifts...\n")
 
 # Generate random array of preferences over employees
@@ -75,13 +83,13 @@ cmaplist[-1] = (1.0,1.0,1.0,1.0)
 cmap = cmap.from_list('Custom cmap', cmaplist, cmap.N)
 
 fig, (ax1, ax2) = plt.subplots(1, 2)
-ax1.imshow(preferences, cmap='CMRmap', interpolation='nearest', vmax=num_shifts, aspect='auto')
+ax1.imshow(preferences, cmap='CMRmap', interpolation='nearest', vmin=0, vmax=num_shifts, aspect='auto')
 ax1.xlabel = 'Shifts'
 ax1.ylabel = 'Employees'
 ax1.set_title("Employee Shift Preferences", color='Black', fontstyle='italic')
 
 # Show heatmap of schedule
-cax = ax2.imshow(schedule, cmap=cmap, interpolation='nearest', aspect='auto')
+cax = ax2.imshow(schedule, cmap=cmap, interpolation='nearest', aspect='auto', vmin=0)
 cbar = fig.colorbar(cax, ticks=[0, num_shifts])
 cbar.set_ticklabels(['Best', 'Worst'])
 ax2.xlabel = 'Shifts'

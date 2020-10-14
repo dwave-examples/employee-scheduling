@@ -16,7 +16,7 @@ Type the number of employees to be considered and hit `Enter`. A second prompt f
 
 ```Enter number of shifts:```
 
-Type the number of shifts and hit `Enter`.
+Type the number of shifts and hit `Enter`. Note that we should have at least as many employees as there are shifts.
 
 Once these values have been entered, the program will randomly generate employee preferences for the N shifts from most preferred (0) to least preferred (N-1). A DQM is constructed (see below for details) and the problem is run using `LeapHybridDQMSampler`.
 
