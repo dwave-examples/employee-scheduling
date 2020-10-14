@@ -47,3 +47,5 @@ to a minimization expression:
 Expanding and simplifying this expression of binary variables, it becomes:
 
 ```min( (-2*M/N+1)*sum(shift i linear biases) + 2*sum(shift i quadratic biases) )```
+
+When this constraint is built into our DQM object, it is added in with a coefficient `gamma`.  This term gamma is known as a Lagrange parameter and can be used to weight this constraint against the competing employee preferences.  You may wish to adjust this parameter depending on your problem requirements and size.
