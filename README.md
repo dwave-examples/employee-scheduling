@@ -18,7 +18,7 @@ Type the number of employees to be considered and hit `Enter`. A second prompt f
 
 Type the number of shifts and hit `Enter`.
 
-Once these values have been entered, the program will randomly generate employee preferences for the N shifts from most preferred (0) to least preferred (N). A DQM is constructed (see below for details) and the problem is run using `LeapHybridDQMSampler`.
+Once these values have been entered, the program will randomly generate employee preferences for the N shifts from most preferred (0) to least preferred (N-1). A DQM is constructed (see below for details) and the problem is run using `LeapHybridDQMSampler`.
 
 Once the problem has run, two images are created. First, `employee_schedule.png` illustrates the employee preference matrix alongside the schedule built.  Second, `schedule_statistics.png` shows how many employees are scheduled for each shift, alongside a bar chart showing the employees' preferences for the shifts for which they have been scheduled.
 

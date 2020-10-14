@@ -16,7 +16,6 @@ from dimod import DiscreteQuadraticModel
 from dwave.system import LeapHybridDQMSampler
 import numpy as np
 from matplotlib import pyplot as plt
-import seaborn as sns
 
 # Collect user input on size of problem
 print("\nEnter number of employees:")
@@ -31,14 +30,6 @@ preferences = np.tile(np.arange(num_shifts), (num_employees, 1))
 rows = np.indices((num_employees,num_shifts))[0]
 cols = [np.random.permutation(num_shifts) for _ in range(num_employees)]
 preferences = preferences[rows, cols]
-
-# Show heatmap of preferences
-plt.subplot(1, 2, 1)
-sns.set()
-ax = sns.heatmap(preferences, cmap="coolwarm", xticklabels=False, yticklabels=False)
-plt.xlabel('Shifts')
-plt.ylabel('Employees')
-plt.title("Employee Shift Preferences", color='Black', fontstyle='italic')
 
 # Initialize the DQM object
 dqm = DiscreteQuadraticModel()
@@ -77,17 +68,28 @@ for key, val in sample.items():
     prefs[preferences[key,val]] += 1
     shifts[val] += 1
 
+# Show heatmap of preferences
+cmap = plt.get_cmap('CMRmap')
+cmaplist = [cmap(i) for i in range(cmap.N)]
+cmaplist[-1] = (1.0,1.0,1.0,1.0)
+cmap = cmap.from_list('Custom cmap', cmaplist, cmap.N)
+
+fig, (ax1, ax2) = plt.subplots(1, 2)
+ax1.imshow(preferences, cmap='CMRmap', interpolation='nearest', vmax=num_shifts, aspect='auto')
+ax1.xlabel = 'Shifts'
+ax1.ylabel = 'Employees'
+ax1.set_title("Employee Shift Preferences", color='Black', fontstyle='italic')
+
 # Show heatmap of schedule
-plt.subplot(1, 2, 2)
-sns.set()
-ax = sns.heatmap(schedule, xticklabels=False, yticklabels=False)
-plt.xlabel('Shifts')
-plt.ylabel('Employees')
-plt.title("Employee Shift Schedule", color='Black', fontstyle='italic')
+cax = ax2.imshow(schedule, cmap=cmap, interpolation='nearest', aspect='auto')
+cbar = fig.colorbar(cax, ticks=[0, num_shifts])
+cbar.set_ticklabels(['Best', 'Worst'])
+ax2.xlabel = 'Shifts'
+ax2.set_title("Employee Shift Schedule", color='Black', fontstyle='italic')
 plt.savefig("employee_schedule.png")
-plt.show()
 
 # Compute/display schedule statistics
+plt.clf()
 plt.subplot(1, 2, 1)
 plt.bar(np.arange(num_shifts), shifts)
 plt.xlabel("Shift")
@@ -100,7 +102,5 @@ print("\nAverage happiness:\t", mean_happiness)
 plt.subplot(1, 2, 2)
 plt.bar(np.arange(num_shifts), prefs)
 plt.xlabel("Preference Rank")
-plt.ylabel("Number Scheduled")
 plt.title("Average Preference Scheduled")
 plt.savefig("schedule_statistics.png")
-plt.show()
