@@ -18,10 +18,19 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 # Collect user input on size of problem
-print("\nEnter number of employees:")
-num_employees = int(input())
-print("\nEnter number of shifts:")
-num_shifts = int(input())
+response_1 = input("\nEnter number of employees > ")
+try:
+    num_employees = int(response_1)
+except ValueError:
+    print("Must input an integer.")
+    num_employees = int(input("\nEnter number of employees > "))
+
+response_2 = input("\nEnter number of shifts > ")
+try:
+    num_shifts = int(response_2)
+except ValueError:
+    print("Must input an integer.")
+    num_shifts = int(input("\nEnter number of shifts > "))
 
 if num_employees <= num_shifts:
     print("\n**Number of employees must be at least number of shifts.**")
