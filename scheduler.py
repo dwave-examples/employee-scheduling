@@ -32,7 +32,7 @@ except ValueError:
     print("Must input an integer.")
     num_shifts = int(input("\nEnter number of shifts > "))
 
-if num_employees <= num_shifts:
+if num_employees < num_shifts:
     print("\n**Number of employees must be at least number of shifts.**")
 
     print("\nEnter number of employees:")
@@ -78,21 +78,21 @@ print("\nSchedule score:", energy)
 
 # Build schedule
 schedule = np.ones((num_employees, num_shifts))*num_shifts
-prefs = [0 for _ in range(num_shifts)]
-shifts = [0 for _ in range(num_shifts)]
+prefs = [0]*num_shifts
+shifts = [0]*num_shifts
 for key, val in sample.items():
     schedule[key,val]=preferences[key,val]
     prefs[preferences[key,val]] += 1
     shifts[val] += 1
 
 # Show heatmap of preferences
-cmap = plt.get_cmap('CMRmap')
+cmap = plt.get_cmap('seismic')
 cmaplist = [cmap(i) for i in range(cmap.N)]
 cmaplist[-1] = (1.0,1.0,1.0,1.0)
 cmap = cmap.from_list('Custom cmap', cmaplist, cmap.N)
 
 fig, (ax1, ax2) = plt.subplots(1, 2)
-ax1.imshow(preferences, cmap='CMRmap', interpolation='nearest', vmin=0, vmax=num_shifts, aspect='auto')
+ax1.imshow(preferences, cmap='seismic', interpolation='nearest', vmin=0, vmax=num_shifts, aspect='auto')
 ax1.xlabel = 'Shifts'
 ax1.ylabel = 'Employees'
 ax1.set_title("Employee Shift Preferences", color='Black', fontstyle='italic')
@@ -119,5 +119,5 @@ print("\nAverage happiness:\t", mean_happiness)
 plt.subplot(1, 2, 2)
 plt.bar(np.arange(num_shifts), prefs)
 plt.xlabel("Preference Rank")
-plt.title("Average Preference Scheduled")
+plt.title("Average Preference per Shift")
 plt.savefig("schedule_statistics.png")
