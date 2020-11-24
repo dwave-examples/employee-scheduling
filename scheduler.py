@@ -15,7 +15,9 @@
 from dimod import DiscreteQuadraticModel
 from dwave.system import LeapHybridDQMSampler
 import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use("agg")
+import matplotlib.pyplot as plt
 
 # Collect user input on size of problem
 response_1 = input("\nEnter number of employees > ")
