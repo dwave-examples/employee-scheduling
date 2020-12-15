@@ -1,3 +1,7 @@
+[![Linux/Mac/Windows build status](
+  https://circleci.com/gh/dwave-examples/employee-scheduling.svg?style=svg)](
+  https://circleci.com/gh/dwave-examples/employee-scheduling)
+
 # Building an Employee Schedule
 
 Building a schedule for employees can be an extremely complex optimization
