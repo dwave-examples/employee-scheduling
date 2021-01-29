@@ -71,7 +71,7 @@ for i in range(num_shifts):
 sampler = LeapHybridDQMSampler()
 
 # Solve the problem using the DQM solver
-sampleset = sampler.sample_dqm(dqm)
+sampleset = sampler.sample_dqm(dqm, label='Example - Employee Scheduling')
 
 # Get the first solution, and print it
 sample = sampleset.first.sample
