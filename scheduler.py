@@ -49,7 +49,6 @@ preferences = np.tile(np.arange(num_shifts), (num_employees, 1))
 rows = np.indices((num_employees,num_shifts))[0]
 cols = [np.random.permutation(num_shifts) for _ in range(num_employees)]
 preferences = preferences[rows, cols]
-print(preferences)
 
 # Initialize the DQM object
 dqm = DiscreteQuadraticModel()
