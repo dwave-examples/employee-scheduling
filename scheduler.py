@@ -63,9 +63,9 @@ gamma = 1/(num_employees*num_shifts)
 
 for i in range(num_shifts):
     for j in range(num_employees):
-        dqm.set_linear_case(j, i, dqm.get_linear_case(j, i) - gamma*(2*num_per_shift+1))
+        dqm.set_linear_case(j, i, preferences[j, i] - gamma*(2*num_per_shift-1))
         for k in range(j+1, num_employees):
-            dqm.set_quadratic_case(j, i, k, i, gamma*(dqm.get_quadratic_case(j, i, k, i) + 2))
+            dqm.set_quadratic_case(j, i, k, i, gamma*2)
 
 # Initialize the DQM solver
 sampler = LeapHybridDQMSampler()

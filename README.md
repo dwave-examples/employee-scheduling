@@ -41,6 +41,13 @@ Second, `schedule_statistics.png` shows how many employees are scheduled for
 each shift, alongside a bar chart showing the employees' average preferences
 for the shifts for which they have been scheduled.
 
+At the end of the program's run, two statistics are printed to the
+command-line. Schedule score provides the energy value of the best solution
+found. Average happiness is the average of the employee preference values for
+the shifts that they are scheduled. A smaller average happiness score is
+better, and a score of 0.0 is a perfect score - everyone received their first
+choice shift.
+
 ## Building the DQM
 
 The employee scheduling problem consists of two components: a requirement that
