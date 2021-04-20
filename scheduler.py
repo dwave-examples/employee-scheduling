@@ -59,7 +59,7 @@ for name in range(num_employees):
 
 # Distribute employees equally across shifts according to preferences
 num_per_shift = int(num_employees/num_shifts)
-gamma = 1/(num_employees*num_shifts)
+gamma = num_employees
 
 for i in range(num_shifts):
     for j in range(num_employees):
