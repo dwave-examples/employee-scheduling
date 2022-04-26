@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dimod import CQM, Binary, quicksum
+from dimod import ConstrainedQuadraticModel, Binary, quicksum
 from dwave.system import LeapHybridCQMSampler
 import numpy as np
 import matplotlib
@@ -51,7 +51,7 @@ cols = [np.random.permutation(num_shifts) for _ in range(num_employees)]
 preferences = preferences[rows, cols]
 
 # Initialize the CQM object
-cqm = CQM()
+cqm = ConstrainedQuadraticModel()
 
 # Build the CQM starting by creating variables
 vars = [[Binary(f'x_{name}_{i}') for i in range(num_shifts)] for name in range(num_employees)]
