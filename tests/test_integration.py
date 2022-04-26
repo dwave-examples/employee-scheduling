@@ -40,5 +40,24 @@ class IntegrationTests(unittest.TestCase):
         with self.subTest(msg="Verify if warning string contains in output"):
             self.assertNotIn("WARNING", output)
 
+    def test_demo(self):
+        demo_file = os.path.join(project_dir, 'demo.py')
+        p = Popen([sys.executable, demo_file], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        p.stdin.write(b'10\n')
+        p.stdin.write(b'10\n')
+        output = p.communicate()[0]
+        output = str(output).upper()
+        if os.getenv('DEBUG_OUTPUT'):
+            print("Example output \n"+ output)
+
+        with self.subTest(msg="Verify if output contains 'Schedule score:"):
+            self.assertIn("Schedule score:".upper(), output)
+        with self.subTest(msg="Verify if output contains Average happiness:"):
+            self.assertIn("Average happiness:".upper(), output)
+        with self.subTest(msg="Verify if error string contains in output"):
+            self.assertNotIn("ERROR", output)
+        with self.subTest(msg="Verify if warning string contains in output"):
+            self.assertNotIn("WARNING", output)
+
 if __name__ == '__main__':
     unittest.main()
