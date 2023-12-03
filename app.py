@@ -545,6 +545,38 @@ def set_shifts_min(min_e):
 def set_shifts_max(max_e):
     return max_e
 
+# Don't allow max shifts to be smaller than min shifts
+@app.callback(
+        Output("max shifts", "min"),
+        Input("min shifts", "value")
+)
+def set_min_shifts(min_s):
+    return min_s
+
+# Don't allow min shifts to be bigger than max shifts
+@app.callback(
+        Output("shifts min", "max"),
+        Input("shifts max", "value")
+)
+def set_min_shifts(max_s):
+    return max_s
+
+# Don't allow max employees to be smaller than min employees
+@app.callback(
+        Output("shifts max", "min"),
+        Input("shifts min", "value")
+)
+def set_min_shifts(min_e):
+    return min_e
+
+# Don't allow min employees to be bigger than max employees
+@app.callback(
+        Output("min shifts", "max"),
+        Input("max shifts", "value")
+)
+def set_min_shifts(max_e):
+    return max_e
+
 @app.callback(
     Output("submission_indicator", "value"),
     Output("submission_timer", "interval"),
