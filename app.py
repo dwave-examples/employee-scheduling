@@ -498,27 +498,25 @@ def set_scenario(scenario_size):
 
 
 @app.callback(
-    Output("input_employees", 'value'),
-    Output("seed", 'value'),
-    Output("checklist-input", 'value'),
-    Output("min shifts", 'value'),
-    Output("max shifts", 'value'),
-    Output("shifts min", 'value'),
-    Output("shifts max", 'value'),
-    Output("cons shifts", 'value'),
-    [Input("demo-dropdown", 'value')]
+    Output("input_employees", "value"),
+    Output("seed", "value"),
+    Output("checklist-input", "value"),
+    Output("min shifts", "value"),
+    Output("max shifts", "value"),
+    Output("shifts min", "value"),
+    Output("shifts max", "value"),
+    Output("cons shifts", "value"),
+    [Input("demo-dropdown", "value")],
 )
 def set_scenario(scenario_size):
-
-    if scenario_size == 'Small':
+    if scenario_size == "Small":
         return 12, 4, [2], 10, 20, 3, 6, 5
-    elif scenario_size == 'Medium':
+    elif scenario_size == "Medium":
         return 20, 4, [2], 8, 16, 6, 10, 5
-    elif scenario_size == 'Large':
+    elif scenario_size == "Large":
         return 40, 4, [2], 4, 16, 6, 10, 5
     else:
         return 12, None, [2], 10, 20, 3, 6, 5
-
 
 
 @app.callback(
@@ -570,35 +568,26 @@ def set_shifts_max(max_e):
     return max_e
 
 # Don't allow max shifts to be smaller than min shifts
-@app.callback(
-        Output("max shifts", "min"),
-        Input("min shifts", "value")
-)
+@app.callback(Output("max shifts", "min"), Input("min shifts", "value"))
 def set_min_shifts(min_s):
     return min_s
 
+
 # Don't allow min shifts to be bigger than max shifts
-@app.callback(
-        Output("shifts min", "max"),
-        Input("shifts max", "value")
-)
-def set_min_shifts(max_s):
+@app.callback(Output("shifts min", "max"), Input("shifts max", "value"))
+def set_max_shifts(max_s):
     return max_s
 
+
 # Don't allow max employees to be smaller than min employees
-@app.callback(
-        Output("shifts max", "min"),
-        Input("shifts min", "value")
-)
-def set_min_shifts(min_e):
+@app.callback(Output("shifts max", "min"), Input("shifts min", "value"))
+def set_shifts_min(min_e):
     return min_e
 
+
 # Don't allow min employees to be bigger than max employees
-@app.callback(
-        Output("min shifts", "max"),
-        Input("max shifts", "value")
-)
-def set_min_shifts(max_e):
+@app.callback(Output("min shifts", "max"), Input("max shifts", "value"))
+def set_shifts_max(max_e):
     return max_e
 
 @app.callback(
@@ -731,6 +720,7 @@ def submitter(
 
     else:
         return no_update, no_update, no_update
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)
