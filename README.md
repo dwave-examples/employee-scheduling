@@ -76,6 +76,12 @@ constraints that were violated.
 ## Introducing the Demo
 
 
+<<<<<<< HEAD
+=======
+![Screen Image](assets/demo_image.png)
+
+### Employee Availability
+>>>>>>> 5a99743 (Add image to readme)
 
 
 The employee availability chart shows employee shift preferences and unavailable
