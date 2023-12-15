@@ -122,6 +122,8 @@ There is also a collapsible menu of additional options. These additional options
 
 ## Running the Demo
 
+To run the demo, open your terminal and run `python app.py`. Open a web browser and copy the URL from your terminal to load the demo in the browser.
+
 Once you have set all of the options to your satisfaction, click the "Solve CQM" button on the left. In your terminal you will see status updates for "Building CQM..." and "Submitting CQM...".
 
 Once the problem has completed, the best solution returned will be displayed in place of "Employee Availability". You can click back to the original availability using the tabs at the top of the schedule card.
