@@ -99,15 +99,25 @@ month.
 Always available are three options.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 
 =======
  - Number of employees: Pretty self-explanatory. We will always have 2 managers and 1 trainee.
  - Random seed: Optional; included for consistency when giving live demos.
  - Autofill scenario: Auto-populates all settings to provide scenarios of varying sizes that will produce feasible solutions.
+=======
+- Number of employees: Pretty self-explanatory. We will always have 2 managers
+  and 1 trainee.
+- Random seed: Optional; included for consistency when giving live demos.
+- Autofill scenario: Auto-populates all settings to provide scenarios of varying
+  sizes that will produce feasible solutions.
+>>>>>>> a4d0bd4 (Update README)
 
-There is also a collapsible menu of additional options. These additional options include:
+There is also a collapsible menu of additional options. These additional options
+include:
 
+<<<<<<< HEAD
  - Allow isolated days off: Unchecked, this option means that no employee can have a stand-alone day off. Every day off must be at least two consecutive days.
  - Require a manager on every shift: Checked, this option means that every shift must have exactly one manager on duty to supervise.
  - Min/max shifts per employee: The range that determines the number of shifts an employee can work in the month.
@@ -128,3 +138,16 @@ The solution returned will be either the best feasible solution (if a feasible s
 =======
 The solution returned will be either the best feasible solution (if a feasible solution is found) or the best infeasible solution (if no feasible solution is found). If an infeasible solution is found, scrolling down will show the list of constraints that were violated.
 >>>>>>> 20381a0 (Adjust packages)
+=======
+- Allow isolated days off: Unchecked, this option means that no employee can
+  have a stand-alone day off. Every day off must be at least two consecutive
+  days.
+- Require a manager on every shift: Checked, this option means that every shift
+  must have exactly one manager on duty to supervise.
+- Min/max shifts per employee: The range that determines the number of shifts an
+  employee can work in the month.
+- Min/max employees per shift: The range that determines how many employees need
+  to be assigned to each shift.
+- Max consecutive shifts: The maximum number of shifts in a row that an employee
+  can be scheduled before they need to have a day off.
+>>>>>>> a4d0bd4 (Update README)
