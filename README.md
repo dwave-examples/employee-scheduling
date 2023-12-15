@@ -76,12 +76,6 @@ constraints that were violated.
 ## Introducing the Demo
 
 
-<<<<<<< HEAD
-=======
-![Screen Image](assets/demo_image.png)
-
-### Employee Availability
->>>>>>> 5a99743 (Add image to readme)
 
 
 The employee availability chart shows employee shift preferences and unavailable
@@ -128,5 +122,9 @@ Once you have set all of the options to your satisfaction, click the "Solve CQM"
 
 Once the problem has completed, the best solution returned will be displayed in place of "Employee Availability". You can click back to the original availability using the tabs at the top of the schedule card.
 
+<<<<<<< HEAD
 The solution returned will be either the best feasible solution (if a feasible solution is found) or the best infeasible solution (if no feasible solution is found).
 >>>>>>> 8a73d61 (Add README)
+=======
+The solution returned will be either the best feasible solution (if a feasible solution is found) or the best infeasible solution (if no feasible solution is found). If an infeasible solution is found, scrolling down will show the list of constraints that were violated.
+>>>>>>> 20381a0 (Adjust packages)
