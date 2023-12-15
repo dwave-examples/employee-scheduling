@@ -498,6 +498,30 @@ def set_scenario(scenario_size):
 
 
 @app.callback(
+    Output("input_employees", 'value'),
+    Output("seed", 'value'),
+    Output("checklist-input", 'value'),
+    Output("min shifts", 'value'),
+    Output("max shifts", 'value'),
+    Output("shifts min", 'value'),
+    Output("shifts max", 'value'),
+    Output("cons shifts", 'value'),
+    [Input("demo-dropdown", 'value')]
+)
+def set_scenario(scenario_size):
+
+    if scenario_size == 'Small':
+        return 12, 4, [2], 10, 20, 3, 6, 5
+    elif scenario_size == 'Medium':
+        return 20, 4, [2], 8, 16, 6, 10, 5
+    elif scenario_size == 'Large':
+        return 40, 4, [2], 4, 16, 6, 10, 5
+    else:
+        return 12, None, [2], 10, 20, 3, 6, 5
+
+
+
+@app.callback(
     Output("initial-sched", "children"),
     [Input("input_employees", "value"), Input("seed", "value")],
 )

@@ -195,7 +195,6 @@ def run_cqm(cqm):
                     msg = "\n- " + constraints[i][1:]
                     errors += msg
                     print(msg)
-
         return sampleset, errors
 
     print("\nFeasible solution found.\n")
