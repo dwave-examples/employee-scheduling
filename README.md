@@ -98,5 +98,27 @@ month.
 
 Always available are three options.
 
+<<<<<<< HEAD
 
 
+=======
+ - Number of employees: Pretty self-explanatory. We will always have 2 managers and 1 trainee.
+ - Random seed: Optional; included for consistency when giving live demos.
+ - Autofill scenario: Auto-populates all settings to provide scenarios of varying sizes that will produce feasible solutions.
+
+There is also a collapsible menu of additional options. These additional options include:
+
+ - Allow isolated days off: Unchecked, this option means that no employee can have a stand-alone day off. Every day off must be at least two consecutive days.
+ - Require a manager on every shift: Checked, this option means that every shift must have exactly one manager on duty to supervise.
+ - Min/max shifts per employee: The range that determines the number of shifts an employee can work in the month.
+ - Min/max employees per shift: The range that determines how many employees need to be assigned to each shift.
+ - Max consecutive shifts: The maximum number of shifts in a row that an employee can be scheduled before they need to have a day off.
+
+## Running the Demo
+
+Once you have set all of the options to your satisfaction, click the "Solve CQM" button on the left. In your terminal you will see status updates for "Building CQM..." and "Submitting CQM...".
+
+Once the problem has completed, the best solution returned will be displayed in place of "Employee Availability". You can click back to the original availability using the tabs at the top of the schedule card.
+
+The solution returned will be either the best feasible solution (if a feasible solution is found) or the best infeasible solution (if no feasible solution is found).
+>>>>>>> 8a73d61 (Add README)
