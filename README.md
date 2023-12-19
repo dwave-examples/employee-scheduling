@@ -1,114 +1,80 @@
 [![Open in GitHub Codespaces](
   https://img.shields.io/badge/Open%20in%20GitHub%20Codespaces-333?logo=github)](
   https://codespaces.new/dwave-examples/employee-scheduling?quickstart=1)
-[![Linux/Mac/Windows build status](
+<!-- [![Linux/Mac/Windows build status](
   https://circleci.com/gh/dwave-examples/employee-scheduling.svg?style=shield)](
-  https://circleci.com/gh/dwave-examples/employee-scheduling)
+  https://circleci.com/gh/dwave-examples/employee-scheduling) -->
 
-# Building an Employee Schedule
+# Employee Scheduling Demo
 
-Building a schedule for employees can be an extremely complex optimization
-problem in which managers must balance employee preferences against schedule
-requirements. In this example, we show how a discrete quadratic model (DQM) 
-and a constrained quadratic model (CQM) can be used to model this problem and
-how the hybrid solvers available in Leap can optimize over these competing 
-scheduling and preference needs.
+Employee scheduling is a common industry problem that can often become complex
+due to real-world constraints and requirements. In this example, we demonstrate
+a scheduling scenario with a variety of employees and rules.
 
-## Usage
+## Running the Demo
 
-To run the CQM demo, type the command:
+To run the demo, open the terminal and run `python app.py`. Open a web browser
+and copy the URL from the terminal to load the demo in the browser.
 
-```python demo.py```
+Once we have set all of the options to our satisfaction, click the "Solve CQM"
+button on the left. In the terminal we see status updates for "Building CQM..."
+and "Submitting CQM...".
 
-A prompt will appear asking for the number of employees:
+Once the problem has completed, the best solution returned will be displayed in
+place of "Employee Availability". Click back to the original availability using
+the tabs at the top of the schedule card.
 
-```Enter number of employees:```
+The solution returned will be either the best feasible solution (if a feasible
+solution is found) or the best infeasible solution (if no feasible solution is
+found). If an infeasible solution is found, scrolling down will show the list of
+constraints that were violated.
 
-Type the number of employees to be considered and hit `Enter`. Note that the
-CQM solver can take up to 5000 variables, or employees for this problem.
+## Introducing the Demo
 
-A second prompt for the number of shifts will appear:
+When the demo opens in the web browser, there are a few options on the left and
+a chart of employee availability in the center.
 
-```Enter number of shifts:```
+![Screen Image](assets/demo_image.png)
 
-Type the number of shifts and hit `Enter`. Note that we should have at least as
-many employees as there are shifts.
+### Employee Availability
 
-Once these values have been entered, the program will randomly generate employee
-preferences for the N shifts from most preferred (0) to least preferred (N-1). A
-CQM is constructed (see below for details) and the problem is run using
-`LeapHybridCQMSampler`.
+The employee availability chart shows employee shift preferences and unavailable
+days (PTO). Preferred shifts are in teal and marked with a 'P', while
+unavailable shifts are in organe and marked with an 'X'.
 
-Once the problem has run, two images are created. First, `employee_schedule.png`
-illustrates the employee preference matrix alongside the schedule built.
-Second, `schedule_statistics.png` shows how many employees are scheduled for
-each shift, alongside a bar chart showing the employees' average preferences
-for the shifts for which they have been scheduled.
+In the chart, there are three different types of employees.
 
-At the end of the program's run, two statistics are printed to the
-command-line. Schedule score provides the energy value of the best solution
-found. Average happiness is the average of the employee preference values for
-the shifts that they are scheduled. A smaller average happiness score is
-better, and a score of 0.0 is a perfect score - everyone received their first
-choice shift.
+- Managers: These are employees with 'Mgr' at the end of their name.
+- Employees: These are employees with no tag at the end of their name.
+- Trainees: These are employees with 'Tr' at the end of their name. The trainee
+  has the same name as their trainer. The trainee can **only** be scheduled to
+  work on a shift that their trainer is also scheduled to work.
 
-To run the DQM demo, type the command:
+The chart displays employee preferences and availability for this month. It will
+always display the current month, with one column for each day in this current
+month.
 
-```python scheduler.py```
+### Options
 
-Similar commands and output follow.
+Always available are three options.
 
-## Building the Quadratic Model
+- Number of employees: Pretty self-explanatory. We will always have 2 managers
+  and 1 trainee.
+- Random seed: Optional; included for consistency when giving live demos.
+- Autofill scenario: Auto-populates all settings to provide scenarios of varying
+  sizes that will produce feasible solutions.
 
-The employee scheduling problem consists of two components: a requirement that
-employees are evenly distributed across all shifts, and an objective to satisfy
-employees by scheduling them for their preferred shifts.
+There is also a collapsible menu of additional options. These additional options
+include:
 
-### Preferred Shifts
-
-Since shift preferences are ranked from most preferred (smallest value) to
-least preferred (largest value), the rankings can be used for the biases in 
-the quadratic model.  Since the hybrid solvers look for minimum energy 
-solutions, and minimum rank corresponds to most preferred, these naturally 
-align.
-
-### Even Distribution
-
-An even distribution of employees across shifts would have approximately
-`num_employees/num_shifts` scheduled employees per shift. To enforce this
-requirement, both linear and quadratic biases must be adjusted in a specific
-manner. We can do this either by building an equality constraint in our 
-constrained quadratic model, or using linear and quadratic biases to enforce 
-the constraint in the discrete quadratic model.
-
-To determine the linear and quadratic bias adjustments, we must consider the
-underlying binary variables in our model. For a DQM with N shifts and M employees,
-each employee has a single variable constructed with N cases or classes. These
-are implemented as N binary variables per employee &mdash; one for each possible
-shift.
-
-For a specific shift `i`, we require that exactly `M/N` employees are scheduled.
-This is equivalent to saying that `M/N` employee variables are assigned case
-`i`, or, returning to our binary variables, that `M/N` of the binary variables
-corresponding to case `i` take a value of 1. In other words, the sum of *all*
-employee case `i` binary variables should equal `M/N`. An equality over a
-summation of binary variables can be converted to a minimization expression by
-moving from the equality:
-
-```sum(shift i binary variables) = M/N```
-
-to a minimization expression:
-
-```min( ( sum(shift i binary variables) - M/N)**2 )```
-
-Expanding and simplifying this expression of binary variables, it becomes:
-
-```min( (-2*M/N+1)*sum(shift i linear biases) + 2*sum(shift i quadratic biases))```
-
-When this constraint is built into our DQM object, it is added in with a
-coefficient `gamma`.  This term gamma is known as a Lagrange parameter and can
-be used to weight this constraint against the competing employee preferences.
-You may wish to adjust this parameter depending on your problem requirements and
-size. The value set here in this program was chosen to empirically work well as
-a starting point for problems of a wide-variety of sizes. For more information
-on setting this parameter, see D-Wave's [Problem Formulation Guide](https://www.dwavesys.com/practical-quantum-computing-developers).
+- Allow isolated days off: Unchecked, this option means that no employee can
+  have a stand-alone day off. Every day off must be at least two consecutive
+  days.
+- Require a manager on every shift: Checked, this option means that every shift
+  must have exactly one manager on duty to supervise.
+- Min/max shifts per employee: The range that determines the number of shifts an
+  employee can work in the month.
+- Min/max employees per shift: The range that determines how many employees need
+  to be assigned to each shift.
+- Max consecutive shifts: The maximum number of shifts in a row that an employee
+  can be scheduled before they need to have a day off.
