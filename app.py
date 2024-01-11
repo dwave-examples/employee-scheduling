@@ -262,7 +262,7 @@ availability_card = dbc.Card(
 )
 
 ready_style = {
-    "max-width": "50%",
+    "max-width": "100%",
     "marginBottom": "5px",
     "outline": False,
 }
@@ -276,8 +276,18 @@ solve_card = dbc.Card(
     [
         dbc.CardBody(
             [
-                dbc.Button("Solve CQM", id="btn_solve_cqm", style=ready_style),
-                html.Div(id="trigger", children=0, style=dict(display="none")),
+                dbc.Row([
+                    dbc.Col([
+                        dbc.Button("Solve CQM", id="btn_solve_cqm", style=ready_style),
+                        html.Div(id="trigger", children=0, style=dict(display="none")),
+                    ], width=6),
+                    dbc.Col([
+                        dbc.FormText("Submission status:", style={"color": col},
+                        ),
+                        dcc.Textarea(id="submission_indicator", value="Ready to solve",
+                            style={"width": "100%"}, rows=2)
+                    ], width=6)
+                ])
             ]
         )
     ],
