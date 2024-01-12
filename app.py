@@ -76,61 +76,56 @@ input_card = dbc.Card(
     [
         dbc.CardBody(
             [
-                html.P(
-                    "Number of Employees:  ",
-                    style={"font-family": ff, "color": col},
-                ),
-                dbc.Input(
-                    id="input_employees",
-                    type="number",
-                    placeholder="#",
-                    min=4,
-                    max=200,
-                    step=1,
-                    value=12,
-                    style={"marginBottom": "5px", "outline": False},
-                ),
-                html.P(
-                    "Optional random seed: ",
-                    style={"font-family": ff, "color": col},
-                ),
-                dbc.Input(
-                    id="seed",
-                    type="number",
-                    placeholder="(Optional) Random Seed",
-                    min=1,
-                    style={"marginBottom": "5px", "outline": False},
-                ),
-                html.P(
-                    "Autofill scenario: ",
-                    style={"font-family": ff, "color": col},
-                ),
-                dcc.Dropdown(
-                    ["Small", "Medium", "Large"],
-                    placeholder="Select a scenario",
-                    id="demo-dropdown",
-                ),
-            ]
-        )
-    ],
-    className="border-0 bg-transparent",
-)
 
-settings_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                dbc.Button(
-                    "Additional Options",
-                    id="collapse-button",
-                    className="mb-3",
-                    color="primary",
-                    n_clicks=0,
-                ),
-                dbc.Collapse(
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
+                dbc.Tabs(
+                    id="input_tabs",
+                    active_tab="basic",
+                    children=[
+                        dbc.Tab(
+                            tab_id="basic",
+                            children=[
+                                html.P(
+                                    "Number of Employees:  ",
+                                    style={"font-family": ff, "color": col},
+                                ),
+                                dbc.Input(
+                                    id="input_employees",
+                                    type="number",
+                                    placeholder="#",
+                                    min=4,
+                                    max=200,
+                                    step=1,
+                                    value=12,
+                                    style={"marginBottom": "5px", "outline": False},
+                                ),
+                                html.P(
+                                    "Optional random seed: ",
+                                    style={"font-family": ff, "color": col},
+                                ),
+                                dbc.Input(
+                                    id="seed",
+                                    type="number",
+                                    placeholder="(Optional) Random Seed",
+                                    min=1,
+                                    style={"marginBottom": "5px", "outline": False},
+                                ),
+                                html.P(
+                                    "Autofill scenario: ",
+                                    style={"font-family": ff, "color": col},
+                                ),
+                                dcc.Dropdown(
+                                    ["Small", "Medium", "Large"],
+                                    placeholder="Select a scenario",
+                                    id="demo-dropdown",
+                                ),
+                            ],
+                            label="Basic",
+                            active_label_style={"color": "black"},
+                            label_style={"color": "white"},
+                        ),
+                        dbc.Tab(
+                            tab_id="more",
+                            children=[
                                 dbc.Checklist(
                                     options=[
                                         {
@@ -229,17 +224,16 @@ settings_card = dbc.Card(
                                         "outline": False,
                                     },
                                 ),
-                            ]
-                        ),
-                        className="border-0 bg-transparent",
-                    ),
-                    id="collapse",
-                    is_open=False,
-                ),
+                            ],
+                            label="More Options",
+                            active_label_style={"color": "black"},
+                            label_style={"color": "white"},
+                        ),                
             ]
         )
     ],
-    className="border-0 bg-transparent",
+    ),], 
+    className="border-0 bg-transparent"
 )
 
 availability_card = dbc.Card(
@@ -398,7 +392,6 @@ app.layout = html.Div(
                             [
                                 input_card,
                                 solve_card,
-                                settings_card,
                             ],
                             style={
                                 "padding": 10,
@@ -660,18 +653,6 @@ def submitter(
 
     else:
         return no_update, no_update, no_update
-
-
-@app.callback(
-    Output("collapse", "is_open"),
-    [Input("collapse-button", "n_clicks")],
-    [State("collapse", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
 
 if __name__ == "__main__":
     app.run_server(debug=True)
