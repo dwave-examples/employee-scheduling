@@ -284,7 +284,7 @@ solve_card = dbc.Card(
                     dbc.Col([
                         dbc.FormText("Submission status:", style={"color": col},
                         ),
-                        dcc.Textarea(id="submission_indicator", value="Ready",
+                        dcc.Textarea(id="submission_indicator", value="Ready to solve",
                             style={"width": "100%"}, rows=2),
                         dcc.Interval(id="submission_timer", interval=None, n_intervals=0, disabled=True),
                     ], width=6)
@@ -550,12 +550,10 @@ def submission_mngr(
     trigger = callback_context.triggered
     trigger_id = trigger[0]["prop_id"].split(".")[0]
 
-    print(f"trigger_id = {trigger_id} n_clicks = {n_clicks}")
-
     if trigger_id == "btn_solve_cqm" and n_clicks:
-        return "Submitting...", 1000, False, "avail"     
+        return "Submitting... please wait", 1000, False, "avail"     
         
-    if trigger_id == "submission_timer" and submission_indicator_val == "Submitting...":
+    if trigger_id == "submission_timer" and submission_indicator_val == "Submitting... please wait":
         if active_tab == "avail":
             return no_update, no_update, False, no_update
         else:
@@ -590,7 +588,7 @@ def submitter(
     built_sched,
     e_card,
 ):
-    if submission_indicator_val == "Ready":
+    if submission_indicator_val == "Ready to solve":
         return (
             html.Label("Not constructed yet.", style={"max-width": "50%"}),
             None,
@@ -600,7 +598,7 @@ def submitter(
     elif submission_indicator_val == "Done":
         return built_sched, e_card, "sched"
     
-    elif submission_indicator_val == "Submitting...":
+    elif submission_indicator_val == "Submitting... please wait":
         shifts = list(sched_df["props"]["data"][0].keys())
         shifts.remove("Employee")
         availability = utils.availability_to_dict(
