@@ -2,7 +2,7 @@ import calendar
 from datetime import datetime
 
 import dash_bootstrap_components as dbc
-from dash import Dash, Input, Output, State, dcc, html
+from dash import Dash, Input, Output, State, dcc, html, callback_context, no_update
 
 import employee_scheduling
 import utils
@@ -284,8 +284,9 @@ solve_card = dbc.Card(
                     dbc.Col([
                         dbc.FormText("Submission status:", style={"color": col},
                         ),
-                        dcc.Textarea(id="submission_indicator", value="Ready to solve",
-                            style={"width": "100%"}, rows=2)
+                        dcc.Textarea(id="submission_indicator", value="Ready",
+                            style={"width": "100%"}, rows=2),
+                        dcc.Interval(id="submission_timer", interval=None, n_intervals=0, disabled=True),
                     ], width=6)
                 ])
             ]
@@ -529,27 +530,56 @@ def set_shifts_min(min_e):
 def set_shifts_max(max_e):
     return max_e
 
+@app.callback(
+    Output("submission_indicator", "value"),
+    Output("submission_timer", "interval"),
+    Output("submission_timer", "disabled"),
+    Output("tabs", "active_tab", allow_duplicate=True),
+    Input("btn_solve_cqm", "n_clicks"),
+    Input("submission_timer", "n_intervals"),
+    State("submission_indicator", "value"),
+    State("tabs", "active_tab"),
+    prevent_initial_call=True
+)
+def submission_mngr(
+    n_clicks,
+    n_intervals,
+    submission_indicator_val,
+    active_tab,
+):
+    trigger = callback_context.triggered
+    trigger_id = trigger[0]["prop_id"].split(".")[0]
 
+    print(f"trigger_id = {trigger_id} n_clicks = {n_clicks}")
+
+    if trigger_id == "btn_solve_cqm" and n_clicks:
+        return "Submitting...", 1000, False, "avail"     
+        
+    if trigger_id == "submission_timer" and submission_indicator_val == "Submitting...":
+        if active_tab == "avail":
+            return no_update, no_update, False, no_update
+        else:
+            return "Done", no_update, True, no_update
+        
+    return no_update, no_update, no_update, no_update
+   
 @app.callback(
     Output("built-sched", "children"),
     Output("error_card_body", "children"),
-    Output("btn_solve_cqm", "n_clicks"),
     Output("tabs", "active_tab"),
-    [
-        Input("btn_solve_cqm", "n_clicks"),
-        Input("checklist-input", "value"),
-        Input("min shifts", "value"),  # shifts per employee
-        Input("max shifts", "value"),
-        Input("shifts min", "value"),  # employees per shift
-        Input("shifts max", "value"),
-        Input("cons shifts", "value"),  # consecutive shifts allowed
-    ],
+    Input("submission_indicator", "value"),
+    State("checklist-input", "value"),
+    State("min shifts", "value"),  # shifts per employee
+    State("max shifts", "value"),
+    State("shifts min", "value"),  # employees per shift
+    State("shifts max", "value"),
+    State("cons shifts", "value"),  # consecutive shifts allowed
     State("initial-sched", "children"),
     State("built-sched", "children"),
     State("error_card_body", "children"),
 )
-def on_button_click(
-    n,
+def submitter(
+    submission_indicator_val,
     checklist_value,
     min_shifts,
     max_shifts,
@@ -560,16 +590,17 @@ def on_button_click(
     built_sched,
     e_card,
 ):
-    if n is None:
+    if submission_indicator_val == "Ready":
         return (
             html.Label("Not constructed yet.", style={"max-width": "50%"}),
-            " ",
             None,
             "avail",
         )
-    elif n == 0:
-        return built_sched, e_card, 0, "sched"
-    else:
+    
+    elif submission_indicator_val == "Done":
+        return built_sched, e_card, "sched"
+    
+    elif submission_indicator_val == "Submitting...":
         shifts = list(sched_df["props"]["data"][0].keys())
         shifts.remove("Employee")
         availability = utils.availability_to_dict(
@@ -587,6 +618,8 @@ def on_button_click(
         else:
             manager = False
 
+   
+        
         print("\nBuilding CQM...\n")
         cqm = employee_scheduling.build_cqm(
             availability,
@@ -624,9 +657,11 @@ def on_button_click(
         return (
             utils.display_schedule(sched, availability, month, year),
             new_card_body,
-            0,
             "sched",
         )
+
+    else:
+        return no_update, no_update, no_update
 
 
 @app.callback(
