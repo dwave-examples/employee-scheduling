@@ -56,7 +56,7 @@ title_card = dbc.Card(
                 dbc.Row(
                     [
                         html.H1(
-                            children="Employee Scheduling Demo",
+                            children="Employee Scheduling",
                             style={
                                 "textAlign": "center",
                                 "font-family": ff,
@@ -274,14 +274,12 @@ solve_card = dbc.Card(
                     dbc.Col([
                         dbc.Button("Solve CQM", id="btn_solve_cqm", style=ready_style),
                         html.Div(id="trigger", children=0, style=dict(display="none")),
-                    ], width=6),
-                    dbc.Col([
                         dbc.FormText("Submission status:", style={"color": col},
                         ),
                         dcc.Textarea(id="submission_indicator", value="Ready to solve",
                             style={"width": "100%"}, rows=2),
                         dcc.Interval(id="submission_timer", interval=None, n_intervals=0, disabled=True),
-                    ], width=6)
+                    ], width=6),
                 ])
             ]
         )
@@ -391,13 +389,24 @@ app.layout = html.Div(
                         dbc.Col(
                             [
                                 input_card,
-                                solve_card,
                             ],
                             style={
                                 "padding": 10,
                             },
                             width=3,
                         ),
+                        dbc.Col(
+                            [
+                                solve_card,
+                            ],
+                            style={
+                                "padding": 10,
+                            },
+                            width={"size": 3, "offset": 3},
+                        ),
+                    ]),
+                dbc.Row(
+                    [
                         dbc.Col(
                             dbc.Tabs(
                                 id="tabs",
