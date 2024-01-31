@@ -2,7 +2,7 @@ import calendar
 from datetime import datetime
 
 import dash_bootstrap_components as dbc
-from dash import Dash, Input, Output, State, dcc, html
+from dash import Dash, Input, Output, State, dcc, html, callback_context, no_update
 
 import employee_scheduling
 import utils
@@ -56,7 +56,7 @@ title_card = dbc.Card(
                 dbc.Row(
                     [
                         html.H1(
-                            children="Employee Scheduling Demo",
+                            children="Employee Scheduling",
                             style={
                                 "textAlign": "center",
                                 "font-family": ff,
@@ -76,170 +76,177 @@ input_card = dbc.Card(
     [
         dbc.CardBody(
             [
-                html.P(
-                    "Number of Employees:  ",
-                    style={"font-family": ff, "color": col},
-                ),
-                dbc.Input(
-                    id="input_employees",
-                    type="number",
-                    placeholder="#",
-                    min=4,
-                    max=200,
-                    step=1,
-                    value=12,
-                    style={"marginBottom": "5px", "outline": False},
-                ),
-                html.P(
-                    "Optional random seed: ",
-                    style={"font-family": ff, "color": col},
-                ),
-                dbc.Input(
-                    id="seed",
-                    type="number",
-                    placeholder="(Optional) Random Seed",
-                    min=1,
-                    style={"marginBottom": "5px", "outline": False},
-                ),
-                html.P(
-                    "Autofill scenario: ",
-                    style={"font-family": ff, "color": col},
-                ),
-                dcc.Dropdown(
-                    ["Small", "Medium", "Large"],
-                    placeholder="Select a scenario",
-                    id="demo-dropdown",
-                ),
-            ]
-        )
-    ],
-    className="border-0 bg-transparent",
-)
+                dbc.Tabs(
+                    id="input_tabs",
+                    active_tab="basic",
+                    children=[
+                        dbc.Tab(
+                            tab_id="basic",
+                            children=[
 
-settings_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                dbc.Button(
-                    "Additional Options",
-                    id="collapse-button",
-                    className="mb-3",
-                    color="primary",
-                    n_clicks=0,
-                ),
-                dbc.Collapse(
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                dbc.Checklist(
-                                    options=[
-                                        {
-                                            "label": "Allow isolated days off",
-                                            "value": 1,
-                                        },
-                                        {
-                                            "label": "Require exactly one manager on every shift",
-                                            "value": 2,
-                                        },
-                                    ],
-                                    value=[2],
-                                    id="checklist-input",
-                                    style={
-                                        "color": col,
-                                        "font-family": ff,
-                                    },
-                                ),
-                                dbc.FormText(
-                                    "Min shifts per employee:",
-                                    style={"color": col},
-                                ),
-                                dbc.Input(
-                                    id="min shifts",
-                                    type="number",
-                                    placeholder="Min shifts per employee",
-                                    min=0,
-                                    value=10,
-                                    style={
-                                        "max-width": "50%",
-                                        "marginBottom": "5px",
-                                        "outline": False,
-                                    },
-                                ),
-                                dbc.FormText(
-                                    "Max shifts per employee:",
-                                    style={"color": col},
-                                ),
-                                dbc.Input(
-                                    id="max shifts",
-                                    type="number",
-                                    placeholder="Max shifts per employee",
-                                    min=0,
-                                    value=20,
-                                    style={
-                                        "max-width": "50%",
-                                        "marginBottom": "5px",
-                                        "outline": False,
-                                    },
-                                ),
-                                dbc.FormText(
-                                    "Min employees per shift:",
-                                    style={"color": col},
-                                ),
-                                dbc.Input(
-                                    id="shifts min",
-                                    type="number",
-                                    placeholder="Min employees per shift",
-                                    min=0,
-                                    value=1,
-                                    style={
-                                        "max-width": "50%",
-                                        "marginBottom": "5px",
-                                        "outline": False,
-                                    },
-                                ),
-                                dbc.FormText(
-                                    "Max employees per shift:",
-                                    style={"color": col},
-                                ),
-                                dbc.Input(
-                                    id="shifts max",
-                                    type="number",
-                                    placeholder="Max employees per shift",
-                                    min=1,
-                                    value=6,
-                                    style={
-                                        "max-width": "50%",
-                                        "marginBottom": "5px",
-                                        "outline": False,
-                                    },
-                                ),
-                                dbc.FormText(
-                                    "Max consecutive shifts:",
-                                    style={"color": col},
-                                ),
-                                dbc.Input(
-                                    id="cons shifts",
-                                    type="number",
-                                    placeholder="Max consecutive shifts",
-                                    min=1,
-                                    value=5,
-                                    style={
-                                        "max-width": "50%",
-                                        "marginBottom": "5px",
-                                        "outline": False,
-                                    },
-                                ),
-                            ]
+                                dbc.Row([
+                                    dbc.Col([
+
+                                        html.P(
+                                            "Number of Employees:  ",
+                                            style={"font-family": ff, "color": col},
+                                        ),
+                                        dbc.Input(
+                                            id="input_employees",
+                                            type="number",
+                                            placeholder="#",
+                                            min=4,
+                                            max=200,
+                                            step=1,
+                                            value=12,
+                                            style={"marginBottom": "5px", "outline": False},
+                                        ),
+                                        html.P(
+                                            "Example scenario: ",
+                                            style={"font-family": ff, "color": col},
+                                        ),
+                                        dcc.Dropdown(
+                                            ["Small", "Medium", "Large"],
+                                            placeholder="Select a scenario",
+                                            id="demo-dropdown",
+                                        ),
+                                        dbc.FormText(
+                                            "Max consecutive shifts:",
+                                            style={"color": col},
+                                        ),
+                                        dbc.Input(
+                                            id="cons shifts",
+                                            type="number",
+                                            placeholder="Max consecutive shifts",
+                                            min=1,
+                                            value=5,
+                                            style={
+                                                "max-width": "50%",
+                                                "marginBottom": "5px",
+                                                "outline": False,
+                                            },
+                                        ),
+                                    ], width=4),
+                                ]),
+                            ],
+                            label="Basic Configuration",
+                            active_label_style={"color": "black"},
+                            label_style={"color": "white"},
                         ),
-                        className="border-0 bg-transparent",
-                    ),
-                    id="collapse",
-                    is_open=False,
-                ),
+                        dbc.Tab(
+                            tab_id="more",
+                            children=[
+                                dbc.Row([
+                                    dbc.Col([
+                                        html.P(
+                                            "Optional random seed: ",
+                                            style={"font-family": ff, "color": col},
+                                        ),
+                                        dbc.Input(
+                                            id="seed",
+                                            type="number",
+                                            placeholder="(Optional) Random Seed",
+                                            min=1,
+                                            style={"marginBottom": "5px", "outline": False},
+                                        ),
+                                        dbc.Checklist(
+                                            options=[
+                                                {
+                                                    "label": "Allow isolated days off",
+                                                    "value": 1,
+                                                },
+                                                {
+                                                    "label": "Require exactly one manager on every shift",
+                                                    "value": 2,
+                                                },
+                                            ],
+                                            value=[2],
+                                            id="checklist-input",
+                                            style={
+                                                "color": col,
+                                                "font-family": ff,
+                                            },
+                                        ),
+                                    ]),
+                                    dbc.Col([
+                                        dbc.FormText(
+                                            "Min shifts per employee:",
+                                            style={"color": col},
+                                        ),
+                                        dbc.Input(
+                                            id="min shifts",
+                                            type="number",
+                                            placeholder="Min shifts per employee",
+                                            min=0,
+                                            value=10,
+                                            style={
+                                                "max-width": "50%",
+                                                "marginBottom": "5px",
+                                                "outline": False,
+                                            },
+                                        ),
+                                        dbc.FormText(
+                                            "Max shifts per employee:",
+                                            style={"color": col},
+                                        ),
+                                        dbc.Input(
+                                            id="max shifts",
+                                            type="number",
+                                            placeholder="Max shifts per employee",
+                                            min=0,
+                                            value=20,
+                                            style={
+                                                "max-width": "50%",
+                                                "marginBottom": "5px",
+                                                "outline": False,
+                                            },
+                                        ),
+                                    ]),
+                                    dbc.Col([
+                                        dbc.FormText(
+                                            "Min employees per shift:",
+                                            style={"color": col},
+                                        ),
+                                        dbc.Input(
+                                            id="shifts min",
+                                            type="number",
+                                            placeholder="Min employees per shift",
+                                            min=0,
+                                            value=1,
+                                            style={
+                                                "max-width": "50%",
+                                                "marginBottom": "5px",
+                                                "outline": False,
+                                            },
+                                        ),
+                                        dbc.FormText(
+                                            "Max employees per shift:",
+                                            style={"color": col},
+                                        ),
+                                        dbc.Input(
+                                            id="shifts max",
+                                            type="number",
+                                            placeholder="Max employees per shift",
+                                            min=1,
+                                            value=6,
+                                            style={
+                                                "max-width": "50%",
+                                                "marginBottom": "5px",
+                                                "outline": False,
+                                            },
+                                        ),
+                                    ]), 
+                                ]),    
+                            ],
+                            label="Advanced Configuration",
+                            active_label_style={"color": "black"},
+                            label_style={"color": "white"},
+                        ),                
             ]
         )
     ],
-    className="border-0 bg-transparent",
+    ),], 
+    className="border-0 bg-transparent"
 )
 
 availability_card = dbc.Card(
@@ -262,7 +269,7 @@ availability_card = dbc.Card(
 )
 
 ready_style = {
-    "max-width": "50%",
+    "max-width": "100%",
     "marginBottom": "5px",
     "outline": False,
 }
@@ -276,8 +283,17 @@ solve_card = dbc.Card(
     [
         dbc.CardBody(
             [
-                dbc.Button("Solve CQM", id="btn_solve_cqm", style=ready_style),
-                html.Div(id="trigger", children=0, style=dict(display="none")),
+                dbc.Row([
+                    dbc.Col([
+                        dbc.Button("Solve CQM", id="btn_solve_cqm", style=ready_style),
+                        html.Div(id="trigger", children=0, style=dict(display="none")),
+                        dbc.FormText("Submission status:", style={"color": col},
+                        ),
+                        dcc.Textarea(id="submission_indicator", value="Ready to solve",
+                            style={"width": "100%"}, rows=2),
+                        dcc.Interval(id="submission_timer", interval=None, n_intervals=0, disabled=True),
+                    ], width=6),
+                ])
             ]
         )
     ],
@@ -386,14 +402,24 @@ app.layout = html.Div(
                         dbc.Col(
                             [
                                 input_card,
-                                solve_card,
-                                settings_card,
                             ],
                             style={
                                 "padding": 10,
                             },
-                            width=3,
+                            width=6,
                         ),
+                        dbc.Col(
+                            [
+                                solve_card,
+                            ],
+                            style={
+                                "padding": 10,
+                            },
+                            width={"size": 3, "offset": 1},
+                        ),
+                    ]),
+                dbc.Row(
+                    [
                         dbc.Col(
                             dbc.Tabs(
                                 id="tabs",
@@ -519,27 +545,54 @@ def set_shifts_min(min_e):
 def set_shifts_max(max_e):
     return max_e
 
+@app.callback(
+    Output("submission_indicator", "value"),
+    Output("submission_timer", "interval"),
+    Output("submission_timer", "disabled"),
+    Output("tabs", "active_tab", allow_duplicate=True),
+    Input("btn_solve_cqm", "n_clicks"),
+    Input("submission_timer", "n_intervals"),
+    State("submission_indicator", "value"),
+    State("tabs", "active_tab"),
+    prevent_initial_call=True
+)
+def submission_mngr(
+    n_clicks,
+    n_intervals,
+    submission_indicator_val,
+    active_tab,
+):
+    trigger = callback_context.triggered
+    trigger_id = trigger[0]["prop_id"].split(".")[0]
 
+    if trigger_id == "btn_solve_cqm" and n_clicks:
+        return "Submitting... please wait", 1000, False, "avail"     
+        
+    if trigger_id == "submission_timer" and submission_indicator_val == "Submitting... please wait":
+        if active_tab == "avail":
+            return no_update, no_update, False, no_update
+        else:
+            return "Done", no_update, True, no_update
+        
+    return no_update, no_update, no_update, no_update
+   
 @app.callback(
     Output("built-sched", "children"),
     Output("error_card_body", "children"),
-    Output("btn_solve_cqm", "n_clicks"),
     Output("tabs", "active_tab"),
-    [
-        Input("btn_solve_cqm", "n_clicks"),
-        Input("checklist-input", "value"),
-        Input("min shifts", "value"),  # shifts per employee
-        Input("max shifts", "value"),
-        Input("shifts min", "value"),  # employees per shift
-        Input("shifts max", "value"),
-        Input("cons shifts", "value"),  # consecutive shifts allowed
-    ],
+    Input("submission_indicator", "value"),
+    State("checklist-input", "value"),
+    State("min shifts", "value"),  # shifts per employee
+    State("max shifts", "value"),
+    State("shifts min", "value"),  # employees per shift
+    State("shifts max", "value"),
+    State("cons shifts", "value"),  # consecutive shifts allowed
     State("initial-sched", "children"),
     State("built-sched", "children"),
     State("error_card_body", "children"),
 )
-def on_button_click(
-    n,
+def submitter(
+    submission_indicator_val,
     checklist_value,
     min_shifts,
     max_shifts,
@@ -550,16 +603,17 @@ def on_button_click(
     built_sched,
     e_card,
 ):
-    if n is None:
+    if submission_indicator_val == "Ready to solve":
         return (
             html.Label("Not constructed yet.", style={"max-width": "50%"}),
-            " ",
             None,
             "avail",
         )
-    elif n == 0:
-        return built_sched, e_card, 0, "sched"
-    else:
+    
+    elif submission_indicator_val == "Done":
+        return built_sched, e_card, "sched"
+    
+    elif submission_indicator_val == "Submitting... please wait":
         shifts = list(sched_df["props"]["data"][0].keys())
         shifts.remove("Employee")
         availability = utils.availability_to_dict(
@@ -577,6 +631,8 @@ def on_button_click(
         else:
             manager = False
 
+   
+        
         print("\nBuilding CQM...\n")
         cqm = employee_scheduling.build_cqm(
             availability,
@@ -614,21 +670,11 @@ def on_button_click(
         return (
             utils.display_schedule(sched, availability, month, year),
             new_card_body,
-            0,
             "sched",
         )
 
-
-@app.callback(
-    Output("collapse", "is_open"),
-    [Input("collapse-button", "n_clicks")],
-    [State("collapse", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
+    else:
+        return no_update, no_update, no_update
 
 if __name__ == "__main__":
     app.run_server(debug=True)
