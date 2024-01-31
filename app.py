@@ -110,22 +110,7 @@ input_card = dbc.Card(
                                             placeholder="Select a scenario",
                                             id="demo-dropdown",
                                         ),
-                                        dbc.FormText(
-                                            "Max consecutive shifts:",
-                                            style={"color": col},
-                                        ),
-                                        dbc.Input(
-                                            id="cons shifts",
-                                            type="number",
-                                            placeholder="Max consecutive shifts",
-                                            min=1,
-                                            value=5,
-                                            style={
-                                                "max-width": "50%",
-                                                "marginBottom": "5px",
-                                                "outline": False,
-                                            },
-                                        ),
+                                        
                                     ], width=4),
                                 ]),
                             ],
@@ -201,6 +186,22 @@ input_card = dbc.Card(
                                                 "outline": False,
                                             },
                                         ),
+                                        dbc.FormText(
+                                            "Max consecutive shifts:",
+                                            style={"color": col},
+                                        ),
+                                        dbc.Input(
+                                            id="cons shifts",
+                                            type="number",
+                                            placeholder="Max consecutive shifts",
+                                            min=1,
+                                            value=5,
+                                            style={
+                                                "max-width": "50%",
+                                                "marginBottom": "5px",
+                                                "outline": False,
+                                            },
+                                        ),
                                     ]),
                                     dbc.Col([
                                         dbc.FormText(
@@ -269,7 +270,7 @@ availability_card = dbc.Card(
 )
 
 ready_style = {
-    "max-width": "100%",
+    "max-width": "50%",
     "marginBottom": "5px",
     "outline": False,
 }
@@ -284,15 +285,14 @@ solve_card = dbc.Card(
         dbc.CardBody(
             [
                 dbc.Row([
-                    dbc.Col([
                         dbc.Button("Solve CQM", id="btn_solve_cqm", style=ready_style),
-                        html.Div(id="trigger", children=0, style=dict(display="none")),
+                        html.Div(id="trigger", children=0, style=dict(display="none")),]),
+                dbc.Row([
                         dbc.FormText("Submission status:", style={"color": col},
                         ),
                         dcc.Textarea(id="submission_indicator", value="Ready to solve",
-                            style={"width": "100%"}, rows=2),
+                            style={"width": "100%", "color": "white", "background-color": "rgba(0,0,0,0)", "border": "rgba(0,0,0,0)"}, rows=2),
                         dcc.Interval(id="submission_timer", interval=None, n_intervals=0, disabled=True),
-                    ], width=6),
                 ])
             ]
         )
@@ -383,7 +383,7 @@ app.layout = html.Div(
     [
         nav_bar,
         dbc.Container(
-            [
+            [dbc.Col([
                 dbc.Row(
                     dbc.Col(
                         title_card,
@@ -459,10 +459,10 @@ app.layout = html.Div(
                         "outline": False,
                         "className": "border-0 bg-transparent",
                         "justify": "center",
-                    },
+                    }, justify="center"
                 ),
                 dbc.Row(error_card),
-            ],
+            ])],
             style={
                 "backgroundColor": "black",
                 "background-image": "url('assets/electric_squids.png')",
@@ -473,28 +473,6 @@ app.layout = html.Div(
         ),
     ]
 )
-
-
-@app.callback(
-    Output("input_employees", "value"),
-    Output("seed", "value"),
-    Output("checklist-input", "value"),
-    Output("min shifts", "value"),
-    Output("max shifts", "value"),
-    Output("shifts min", "value"),
-    Output("shifts max", "value"),
-    Output("cons shifts", "value"),
-    [Input("demo-dropdown", "value")],
-)
-def set_scenario(scenario_size):
-    if scenario_size == "Small":
-        return 12, 4, [2], 10, 20, 3, 6, 5
-    elif scenario_size == "Medium":
-        return 20, 4, [2], 8, 16, 6, 10, 5
-    elif scenario_size == "Large":
-        return 40, 4, [2], 4, 16, 6, 10, 5
-    else:
-        return 12, None, [2], 10, 20, 3, 6, 5
 
 
 @app.callback(
@@ -567,28 +545,6 @@ def set_shifts_min(min_e):
 def set_shifts_max(max_e):
     return max_e
 
-# Don't allow max shifts to be smaller than min shifts
-@app.callback(Output("max shifts", "min"), Input("min shifts", "value"))
-def set_min_shifts(min_s):
-    return min_s
-
-
-# Don't allow min shifts to be bigger than max shifts
-@app.callback(Output("shifts min", "max"), Input("shifts max", "value"))
-def set_max_shifts(max_s):
-    return max_s
-
-
-# Don't allow max employees to be smaller than min employees
-@app.callback(Output("shifts max", "min"), Input("shifts min", "value"))
-def set_shifts_min(min_e):
-    return min_e
-
-
-# Don't allow min employees to be bigger than max employees
-@app.callback(Output("min shifts", "max"), Input("max shifts", "value"))
-def set_shifts_max(max_e):
-    return max_e
 
 @app.callback(
     Output("submission_indicator", "value"),
