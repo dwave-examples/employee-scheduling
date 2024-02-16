@@ -1,14 +1,14 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/debian
-{
+ // README at: https://github.com/devcontainers/templates/tree/main/src/debian
+ {
 	"name": "Ocean Development Environment",
 
 	// python 3.11 on debian, with latest Ocean and optional packages
 	// source repo: https://github.com/dwavesystems/ocean-dev-docker
 	"image": "docker.io/dwavesys/ocean-dev:latest",
 
-	// install repo requirements on create and content update
-	"updateContentCommand": "pip install -r requirements.txt",
+	// install repo pip requirements (only if present) on content update
+	"updateContentCommand": "[ ! -r requirements.txt ] || pip install -r requirements.txt",
 
 	// forward/expose container services (relevant only when run locally)
 	"forwardPorts": [
@@ -48,4 +48,5 @@
 			]
 		}
 	}
-}
+ }
+ 

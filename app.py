@@ -88,7 +88,7 @@ input_card = dbc.Card(
                                     dbc.Col([
 
                                         html.P(
-                                            "Number of Employees:  ",
+                                            "Number of employees:  ",
                                             style={"font-family": ff, "color": col},
                                         ),
                                         dbc.Input(
@@ -100,6 +100,7 @@ input_card = dbc.Card(
                                             step=1,
                                             value=12,
                                             style={"marginBottom": "5px", "outline": False},
+                                            debounce = True
                                         ),
                                         html.P(
                                             "Example scenario: ",
@@ -133,6 +134,7 @@ input_card = dbc.Card(
                                             placeholder="(Optional) Random Seed",
                                             min=1,
                                             style={"marginBottom": "5px", "outline": False},
+                                            debounce = True
                                         ),
                                         dbc.Checklist(
                                             options=[
@@ -169,6 +171,7 @@ input_card = dbc.Card(
                                                 "marginBottom": "5px",
                                                 "outline": False,
                                             },
+                                            debounce = True
                                         ),
                                         dbc.FormText(
                                             "Max shifts per employee:",
@@ -185,6 +188,7 @@ input_card = dbc.Card(
                                                 "marginBottom": "5px",
                                                 "outline": False,
                                             },
+                                            debounce = True
                                         ),
                                         dbc.FormText(
                                             "Max consecutive shifts:",
@@ -201,6 +205,7 @@ input_card = dbc.Card(
                                                 "marginBottom": "5px",
                                                 "outline": False,
                                             },
+                                            debounce = True
                                         ),
                                     ]),
                                     dbc.Col([
@@ -219,6 +224,7 @@ input_card = dbc.Card(
                                                 "marginBottom": "5px",
                                                 "outline": False,
                                             },
+                                            debounce = True
                                         ),
                                         dbc.FormText(
                                             "Max employees per shift:",
@@ -235,6 +241,7 @@ input_card = dbc.Card(
                                                 "marginBottom": "5px",
                                                 "outline": False,
                                             },
+                                            debounce = True
                                         ),
                                     ]), 
                                 ]),    
@@ -326,7 +333,7 @@ legend_card = dbc.Card(
             [
                 dbc.Row(
                     dbc.FormText(
-                        "Employee unavailable",
+                        "[X] Employee unavailable",
                         style={
                             "color": col,
                             "backgroundColor": "#FF7006",
@@ -336,7 +343,7 @@ legend_card = dbc.Card(
                 ),
                 dbc.Row(
                     dbc.FormText(
-                        "Preferred shift",
+                        "[P] Preferred shift",
                         style={
                             "color": col,
                             "backgroundColor": "#008c82",
@@ -355,10 +362,34 @@ shift_legend_card = dbc.Card(
             [
                 dbc.Row(
                     dbc.FormText(
-                        "Employee shift scheduled",
+                        "[ ] Employee shift scheduled",
                         style={
                             "color": col,
                             "backgroundColor": "#2a7de1",
+                            "padding": 10,
+                        },
+                    )
+                ),
+                dbc.Row(
+                    dbc.FormText(
+                        "[P] Preferred shift",
+                        style={
+                            "padding": 10,
+                        },
+                    )
+                ),
+                dbc.Row(
+                    dbc.FormText(
+                        "[X] Employee unavailable",
+                        style={
+                            "padding": 10,
+                        },
+                    )
+                ),
+                dbc.Row(
+                    dbc.FormText(
+                        "[-] Employee not scheduled",
+                        style={
                             "padding": 10,
                         },
                     )
@@ -576,6 +607,15 @@ def submission_mngr(
             return "Done", no_update, True, no_update
         
     return no_update, no_update, no_update, no_update
+
+# clear built-sched if input schedules changes
+@app.callback(
+    Output("built-sched", "children", allow_duplicate=True),
+    [Input("initial-sched", "children")],
+    prevent_initial_call=True
+)
+def clear_selected(new_dropdown_value):
+    return None
    
 @app.callback(
     Output("built-sched", "children"),
