@@ -35,7 +35,7 @@ def get_random_names(num_employees):
 
 
 def build_random_sched(num_employees, shifts, rand_seed):
-    # Builds a random avaialbility schedule for employees
+    """Builds a random availability schedule for employees."""
 
     if rand_seed:
         np.random.seed(rand_seed)
