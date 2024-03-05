@@ -364,6 +364,14 @@ legend_card = dbc.Card(
                         },
                     )
                 ),
+                dbc.Row(
+                    dbc.FormText(
+                        "Mgr = Manager; Tr - Trainee",
+                        style={
+                            "padding": 10,
+                        },
+                    )
+                ),
             ]
         )
     ]
