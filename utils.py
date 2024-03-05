@@ -22,6 +22,7 @@ from faker import Faker
 
 
 def get_random_string(length):
+    """Generate a random string of a given length."""
     letters = string.ascii_lowercase
     result_str = "".join(random.choice(letters) for _ in range(length))
 
@@ -29,6 +30,7 @@ def get_random_string(length):
 
 
 def get_random_names(num_employees):
+    """Generate a list of names for the employees to be scheduled."""
     fake = Faker()
     names = []
     letters = string.ascii_uppercase
@@ -80,6 +82,7 @@ def build_random_sched(num_employees, shifts, rand_seed=None):
 
 
 def build_schedule_from_sample(sample, shifts, employees):
+    """Builds a schedule from the sample returned."""
     data = pd.DataFrame(columns=shifts)
     data.insert(0, "Employee", employees)
 
@@ -94,6 +97,7 @@ def build_schedule_from_sample(sample, shifts, employees):
 
 
 def display_availability(df, month, year):
+    """Builds the visual display of employee availability."""
     shifts = list(df.columns)
     shifts.remove("Employee")
     cols = [{"id": "Employee", "name": [" ", "Employee"]}] + [
@@ -169,6 +173,7 @@ def display_availability(df, month, year):
 
 
 def display_schedule(df, availability, month, year):
+    """Builds the visual schedule for display."""
     prefs = []
     df[df.iloc[:, 1:] == "X"] = "-"
     for e, a in availability.items():
@@ -237,6 +242,7 @@ def display_schedule(df, availability, month, year):
 
 
 def availability_to_dict(input, shifts):
+    """Converts employee availability to a dictionary."""
     availability = {}
 
     for i in input:
