@@ -31,6 +31,7 @@ def build_cqm(
     isolated,
     k,
 ):
+    """Builds the ConstrainedQuadraticModel for the given scenario."""
     cqm = ConstrainedQuadraticModel()
     employees = list(availability.keys())
 
@@ -144,6 +145,7 @@ def build_cqm(
 
 
 def run_cqm(cqm):
+    """Run the provided CQM on the Leap Hybrid CQM Sampler."""
     sampler = LeapHybridCQMSampler()
 
     sampleset = sampler.sample_cqm(cqm)

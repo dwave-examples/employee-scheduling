@@ -112,7 +112,7 @@ input_card = dbc.Card(
                                             max=200,
                                             step=1,
                                             value=12,
-                                            style={"marginBottom": "5px", "outline": False},
+                                            style={"marginBottom": "5px", "outline": False,},
                                             debounce = True
                                         ),
                                         html.P(
@@ -311,7 +311,7 @@ solve_card = dbc.Card(
                         dbc.FormText("Submission status:", style={"color": col},
                         ),
                         dcc.Textarea(id="submission_indicator", value="Ready to solve",
-                            style={"width": "100%", "color": "white", "background-color": "rgba(0,0,0,0)", "border": "rgba(0,0,0,0)"}, rows=2),
+                            style={"width": "100%", "color": "white", "background-color": "rgba(0,0,0,0)", "border": "rgba(0,0,0,0)", "resize": "none"}, rows=2),
                         dcc.Interval(id="submission_timer", interval=None, n_intervals=0, disabled=True),
                 ])
             ]
@@ -502,7 +502,7 @@ app.layout = html.Div(
                     style={
                         "outline": False,
                         "className": "border-0 bg-transparent",
-                        "justify": "center",
+                        "justify": "left",
                     }, justify="center"
                 ),
                 dbc.Row(error_card),
@@ -543,7 +543,9 @@ def set_scenario(scenario_size):
 
 @app.callback(
     Output("initial-sched", "children"),
+    Output("built-sched", "children", allow_duplicate=True),
     [Input("input_employees", "value"), Input("seed", "value")],
+    prevent_initial_call='initial_duplicate'
 )
 def disp_initial_sched(*vals):
     if vals:
@@ -563,7 +565,22 @@ def disp_initial_sched(*vals):
     df.replace(False, " ", inplace=True)
     df.replace(True, "X", inplace=True)
 
-    return utils.display_availability(df, month, year)
+    employees = list(df["Employee"])
+
+    availability = {}
+
+    for _, row in df.iterrows():
+        e = row[0]
+        i = list(row[1:])
+
+        availability[e] = [
+            0 if i[j] == "X" else 2 if i[j] == "P" else 1 for j in range(len(i))
+        ]    
+
+    sample = {str(e)+"_"+str(s): 0.0 for e in employees for s in shifts}
+    temp = utils.build_schedule_from_sample(sample, shifts, employees)
+
+    return utils.display_availability(df, month, year), utils.display_schedule(temp, availability, month, year)
 
 
 # Don't allow max shifts to be smaller than min shifts
@@ -621,17 +638,9 @@ def submission_mngr(
         
     return no_update, no_update, no_update, no_update
 
-# clear built-sched if input schedules changes
-@app.callback(
-    Output("built-sched", "children", allow_duplicate=True),
-    [Input("initial-sched", "children")],
-    prevent_initial_call=True
-)
-def clear_selected(new_dropdown_value):
-    return None
    
 @app.callback(
-    Output("built-sched", "children"),
+    Output("built-sched", "children", allow_duplicate=True),
     Output("error_card_body", "children"),
     Output("tabs", "active_tab"),
     Input("submission_indicator", "value"),
@@ -644,6 +653,7 @@ def clear_selected(new_dropdown_value):
     State("initial-sched", "children"),
     State("built-sched", "children"),
     State("error_card_body", "children"),
+    prevent_initial_call=True
 )
 def submitter(
     submission_indicator_val,
