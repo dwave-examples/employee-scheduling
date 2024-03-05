@@ -28,6 +28,7 @@ def get_random_names(num_employees):
         while full_name in names:
             n = fake.first_name()
             li = random.choice(letters)
+            full_name = n + " " + li
 
         names.append(full_name)
 
