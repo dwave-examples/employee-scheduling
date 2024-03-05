@@ -19,7 +19,7 @@ def build_cqm(
     k,
 ):
     cqm = ConstrainedQuadraticModel()
-    employees = [key for key in availability.keys()]
+    employees = list(availability.keys())
 
     # Create variables: one per employee per shift
     x = {(i, j): Binary(i + "_" + j) for j in shifts for i in employees}
