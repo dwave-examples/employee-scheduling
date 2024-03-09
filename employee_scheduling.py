@@ -160,7 +160,7 @@ def run_cqm(cqm):
         sat_array = sampleset.first.is_satisfied
         constraints = sampleset.info["constraint_labels"]
         for i in range(len(sat_array)):
-            if sat_array[i] is False:
+            if not sat_array[i]:
                 c = constraints[i]
                 if c[0] == "0":
                     msg = (

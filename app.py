@@ -102,7 +102,9 @@ input_card = dbc.Card(
 
                                         html.P(
                                             "Number of employees:  ",
-                                            style={"font-family": ff, "color": col},
+                                            style={"font-family": ff, 
+                                                   "color": col,
+                                                   "marginTop": "20px"},
                                         ),
                                         dbc.Input(
                                             id="input_employees",
@@ -117,12 +119,15 @@ input_card = dbc.Card(
                                         ),
                                         html.P(
                                             "Example scenario: ",
-                                            style={"font-family": ff, "color": col},
+                                            style={"font-family": ff, 
+                                                   "color": col,
+                                                   "marginTop": "20px"},
                                         ),
                                         dcc.Dropdown(
                                             ["Small", "Medium", "Large"],
                                             placeholder="Select a scenario",
                                             id="demo-dropdown",
+                                            style={"marginBottom": "15px"}
                                         ),
                                         
                                     ], width=4),
@@ -139,15 +144,36 @@ input_card = dbc.Card(
                                     dbc.Col([
                                         html.P(
                                             "Optional random seed: ",
-                                            style={"font-family": ff, "color": col},
+                                            style={"font-family": ff, 
+                                                   "color": col,
+                                                   "marginTop": "10px"},
                                         ),
                                         dbc.Input(
                                             id="seed",
                                             type="number",
-                                            placeholder="(Optional) Random Seed",
+                                            placeholder="(Optional)",
                                             min=1,
-                                            style={"marginBottom": "5px", "outline": False},
-                                            debounce = True
+                                            style={"marginBottom": "5px", 
+                                                   "max-width": "50%",
+                                                   "outline": False},
+                                            debounce = True,
+                                            size = "sm"
+                                        ),
+                                        html.P(
+                                            "Max consecutive shifts:",
+                                            style={"font-family": ff, "color": col},
+                                        ),
+                                        dbc.Input(
+                                            id="cons shifts",
+                                            type="number",
+                                            placeholder="Max consecutive shifts",
+                                            min=1,
+                                            value=5,
+                                            style={
+                                                "max-width": "50%",
+                                                "marginBottom": "5px",
+                                                "outline": False,
+                                            },
                                         ),
                                         dbc.Checklist(
                                             options=[
@@ -167,96 +193,30 @@ input_card = dbc.Card(
                                                 "font-family": ff,
                                             },
                                         ),
-                                    ]),
+                                    ], width=5),
                                     dbc.Col([
-                                        dbc.FormText(
-                                            "Min shifts per employee:",
-                                            style={"color": col},
+                                        html.P(
+                                            "Min/max shifts per employee:",
+                                            style={"font-family": ff, 
+                                                   "color": col,
+                                                   "marginTop": "10px"},
                                         ),
-                                        dbc.Input(
-                                            id="min shifts",
-                                            type="number",
-                                            placeholder="Min shifts per employee",
-                                            min=0,
-                                            value=10,
-                                            style={
-                                                "max-width": "50%",
-                                                "marginBottom": "5px",
-                                                "outline": False,
-                                            },
-                                            debounce = True
+                                        dcc.RangeSlider(min=1, max=20, step=1, marks=None, value=[5, 15], 
+                                                        id='shifts-per-employee-slider', 
+                                                        tooltip={"placement": "bottom", "always_visible": True},
+                                                        allowCross=False),
+                                        html.P(
+                                            "Min/max employees per shift:",
+                                            style={"font-family": ff, 
+                                                   "color": col,
+                                                   "marginTop": "15px"},
                                         ),
-                                        dbc.FormText(
-                                            "Max shifts per employee:",
-                                            style={"color": col},
-                                        ),
-                                        dbc.Input(
-                                            id="max shifts",
-                                            type="number",
-                                            placeholder="Max shifts per employee",
-                                            min=0,
-                                            value=20,
-                                            style={
-                                                "max-width": "50%",
-                                                "marginBottom": "5px",
-                                                "outline": False,
-                                            },
-                                            debounce = True
-                                        ),
-                                        dbc.FormText(
-                                            "Max consecutive shifts:",
-                                            style={"color": col},
-                                        ),
-                                        dbc.Input(
-                                            id="cons shifts",
-                                            type="number",
-                                            placeholder="Max consecutive shifts",
-                                            min=1,
-                                            value=5,
-                                            style={
-                                                "max-width": "50%",
-                                                "marginBottom": "5px",
-                                                "outline": False,
-                                            },
-                                            debounce = True
-                                        ),
+                                        dcc.RangeSlider(min=1, max=20, step=1, marks=None,  value=[5, 15], 
+                                                        id='employees-per-shift-slider', 
+                                                        tooltip={"placement": "bottom", "always_visible": True},
+                                                        allowCross=False,
+                                                        ),
                                     ]),
-                                    dbc.Col([
-                                        dbc.FormText(
-                                            "Min employees per shift:",
-                                            style={"color": col},
-                                        ),
-                                        dbc.Input(
-                                            id="shifts min",
-                                            type="number",
-                                            placeholder="Min employees per shift",
-                                            min=0,
-                                            value=1,
-                                            style={
-                                                "max-width": "50%",
-                                                "marginBottom": "5px",
-                                                "outline": False,
-                                            },
-                                            debounce = True
-                                        ),
-                                        dbc.FormText(
-                                            "Max employees per shift:",
-                                            style={"color": col},
-                                        ),
-                                        dbc.Input(
-                                            id="shifts max",
-                                            type="number",
-                                            placeholder="Max employees per shift",
-                                            min=1,
-                                            value=6,
-                                            style={
-                                                "max-width": "50%",
-                                                "marginBottom": "5px",
-                                                "outline": False,
-                                            },
-                                            debounce = True
-                                        ),
-                                    ]), 
                                 ]),    
                             ],
                             label="Advanced Configuration",
@@ -531,23 +491,42 @@ app.layout = html.Div(
     Output("input_employees", "value"),
     Output("seed", "value"),
     Output("checklist-input", "value"),
-    Output("min shifts", "value"),
-    Output("max shifts", "value"),
-    Output("shifts min", "value"),
-    Output("shifts max", "value"),
+    Output("shifts-per-employee-slider", "value"),
+    # Output("max shifts", "value"),
+    Output("employees-per-shift-slider", "value"),
+    # Output("shifts min", "value"),
+    # Output("shifts max", "value"),
     Output("cons shifts", "value"),
     [Input("demo-dropdown", "value")],
 )
 def set_scenario(scenario_size):
     if scenario_size == "Small":
-        return 12, 4, [2], 10, 20, 3, 6, 5
+        return 12, 4, [2], [10, 20], [3, 6], 5
     elif scenario_size == "Medium":
-        return 20, 4, [2], 8, 16, 6, 10, 5
+        return 20, 4, [2], [8, 16], [6, 10], 5
     elif scenario_size == "Large":
-        return 40, 4, [2], 4, 16, 6, 10, 5
+        return 40, 4, [2], [4, 16], [6, 10], 5
     else:
-        return 12, None, [2], 10, 20, 3, 6, 5
+        return 12, None, [2], [10, 20], [3, 6], 5
 
+
+@app.callback(
+        Output('shifts-per-employee-slider', "max"),
+        Input("input_employees", "value"),
+        )
+def shift_range(val):
+    now = datetime.now()
+    month = now.month
+    year = now.year
+    num_days = calendar.monthrange(year, month)[1]
+    return num_days
+
+@app.callback(
+        Output('employees-per-shift-slider', "max"),
+        Input("input_employees", "value"),
+        )
+def employee_range(val):
+    return val
 
 @app.callback(
     Output("initial-sched", "children"),
@@ -592,27 +571,27 @@ def disp_initial_sched(*vals):
 
 
 # Don't allow max shifts to be smaller than min shifts
-@app.callback(Output("max shifts", "min"), Input("min shifts", "value"))
-def set_min_shifts(min_s):
-    return min_s
+# @app.callback(Output("max shifts", "min"), Input("min shifts", "value"))
+# def set_min_shifts(min_s):
+#     return min_s
 
 
 # Don't allow min shifts to be bigger than max shifts
-@app.callback(Output("shifts min", "max"), Input("shifts max", "value"))
-def set_max_shifts(max_s):
-    return max_s
+# @app.callback(Output("shifts min", "max"), Input("shifts max", "value"))
+# def set_max_shifts(max_s):
+#     return max_s
 
 
 # Don't allow max employees to be smaller than min employees
-@app.callback(Output("shifts max", "min"), Input("shifts min", "value"))
-def set_shifts_min(min_e):
-    return min_e
+# @app.callback(Output("shifts max", "min"), Input("shifts min", "value"))
+# def set_shifts_min(min_e):
+#     return min_e
 
 
 # Don't allow min employees to be bigger than max employees
-@app.callback(Output("min shifts", "max"), Input("max shifts", "value"))
-def set_shifts_max(max_e):
-    return max_e
+# @app.callback(Output("min shifts", "max"), Input("max shifts", "value"))
+# def set_shifts_max(max_e):
+#     return max_e
 
 
 @app.callback(
@@ -652,11 +631,13 @@ def submission_mngr(
     Output("error_card_body", "children"),
     Output("tabs", "active_tab"),
     Input("submission_indicator", "value"),
+    State("shifts-per-employee-slider", "value"),
+    State("employees-per-shift-slider", "value"),
     State("checklist-input", "value"),
-    State("min shifts", "value"),  # shifts per employee
-    State("max shifts", "value"),
-    State("shifts min", "value"),  # employees per shift
-    State("shifts max", "value"),
+    # State("min shifts", "value"),  # shifts per employee
+    # State("max shifts", "value"),
+    # State("shifts min", "value"),  # employees per shift
+    # State("shifts max", "value"),
     State("cons shifts", "value"),  # consecutive shifts allowed
     State("initial-sched", "children"),
     State("built-sched", "children"),
@@ -665,11 +646,13 @@ def submission_mngr(
 )
 def submitter(
     submission_indicator_val,
+    s_per_e_range,
+    e_per_s_range,
     checklist_value,
-    min_shifts,
-    max_shifts,
-    shift_min,
-    shift_max,
+    # min_shifts,
+    # max_shifts,
+    # shift_min,
+    # shift_max,
     k,
     sched_df,
     built_sched,
@@ -706,6 +689,9 @@ def submitter(
    
         
         print("\nBuilding CQM...\n")
+        min_shifts = s_per_e_range[0]
+        max_shifts = s_per_e_range[1]
+        [shift_min, shift_max] = e_per_s_range
         cqm = employee_scheduling.build_cqm(
             availability,
             shifts,
