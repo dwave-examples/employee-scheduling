@@ -576,6 +576,7 @@ def disp_initial_sched(*vals):
     Input("submission_timer", "n_intervals"),
     State("submission_indicator", "value"),
     State("tabs", "active_tab"),
+    State("built-sched", "children"),
     prevent_initial_call=True
 )
 def submission_mngr(
@@ -583,6 +584,7 @@ def submission_mngr(
     n_intervals,
     submission_indicator_val,
     active_tab,
+    built_sched
 ):
     trigger = callback_context.triggered
     trigger_id = trigger[0]["prop_id"].split(".")[0]
@@ -591,12 +593,14 @@ def submission_mngr(
         return "Submitting... please wait", 1000, False, "avail"     
         
     if trigger_id == "submission_timer" and submission_indicator_val == "Submitting... please wait":
-        if active_tab == "avail":
+        s = set( val[0] for dic in built_sched['props']['derived_virtual_data'] for val in dic.values())
+        
+        if " " not in s:
             return no_update, no_update, False, no_update
         else:
-            return no_update, no_update, True, no_update
+            return "Done", no_update, True, "sched"
         
-    return "Done", no_update, True, "sched"
+    return no_update, no_update, True, no_update
 
    
 @app.callback(
