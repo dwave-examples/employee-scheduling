@@ -492,10 +492,7 @@ app.layout = html.Div(
     Output("seed", "value"),
     Output("checklist-input", "value"),
     Output("shifts-per-employee-slider", "value"),
-    # Output("max shifts", "value"),
     Output("employees-per-shift-slider", "value"),
-    # Output("shifts min", "value"),
-    # Output("shifts max", "value"),
     Output("cons shifts", "value"),
     [Input("demo-dropdown", "value")],
 )
@@ -570,30 +567,6 @@ def disp_initial_sched(*vals):
     return utils.display_availability(df, month, year), utils.display_schedule(temp, availability, month, year)
 
 
-# Don't allow max shifts to be smaller than min shifts
-# @app.callback(Output("max shifts", "min"), Input("min shifts", "value"))
-# def set_min_shifts(min_s):
-#     return min_s
-
-
-# Don't allow min shifts to be bigger than max shifts
-# @app.callback(Output("shifts min", "max"), Input("shifts max", "value"))
-# def set_max_shifts(max_s):
-#     return max_s
-
-
-# Don't allow max employees to be smaller than min employees
-# @app.callback(Output("shifts max", "min"), Input("shifts min", "value"))
-# def set_shifts_min(min_e):
-#     return min_e
-
-
-# Don't allow min employees to be bigger than max employees
-# @app.callback(Output("min shifts", "max"), Input("max shifts", "value"))
-# def set_shifts_max(max_e):
-#     return max_e
-
-
 @app.callback(
     Output("submission_indicator", "value"),
     Output("submission_timer", "interval"),
@@ -621,9 +594,9 @@ def submission_mngr(
         if active_tab == "avail":
             return no_update, no_update, False, no_update
         else:
-            return "Done", no_update, True, no_update
+            return no_update, no_update, True, no_update
         
-    return no_update, no_update, no_update, no_update
+    return "Done", no_update, True, "sched"
 
    
 @app.callback(
@@ -634,10 +607,6 @@ def submission_mngr(
     State("shifts-per-employee-slider", "value"),
     State("employees-per-shift-slider", "value"),
     State("checklist-input", "value"),
-    # State("min shifts", "value"),  # shifts per employee
-    # State("max shifts", "value"),
-    # State("shifts min", "value"),  # employees per shift
-    # State("shifts max", "value"),
     State("cons shifts", "value"),  # consecutive shifts allowed
     State("initial-sched", "children"),
     State("built-sched", "children"),
@@ -649,10 +618,6 @@ def submitter(
     s_per_e_range,
     e_per_s_range,
     checklist_value,
-    # min_shifts,
-    # max_shifts,
-    # shift_min,
-    # shift_max,
     k,
     sched_df,
     built_sched,
