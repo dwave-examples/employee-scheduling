@@ -593,9 +593,11 @@ def submission_mngr(
         return "Submitting... please wait", 1000, False, "avail"     
         
     if trigger_id == "submission_timer" and submission_indicator_val == "Submitting... please wait":
+
+        # Checks all current schedule values
         s = set( val[0] for dic in built_sched['props']['derived_virtual_data'] for val in dic.values())
         
-        if " " not in s:
+        if " " not in s: # Scheduled blocks are blank in final schedule
             return no_update, no_update, False, no_update
         else:
             return "Done", no_update, True, "sched"

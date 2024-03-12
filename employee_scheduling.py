@@ -158,6 +158,13 @@ def run_cqm(cqm):
         errors += msg
         print(msg)
         sat_array = sampleset.first.is_satisfied
+
+        # if sampleset is all 0's, set at least one variable to 1 
+        # --> this is needed for "Solve CQM" button to function propertly
+        s_vals = set(sampleset.first.sample.values())
+        if s_vals == {0.0}:
+            sampleset.first.sample[list(cqm.variables)[0]] = 1.0
+
         constraints = sampleset.info["constraint_labels"]
         for i in range(len(sat_array)):
             if not sat_array[i]:
