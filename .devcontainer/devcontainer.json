@@ -7,8 +7,8 @@
 	// source repo: https://github.com/dwavesystems/ocean-dev-docker
 	"image": "docker.io/dwavesys/ocean-dev:latest",
 
-	// install repo requirements on create and content update
-	"updateContentCommand": "pip install -r requirements.txt",
+	// install repo pip requirements (only if present) on content update
+	"updateContentCommand": "[ ! -r requirements.txt ] || pip install -r requirements.txt",
 
 	// forward/expose container services (relevant only when run locally)
 	"forwardPorts": [
@@ -49,3 +49,4 @@
 		}
 	}
 }
+ 
