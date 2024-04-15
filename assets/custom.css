@@ -86,11 +86,6 @@ hr {
   margin-left: 2rem;
 }
 
-/* .cell-table > tbody > tr:last-of-type > td {
-  border: 0;
-  background-color: #008C82;
-} */
-
 h1, h2, h3, h4, h5, h6, td, th, span, a, p, label {
   font-family: "Helvetica Neue", sans-serif;
 }

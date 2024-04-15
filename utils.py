@@ -134,7 +134,7 @@ def display_availability(df, month, year):
                 "if": {"row_index": "odd"},
                 "backgroundColor": "#EEEEEE",
             },
-            {"if": {"row_index": len(df) - 1}, "backgroundColor": "#DDDDDD", "border-left": "0px"},
+            {"if": {"row_index": len(df) - 1}, "backgroundColor": "#DDDDDD", "border-left": "none", "border-right": "none"},
             {
                 "if": {"column_id": "Employee"},
                 "fontWeight": "bold",
@@ -142,7 +142,7 @@ def display_availability(df, month, year):
                 "minWidth": "160px",
                 "width": "220px",
             },
-            {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "0px"},
+            {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "none", "border-bottom": "none"},
         ]
         + [
             {
@@ -239,7 +239,7 @@ def display_schedule(df, availability, month, year):
                 "minWidth": "160px",
                 "width": "220px",
             },
-            {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "0px"},
+            {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "none", "border-bottom": "none"},
         ]
         + [
             {
@@ -266,39 +266,33 @@ def display_schedule(df, availability, month, year):
             for col in df.columns[1:]
         ]
         + [
-            {"if": {"row_index": len(df) - 1}, "backgroundColor": "#DDDDDD", "border-left": "0px"},
+            {"if": {"row_index": len(df) - 1}, "backgroundColor": "#DDDDDD", "border-left": "none", "border-right": "none"},
             {
                 "if": {"column_id": "1", "row_index": len(df) - 1},
                 "backgroundColor": "#2a7de1",
                 "color": "white",
-                "border-left": "0px",
             },
             {
                 "if": {"column_id": "2", "row_index": len(df) - 1},
                 "color": "black",
-                "border-left": "0px",
             },
             {
                 "if": {"column_id": "10", "row_index": len(df) - 1},
                 "backgroundColor": "#c7003888",
                 "color": "white",
-                "border-left": "0px",
             },
             {
                 "if": {"column_id": "11", "row_index": len(df) - 1},
                 "color": "black",
-                "border-left": "0px",
             },
             {
                 "if": {"column_id": "19", "row_index": len(df) - 1},
                 "backgroundColor": "white",
                 "color": "black",
-                "border-left": "0px",
             },
             {
                 "if": {"column_id": "20", "row_index": len(df) - 1},
                 "color": "black",
-                "border-left": "0px",
             },
         ],
         style_header={
