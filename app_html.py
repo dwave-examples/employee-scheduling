@@ -94,7 +94,7 @@ def generate_control_card() -> html.Div:
         children=[
             html.Div(
                 children=[
-                    html.Label("Example scenario"),
+                    html.Label("Scenario preset (sets sliders below)"),
                     dcc.Dropdown(
                         id="example-scenario-select",
                         options=example_scenario,

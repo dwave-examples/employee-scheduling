@@ -76,6 +76,10 @@ def toggle_left_column(left_column_collapse: int, class_name: str) -> str:
     Output("shifts-per-employee-select", "value"),
     Output("employees-per-shift-select", "value"),
     Output("seed-select", "value"),
+    Output("num-employees-select", "disabled"),
+    Output("consecutive-shifts-select", "disabled"),
+    Output("shifts-per-employee-select", "disabled"),
+    Output("employees-per-shift-select", "disabled"),
     inputs=[
         Input("example-scenario-select", "value"),
         State("custom-num-employees", "data"),
@@ -96,11 +100,11 @@ def set_scenario(
 ) -> tuple[int, int, list[int], list[int], int]:
     """Sets the correct scenario, reverting to the saved custom setting if chosen."""
     if scenario == 1:
-        return tuple(SMALL_SCENARIO.values())
+        return *tuple(SMALL_SCENARIO.values()), True, True, True, True
     elif scenario == 2:
-        return tuple(MEDIUM_SCENARIO.values())
+        return *tuple(MEDIUM_SCENARIO.values()), True, True, True, True
     elif scenario == 3:
-        return tuple(LARGE_SCENARIO.values())
+        return *tuple(LARGE_SCENARIO.values()), True, True, True, True
 
     # else return custom stored selections
     return (
@@ -109,6 +113,7 @@ def set_scenario(
         shifts_per_employees,
         employees_per_shift,
         random_seed,
+        False, False, False, False
     )
 
 
