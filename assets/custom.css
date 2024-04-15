@@ -1,8 +1,384 @@
-  .rc-slider-track {
-    background-color: #03b8ff;
-  }
+/*
+This file is forked from apps/dash-clinical-analytics/assets/clinical-analytics.css
+under the following license
 
-  .rc-slider-handle {
-    background-color: #03b8ff;
-    border-color: #074c91;
-  }
+MIT License
+
+Copyright (c) 2019 Plotly
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Modifications are licensed under
+
+Apache License, Version 2.0
+(see ./LICENSE for details)
+
+*/
+
+:root {
+  --blue-bright: #DDDDDD;
+  --blue-bright: #03B8FF;
+  --blue-light: #2A7DE1;
+  --blue-dark: #074C91;
+  --red-light: #C70039;
+  --red-dark: #900C3F;
+  --orange: #FF7006;
+  --teal-light: #06ECDC;
+  --teal-dark: #17BEBB;
+  --teal-darker: #008C82;
+  --grey-lighter: #EEEEEE;
+  --grey-light: #DDDDDD;
+  --grey: #AAAAAA;
+  --grey-medium: #777777;
+  --grey-dark: #222222;
+}
+
+@font-face {
+  font-family: Acumin;
+  font-weight: bold;
+  src: url("Acumin-BdPro.otf") format("opentype");
+}
+
+body {
+  background-color: #f9f9f9;
+  color: var(--grey-dark);
+  font-size: 1.4rem;
+  margin: 0rem;
+}
+
+hr {
+  margin: 0.3rem 0rem;
+}
+
+#description-card {
+  width: 100%;
+  margin: 2rem 0rem;
+}
+
+#banner {
+  height: 5.5rem;
+  background-color: var(--blue-dark);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#banner img {
+  position: relative;
+  height: 3rem;
+  width: auto;
+  margin-left: 2rem;
+}
+
+/* .cell-table > tbody > tr:last-of-type > td {
+  border: 0;
+  background-color: #008C82;
+} */
+
+h1, h2, h3, h4, h5, h6, td, th, span, a, p, label {
+  font-family: "Helvetica Neue", sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--blue-dark);
+  font-weight: 400;
+}
+
+h1 {
+  font-size: 3rem;
+  margin-top: 3rem;
+}
+
+h3 {
+  font-size: 2.5rem;
+  margin: 2.5rem 0 1rem;
+}
+
+h4 {
+  font-size: 2rem;
+  margin-top: 2rem;
+  font-weight: 500;
+}
+
+h4.table-label {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: self-end;
+}
+
+h4.table-label span {
+  font-size: 1.8rem;
+}
+
+label {
+  margin: 2rem 0 0.2rem;
+  font-weight: 500;
+}
+
+#app-container {
+  min-width: 1000px;
+}
+
+#columns {
+  display: flex;
+  height: 100%
+}
+
+#left-column {
+  display: flex;
+}
+
+#left-column > div > div {
+  padding: 0 2rem;
+  /* width: 38rem; */
+  width: 38rem;
+}
+
+#left-column > div:first-child {
+  width: 42rem;
+  transition: width 0.6s ease-in-out;
+  overflow: hidden;
+}
+
+#left-column.collapsed > div:first-child {
+  width: 0;
+}
+
+#right-column {
+  background-color: var(--grey-light);
+  padding: 2rem 0 0;
+  width: 100%;
+}
+
+.dash-table-container {
+  /* viewport height - (tab + banner height) */
+  height: calc(100vh - 14.3rem);
+  overflow-y: auto;
+}
+
+.rc-slider-handle,
+.rc-slider-handle-1,
+.rc-slider-handle-2,
+.rc-slider-dot-active {
+  border-color: var(--blue-light);
+}
+
+.rc-slider-handle:active,
+.rc-slider-handle:hover,
+.rc-slider-handle-click-focused,
+.rc-slider-handle-click-focused:focus
+.rc-slider-handle-1:active,
+.rc-slider-handle-1:hover,
+.rc-slider-handle-1-click-focused,
+.rc-slider-handle-1-click-focused:focus,
+.rc-slider-handle-2:active,
+.rc-slider-handle-2:hover,
+.rc-slider-handle-2-click-focused,
+.rc-slider-handle-2-click-focused:focus {
+    border-color: var(--blue-dark);
+}
+
+.rc-slider-track,
+.rc-slider-track-1 {
+    background-color: var(--blue-light);
+}
+
+.rc-slider-tooltip-inner {
+    background-color: white;
+    color: var(--grey-dark);
+    border: 1px solid var(--grey);
+    border-radius: 2px;
+}
+
+.rc-slider-tooltip {
+  pointer-events: none;
+}
+
+.rc-slider-tooltip .rc-slider-tooltip-arrow {
+    display: none;
+}
+
+.rc-slider-tooltip-inner:before,
+.rc-slider-tooltip-inner:after {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.rc-slider-tooltip-inner:before {
+    left: 6px;
+    top: -11px;
+    border: 6px solid transparent;
+    border-bottom-color: var(--grey);
+}
+
+.rc-slider-tooltip-inner:after {
+    left: 7px;
+    top: -9px;
+    border: 5px solid transparent;
+    border-bottom-color: white;
+}
+
+.rc-slider-tooltip-placement-top .rc-slider-tooltip-inner:before {
+    bottom: -3px;
+    top: auto;
+    transform: rotate(180deg);
+}
+
+.rc-slider-tooltip-placement-top .rc-slider-tooltip-inner:after {
+    bottom: -1px;
+    top: auto;
+    transform: rotate(180deg);
+}
+
+
+#schedule-content[data-dash-is-loading="true"] {
+  filter: grayscale(1);
+  opacity: 0.3;
+  transition: filter 0.1s linear, opacity 0.1s linear;
+}
+
+#schedule-content {
+  height: auto;
+}
+
+div.dash-sk-circle {
+  height: 6rem;
+  width: 6rem;
+}
+
+#control-card > p {
+  font-weight: bold;
+}
+
+button:not(#left-column-collapse) {
+  width: 100%;
+  font-size: 1.4rem;
+  line-height: 1.4rem;
+  padding: 1.8rem;
+  height: auto;
+  color: white;
+  transition: background-color 0.2s ease-in-out;
+  margin-bottom: 4rem;
+  border: none;
+}
+
+#left-column-collapse {
+  background: white;
+  border: 1px var(--grey-lighter);
+  border-style: none solid none none;
+  height: 100%;
+  border-radius: 0;
+  padding: 0 0 0 0.5rem;
+}
+
+#left-column-collapse div {
+  border-right: 4px solid var(--grey-light);
+  border-bottom: 4px solid var(--grey-light);
+  transform: rotate(135deg) skew(165deg, 165deg);
+  height: 2rem;
+  width: 2rem;
+  margin-right: -0.3rem;
+  transition: border-color 0.25s ease-in-out;
+}
+
+#left-column-collapse:hover div {
+  border-color: var(--grey);
+}
+
+.collapsed #left-column-collapse {
+  padding: 0 0.5rem 0 0;
+}
+
+.collapsed #left-column-collapse div {
+  transform: rotate(315deg) skew(160deg, 160deg);
+}
+
+#run-button {
+  background-color: var(--blue-light);
+}
+
+#run-button:hover {
+  background-color: var(--blue-dark);
+}
+
+#cancel-button {
+  background-color: var(--red-light);
+}
+
+#cancel-button:hover {
+  background-color: var(--red-dark);
+}
+
+.tab-container {
+  border-bottom: 3px solid var(--blue-light);
+  flex-direction: row !important;
+}
+
+.tab {
+  margin: 0 2rem;
+  border-top-left-radius: 0.6rem;
+  border-top-right-radius: 0.6rem;
+  width: calc(100% / 2) !important;
+}
+
+div.tab.tab--selected {
+  border: 3px solid var(--blue-light) !important;
+  border-bottom: none !important;
+  cursor: default !important;
+  box-shadow: 0 6px 0 -3px white;
+}
+
+div.tab.tab--disabled {
+  cursor: not-allowed !important;
+}
+
+.tab-content,
+.tab-parent {
+  height: 100%;
+}
+
+.tab-content {
+  background-color: #f12e2e;
+  background-color: #EEEEEE;
+  /* background-color: white; */
+}
+
+.tab-content > div {
+  visibility: visible !important;
+}
+
+.tab-fail {
+  border-top: 2px solid var(--red-light) !important;
+}
+
+.tab-success {
+  border-top: 2px solid var(--teal-darker) !important;
+}
+
+.tab-warning {
+  border-top: 2px solid var(--orange) !important;
+}
+
+#seed-select {
+  margin-bottom: 2rem;
+}

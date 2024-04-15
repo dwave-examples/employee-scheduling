@@ -11,700 +11,304 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import annotations
+
 import calendar
 from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
-import dash_bootstrap_components as dbc
-from dash import Dash, Input, Output, State, dcc, html, callback_context, no_update
+import diskcache
+from dash import Dash, DiskcacheManager, Input, Output, State, ctx, no_update
+from dash.exceptions import PreventUpdate
 
 import employee_scheduling
 import utils
+from app_configs import (APP_TITLE, DEBUG, LARGE_SCENARIO, MEDIUM_SCENARIO, MIN_MAX_EMPLOYEES,
+                         MIN_MAX_SHIFTS, MONTH, SMALL_SCENARIO)
+from app_html import set_html
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+if TYPE_CHECKING:
+    from pandas import DataFrame
 
-ALLOWED_TYPES = (
-    "text",
-    "number",
-    "range",
+cache = diskcache.Cache("./cache")
+background_callback_manager = DiskcacheManager(cache)
+
+app = Dash(
+    __name__,
+    meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
+    prevent_initial_callbacks="initial_duplicate",
+    background_callback_manager=background_callback_manager,
 )
+app.title = APP_TITLE
+
+NOW = datetime.now()
+NUM_DAYS_IN_MONTH = calendar.monthrange(NOW.year, MONTH or NOW.month)[1]
+# update maximum number of shifts to maximum number of days in current month
+MIN_MAX_SHIFTS["max"] = NUM_DAYS_IN_MONTH
 
 
-# style settings
-col = "white"
-ff = "verdana"
-
-nav_bar = dbc.Card(
-    [
-        dbc.Navbar(
-            [
-                html.A(
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                html.Img(
-                                    src="assets/dwave_logo.png", height="20px"
-                                ),
-                                style={"margin": "5px", "outline": False},
-                            ),
-                        ],
-                        align="center",
-                        className="g-0",
-                    ),
-                    href="https://dwavesys.com",
-                    style={
-                        "textDecoration": "none",
-                    },
-                )
-            ],
-            color="#074c91",
-        )
-    ]
-)
-
-
-title_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                dbc.Row(
-                    [
-                        html.H1(
-                            children="Employee Scheduling",
-                            style={
-                                "textAlign": "center",
-                                "font-family": ff,
-                                "className": "border-0 bg-transparent",
-                                "color": col,
-                            },
-                        )
-                    ]
-                )
-            ]
-        )
+@app.callback(
+    Output("left-column", "className"),
+    inputs=[
+        Input("left-column-collapse", "n_clicks"),
+        State("left-column", "className"),
     ],
-    className="border-0 bg-transparent",
+    prevent_initial_call=True,
 )
+def toggle_left_column(left_column_collapse: int, class_name: str) -> str:
+    """Toggles left column 'collapsed' class that hides and shows the left column.
 
-input_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                dbc.Tabs(
-                    id="input_tabs",
-                    active_tab="basic",
-                    children=[
-                        dbc.Tab(
-                            tab_id="basic",
-                            children=[
+    Args:
+        left_column_collapse (int): The (total) number of times the collapse button has been clicked.
+        class_name (str): Current class name of the left column, 'collapsed' if not visible, empty string if visible
 
-                                dbc.Row([
-                                    dbc.Col([
+    Returns:
+        str: The new class name of the left column.
+    """
+    if class_name:
+        return ""
+    return "collapsed"
 
-                                        html.P(
-                                            "Number of employees:  ",
-                                            style={"font-family": ff, 
-                                                   "color": col,
-                                                   "marginTop": "20px"},
-                                        ),
-                                        dbc.Input(
-                                            id="input_employees",
-                                            type="number",
-                                            placeholder="#",
-                                            min=4,
-                                            max=200,
-                                            step=1,
-                                            value=12,
-                                            style={"marginBottom": "5px", "outline": False,},
-                                            debounce = True
-                                        ),
-                                        html.P(
-                                            "Example scenario: ",
-                                            style={"font-family": ff, 
-                                                   "color": col,
-                                                   "marginTop": "20px"},
-                                        ),
-                                        dcc.Dropdown(
-                                            ["Small", "Medium", "Large"],
-                                            placeholder="Select a scenario",
-                                            id="demo-dropdown",
-                                            style={"marginBottom": "15px"}
-                                        ),
-                                        
-                                    ], width=4),
-                                ]),
-                            ],
-                            label="Basic Configuration",
-                            active_label_style={"color": "black"},
-                            label_style={"color": "white"},
-                        ),
-                        dbc.Tab(
-                            tab_id="more",
-                            children=[
-                                dbc.Row([
-                                    dbc.Col([
-                                        html.P(
-                                            "Optional random seed: ",
-                                            style={"font-family": ff, 
-                                                   "color": col,
-                                                   "marginTop": "10px"},
-                                        ),
-                                        dbc.Input(
-                                            id="seed",
-                                            type="number",
-                                            placeholder="(Optional)",
-                                            min=1,
-                                            style={"marginBottom": "5px", 
-                                                   "max-width": "50%",
-                                                   "outline": False},
-                                            debounce = True,
-                                            size = "sm"
-                                        ),
-                                        html.P(
-                                            "Max consecutive shifts:",
-                                            style={"font-family": ff, "color": col},
-                                        ),
-                                        dbc.Input(
-                                            id="cons shifts",
-                                            type="number",
-                                            placeholder="Max consecutive shifts",
-                                            min=1,
-                                            value=5,
-                                            style={
-                                                "max-width": "50%",
-                                                "marginBottom": "5px",
-                                                "outline": False,
-                                            },
-                                        ),
-                                        dbc.Checklist(
-                                            options=[
-                                                {
-                                                    "label": "Allow isolated days off",
-                                                    "value": 1,
-                                                },
-                                                {
-                                                    "label": "Require exactly one manager on every shift",
-                                                    "value": 2,
-                                                },
-                                            ],
-                                            value=[2],
-                                            id="checklist-input",
-                                            style={
-                                                "color": col,
-                                                "font-family": ff,
-                                            },
-                                        ),
-                                    ], width=5),
-                                    dbc.Col([
-                                        html.P(
-                                            "Min/max shifts per employee:",
-                                            style={"font-family": ff, 
-                                                   "color": col,
-                                                   "marginTop": "10px"},
-                                        ),
-                                        dcc.RangeSlider(min=1, max=20, step=1, marks=None, value=[5, 15], 
-                                                        id='shifts-per-employee-slider', 
-                                                        tooltip={"placement": "bottom", "always_visible": True},
-                                                        allowCross=False),
-                                        html.P(
-                                            "Min/max employees per shift:",
-                                            style={"font-family": ff, 
-                                                   "color": col,
-                                                   "marginTop": "15px"},
-                                        ),
-                                        dcc.RangeSlider(min=1, max=20, step=1, marks=None,  value=[5, 15], 
-                                                        id='employees-per-shift-slider', 
-                                                        tooltip={"placement": "bottom", "always_visible": True},
-                                                        allowCross=False,
-                                                        ),
-                                    ]),
-                                ]),    
-                            ],
-                            label="Advanced Configuration",
-                            active_label_style={"color": "black"},
-                            label_style={"color": "white"},
-                        ),                
-            ]
-        )
+
+@app.callback(
+    Output("num-employees-select", "value"),
+    Output("consecutive-shifts-select", "value"),
+    Output("shifts-per-employee-select", "value"),
+    Output("employees-per-shift-select", "value"),
+    Output("seed-select", "value"),
+    inputs=[
+        Input("example-scenario-select", "value"),
+        State("custom-num-employees", "data"),
+        State("custom-consecutive-shifts", "data"),
+        State("custom-shifts-per-employees", "data"),
+        State("custom-employees-per-shift", "data"),
+        State("custom-random-seed", "data"),
     ],
-    ),], 
-    className="border-0 bg-transparent"
+    prevent_initial_call=True,
 )
+def set_scenario(
+    scenario: int,
+    num_employees: int,
+    consecutive_shifts: int,
+    shifts_per_employees: list[int],
+    employees_per_shift: list[int],
+    random_seed: int,
+) -> tuple[int, int, list[int], list[int], int]:
+    """Sets the correct scenario, reverting to the saved custom setting if chosen."""
+    if scenario == 1:
+        return tuple(SMALL_SCENARIO.values())
+    elif scenario == 2:
+        return tuple(MEDIUM_SCENARIO.values())
+    elif scenario == 3:
+        return tuple(LARGE_SCENARIO.values())
 
-availability_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                html.H2(
-                    children="Employee Availability", style={"font-family": ff}
-                ),
-                html.Div(
-                    id="initial-sched",
-                    style={
-                        "marginBottom": "5px",
-                        "outline": False,
-                    },
-                ),
-            ]
-        )
-    ]
-)
+    # else return custom stored selections
+    return (
+        num_employees,
+        consecutive_shifts,
+        shifts_per_employees,
+        employees_per_shift,
+        random_seed,
+    )
 
-ready_style = {
-    "max-width": "50%",
-    "marginBottom": "5px",
-    "outline": False,
-}
-pending_style = {
-    "max-width": "50%",
-    "marginBottom": "5px",
-    "outline": False,
-    "background-color": "red",
-}
-solve_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                dbc.Row([
-                        dbc.Button("Solve CQM", id="btn_solve_cqm", style=ready_style),
-                        html.Div(id="trigger", children=0, style=dict(display="none")),]),
-                dbc.Row([
-                        dbc.FormText("Submission status:", style={"color": col},
-                        ),
-                        dcc.Textarea(id="submission_indicator", value="Ready to solve",
-                            style={"width": "100%", "color": "white", "background-color": "rgba(0,0,0,0)", "border": "rgba(0,0,0,0)", "resize": "none"}, rows=2),
-                        dcc.Interval(id="submission_timer", interval=None, n_intervals=0, disabled=True),
-                ])
-            ]
-        )
+
+@app.callback(
+    Output("employees-per-shift-select", "max"),
+    Output("employees-per-shift-select", "marks"),
+    # required to refresh tooltip
+    Output("employees-per-shift-select", "tooltip"),
+    inputs=[
+        Input("num-employees-select", "value"),
+        # passthrough input; required to refresh tooltip
+        State("employees-per-shift-select", "tooltip"),
     ],
-    className="border-0 bg-transparent",
 )
+def update_employees_per_shift(value: int, tooltip: dict[str, Any]) -> tuple[int, dict, dict]:
+    """Update the employees-per-shift slider max if num-employees is changed."""
+    marks = {
+        MIN_MAX_EMPLOYEES["min"]: str(MIN_MAX_EMPLOYEES["min"]),
+        value: str(value),
+    }
+    return value, marks, tooltip
 
-schedule_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                html.H2(
-                    children="Employee Schedule", style={"font-family": ff}
-                ),
-                html.Div(
-                    id="built-sched",
-                    style={
-                        "marginBottom": "5px",
-                        "outline": False,
-                        "textAlign": "center",
-                    },
-                ),
-            ]
-        )
-    ]
-)
 
-legend_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                dbc.Row(
-                    dbc.FormText(
-                        "[X] Employee unavailable",
-                        style={
-                            "color": col,
-                            "backgroundColor": "#FF7006",
-                            "padding": 10,
-                        },
-                    )
-                ),
-                dbc.Row(
-                    dbc.FormText(
-                        "[P] Preferred shift",
-                        style={
-                            "color": col,
-                            "backgroundColor": "#008c82",
-                            "padding": 10,
-                        },
-                    )
-                ),
-                dbc.Row(
-                    dbc.FormText(
-                        "Mgr = Manager; Tr - Trainee",
-                        style={
-                            "padding": 10,
-                        },
-                    )
-                ),
-            ]
-        )
-    ]
-)
-
-shift_legend_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                dbc.Row(
-                    dbc.FormText(
-                        "[ ] Employee shift scheduled",
-                        style={
-                            "color": col,
-                            "backgroundColor": "#2a7de1",
-                            "padding": 10,
-                        },
-                    )
-                ),
-                dbc.Row(
-                    dbc.FormText(
-                        "[P] Preferred shift",
-                        style={
-                            "padding": 10,
-                        },
-                    )
-                ),
-                dbc.Row(
-                    dbc.FormText(
-                        "[X] Employee unavailable",
-                        style={
-                            "padding": 10,
-                        },
-                    )
-                ),
-                dbc.Row(
-                    dbc.FormText(
-                        "[-] Employee not scheduled",
-                        style={
-                            "padding": 10,
-                        },
-                    )
-                ),
-            ]
-        )
-    ]
-)
-
-error_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                html.H4(children=" ", style={"font-family": ff}),
-            ],
-            id="error_card_body",
-        )
-    ]
-)
-
-app.layout = html.Div(
-    [
-        nav_bar,
-        dbc.Container(
-            [dbc.Col([
-                dbc.Row(
-                    dbc.Col(
-                        title_card,
-                        style={
-                            "paddingLeft": 150,
-                            "paddingRight": 150,
-                            "paddingTop": 25,
-                            "paddingBottom": 25,
-                            "outline": False,
-                            "className": "border-0 bg-transparent",
-                        },
-                    )
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            [
-                                input_card,
-                            ],
-                            style={
-                                "padding": 10,
-                            },
-                            width=6,
-                        ),
-                        dbc.Col(
-                            [
-                                solve_card,
-                            ],
-                            style={
-                                "padding": 10,
-                            },
-                            width={"size": 3, "offset": 1},
-                        ),
-                    ]),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            dbc.Tabs(
-                                id="tabs",
-                                active_tab="avail",
-                                children=[
-                                    dbc.Tab(
-                                        tab_id="avail",
-                                        children=[
-                                            availability_card,
-                                            legend_card,
-                                        ],
-                                        label="Availability",
-                                        active_label_style={"color": "black"},
-                                        label_style={"color": "white"},
-                                    ),
-                                    dbc.Tab(
-                                        tab_id="sched",
-                                        children=[
-                                            schedule_card,
-                                            shift_legend_card,
-                                        ],
-                                        label="Schedule",
-                                        active_label_style={"color": "black"},
-                                        label_style={"color": "white"},
-                                    ),
-                                ],
-                            ),
-                            width="auto",
-                            style={
-                                "padding": 10,
-                                "paddingLeft": 40,
-                                "paddingBottom": 60,
-                            },
-                        ),
-                    ],
-                    style={
-                        "outline": False,
-                        "className": "border-0 bg-transparent",
-                        "justify": "left",
-                    }, justify="center"
-                ),
-                dbc.Row(error_card),
-            ])],
-            style={
-                "backgroundColor": "black",
-                "background-image": "url('assets/electric_squids.png')",
-                "background-size": "100%",
-                "paddingBottom": 50,
-            },
-            fluid=True,
-        ),
-    ]
-)
+########
+# following callbacks all store custom parameters if changed
 
 
 @app.callback(
-    Output("input_employees", "value"),
-    Output("seed", "value"),
-    Output("checklist-input", "value"),
-    Output("shifts-per-employee-slider", "value"),
-    Output("employees-per-shift-slider", "value"),
-    Output("cons shifts", "value"),
-    [Input("demo-dropdown", "value")],
+    Output("custom-num-employees", "data"),
+    inputs=[
+        Input("num-employees-select", "value"),
+        State("example-scenario-select", "value"),
+    ],
 )
-def set_scenario(scenario_size):
-    if scenario_size == "Small":
-        return 12, 4, [2], [10, 20], [3, 6], 5
-    elif scenario_size == "Medium":
-        return 20, 4, [2], [8, 16], [6, 10], 5
-    elif scenario_size == "Large":
-        return 40, 4, [2], [4, 16], [6, 10], 5
-    else:
-        return 12, None, [2], [10, 20], [3, 6], 5
+def custom_num_employees(value: int, scenario: int) -> int:
+    """Save num-employers value if changed under custom scenario."""
+    if scenario == 0:
+        return value
+    raise PreventUpdate
 
 
 @app.callback(
-        Output('shifts-per-employee-slider', "max"),
-        Input("input_employees", "value"),
-        )
-def shift_range(val):
-    now = datetime.now()
-    month = now.month
-    year = now.year
-    num_days = calendar.monthrange(year, month)[1]
-    return num_days
-
-@app.callback(
-        Output('employees-per-shift-slider', "max"),
-        Input("input_employees", "value"),
-        )
-def employee_range(val):
-    return val
-
-@app.callback(
-    Output("initial-sched", "children"),
-    Output("built-sched", "children", allow_duplicate=True),
-    [Input("input_employees", "value"), Input("seed", "value")],
-    prevent_initial_call='initial_duplicate'
+    Output("custom-consecutive-shifts", "data"),
+    inputs=[
+        Input("consecutive-shifts-select", "value"),
+        State("example-scenario-select", "value"),
+    ],
 )
-def disp_initial_sched(*vals):
-    if vals:
-        num_employees = vals[0] - 1
-        rand_seed = vals[1]
-    else:
-        num_employees = 9  # one less to account for trainee
+def custom_consecutive_shifts(value: int, scenario: int) -> int:
+    """Save consecutive-shifts value if changed under custom scenario."""
+    if scenario == 0:
+        return value
+    raise PreventUpdate
 
-    now = datetime.now()
-    month = now.month
-    year = now.year
-    num_days = calendar.monthrange(year, month)[1]
 
-    shifts = [str(i + 1) for i in range(num_days)]
+@app.callback(
+    Output("custom-shifts-per-employees", "data"),
+    inputs=[
+        Input("shifts-per-employee-select", "value"),
+        State("example-scenario-select", "value"),
+    ],
+)
+def custom_shifts_per_employee(value: list[int], scenario: int) -> int:
+    """Save shift-per-employee value if changed under custom scenario."""
+    if scenario == 0:
+        return value
+    raise PreventUpdate
+
+
+@app.callback(
+    Output("custom-employees-per-shift", "data"),
+    inputs=[
+        Input("employees-per-shift-select", "value"),
+        State("example-scenario-select", "value"),
+    ],
+)
+def custom_employees_per_shift(value: list[int], scenario: int) -> int:
+    """Save employees-per-shift value if changed under custom scenario."""
+    if scenario == 0:
+        return value
+    raise PreventUpdate
+
+
+@app.callback(
+    Output("custom-random-seed", "data"),
+    inputs=[
+        Input("seed-select", "value"),
+        State("example-scenario-select", "value"),
+    ],
+)
+def custom_random_seed(value: int, scenario: int) -> int:
+    """Save random-seed value if changed under custom scenario."""
+    if scenario == 0:
+        return value
+    raise PreventUpdate
+
+
+# done storing custom parameters
+########
+
+
+@app.callback(
+    Output("availability-content", "children"),
+    Output("schedule-content", "children", allow_duplicate=True),
+    Output("schedule-tab", "disabled", allow_duplicate=True),
+    Output("tabs", "value"),
+    inputs=[Input("num-employees-select", "value"), Input("seed-select", "value")],
+)
+def disp_initial_sched(
+    num_employees: int, rand_seed: int
+) -> tuple[DataFrame, DataFrame, bool, str]:
+    """Display initial availability schedule.
+
+    Display initial schedule in, and switch to, the availability
+    tab if number of employees or seed is changed.
+    """
+    # one less to account for trainee
+    num_employees -= 1
+
+    shifts = [str(i + 1) for i in range(NUM_DAYS_IN_MONTH)]
     df = utils.build_random_sched(num_employees, shifts, rand_seed)
 
-    df.replace(False, " ", inplace=True)
-    df.replace(True, "X", inplace=True)
-
-    employees = list(df["Employee"])
-
-    availability = {}
-
-    for _, row in df.iterrows():
-        e = row[0]
-        i = list(row[1:])
-
-        availability[e] = [
-            0 if i[j] == "X" else 2 if i[j] == "P" else 1 for j in range(len(i))
-        ]    
-
-    sample = {str(e)+"_"+str(s): 0.0 for e in employees for s in shifts}
-    temp = utils.build_schedule_from_sample(sample, shifts, employees)
-
-    return utils.display_availability(df, month, year), utils.display_schedule(temp, availability, month, year)
+    init_availability_table = utils.display_availability(df, NOW.month, NOW.year)
+    return (
+        init_availability_table,
+        init_availability_table,
+        True,  # disable the shedule tab when changing parameters
+        "availability-tab",  # jump back to the availability tab
+    )
 
 
-@app.callback(
-    Output("submission_indicator", "value"),
-    Output("submission_timer", "interval"),
-    Output("submission_timer", "disabled"),
-    Output("tabs", "active_tab", allow_duplicate=True),
-    Input("btn_solve_cqm", "n_clicks"),
-    Input("submission_timer", "n_intervals"),
-    State("submission_indicator", "value"),
-    State("tabs", "active_tab"),
-    State("built-sched", "children"),
-    prevent_initial_call=True
-)
-def submission_mngr(
-    n_clicks,
-    n_intervals,
-    submission_indicator_val,
-    active_tab,
-    built_sched
-):
-    trigger = callback_context.triggered
-    trigger_id = trigger[0]["prop_id"].split(".")[0]
-
-    if trigger_id == "btn_solve_cqm" and n_clicks:
-        return "Submitting... please wait", 1000, False, "avail"     
-        
-    if trigger_id == "submission_timer" and submission_indicator_val == "Submitting... please wait":
-
-        # Checks all current schedule values
-        s = set( val[0] for dic in built_sched['props']['derived_virtual_data'] for val in dic.values())
-        
-        if " " not in s: # Scheduled blocks are blank in final schedule
-            return no_update, no_update, False, no_update
-        else:
-            return "Done", no_update, True, "sched"
-        
-    return no_update, no_update, True, no_update
-
-   
-@app.callback(
-    Output("built-sched", "children", allow_duplicate=True),
-    Output("error_card_body", "children"),
-    Output("tabs", "active_tab"),
-    Input("submission_indicator", "value"),
-    State("shifts-per-employee-slider", "value"),
-    State("employees-per-shift-slider", "value"),
-    State("checklist-input", "value"),
-    State("cons shifts", "value"),  # consecutive shifts allowed
-    State("initial-sched", "children"),
-    State("built-sched", "children"),
-    State("error_card_body", "children"),
-    prevent_initial_call=True
+@app.long_callback(
+    Output("schedule-content", "children", allow_duplicate=True),
+    Output("schedule-tab", "disabled", allow_duplicate=True),
+    inputs=[
+        Input("run-button", "n_clicks"),
+        State("shifts-per-employee-select", "value"),
+        State("employees-per-shift-select", "value"),
+        State("checklist-input", "value"),
+        State("consecutive-shifts-select", "value"),
+        State("availability-content", "children"),
+    ],
+    running=[
+        # show cancel button and hide run button, and disable and animate results tab
+        (Output("cancel-button", "style"), {"display": "inline-block"}, {"display": "none"}),
+        (Output("run-button", "style"), {"display": "none"}, {"display": "inline-block"}),
+        # switch to schedule tab while running
+        (Output("schedule-tab", "disabled"), False, False),
+        (Output("tabs", "value"), "schedule-tab", "schedule-tab"),
+    ],
+    cancel=[Input("cancel-button", "n_clicks")],
+    prevent_initial_call=True,
 )
 def submitter(
-    submission_indicator_val,
-    s_per_e_range,
-    e_per_s_range,
-    checklist_value,
-    k,
-    sched_df,
-    built_sched,
-    e_card,
-):
-    if submission_indicator_val == "Ready to solve":
-        return (
-            html.Label("Not constructed yet.", style={"max-width": "50%"}),
-            None,
-            "avail",
-        )
-    
-    elif submission_indicator_val == "Done":
-        return built_sched, e_card, "sched"
-    
-    elif submission_indicator_val == "Submitting... please wait":
+    run_click: int,
+    shifts_per_employee: list[int],
+    employees_per_shift: list[int],
+    checklist: list[int],
+    consecutive_shifts: int,
+    sched_df: DataFrame,
+) -> tuple[DataFrame, bool]:
+    """Run a job on the hybris solver when the run button is clicked."""
+    if run_click == 0 or ctx.triggered_id != "run-button":
+        raise PreventUpdate
+
+    if ctx.triggered_id == "run-button":
         shifts = list(sched_df["props"]["data"][0].keys())
         shifts.remove("Employee")
-        availability = utils.availability_to_dict(
-            sched_df["props"]["data"], shifts
-        )
+        availability = utils.availability_to_dict(sched_df["props"]["data"], shifts)
         employees = list(availability.keys())
 
-        if 1 in checklist_value:
-            isolated = True
-        else:
-            isolated = False
+        isolated_days_allowed = True if 0 in checklist else False
+        manager_required = True if 1 in checklist else False
 
-        if 2 in checklist_value:
-            manager = True
-        else:
-            manager = False
-
-   
-        
-        print("\nBuilding CQM...\n")
-        min_shifts = s_per_e_range[0]
-        max_shifts = s_per_e_range[1]
-        [shift_min, shift_max] = e_per_s_range
         cqm = employee_scheduling.build_cqm(
             availability,
             shifts,
-            min_shifts,
-            max_shifts,
-            shift_min,
-            shift_max,
-            manager,
-            isolated,
-            k + 1,
+            *shifts_per_employee,
+            *employees_per_shift,
+            manager_required,
+            isolated_days_allowed,
+            consecutive_shifts + 1,
         )
 
-        print("\nSubmitting CQM...\n")
         feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
-
         sample = feasible_sampleset.first.sample
 
         sched = utils.build_schedule_from_sample(sample, shifts, employees)
 
-        if errors is None:
-            new_card_body = " "
-        else:
-            new_card_body = [
-                html.H4(
-                    children="Issues with Schedule", style={"font-family": ff}
-                ),
-                html.Div(errors, style={"whiteSpace": "pre-wrap"}),
-            ]
-
-        now = datetime.now()
-        month = now.month
-        year = now.year
-
         return (
-            utils.display_schedule(sched, availability, month, year),
-            new_card_body,
-            "sched",
+            utils.display_schedule(sched, availability, NOW.month, NOW.year),
+            False,
         )
 
-    else:
-        return no_update, no_update, no_update
+    return no_update
 
+
+# import the html code and sets it in the app
+# creates the visual layout and app (see `app_html.py`)
+set_html(app)
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=DEBUG)
