@@ -57,9 +57,7 @@ def build_random_sched(num_employees, shifts, rand_seed=None):
         np.random.seed(rand_seed)
 
     data = pd.DataFrame(
-        np.random.choice(
-            ["X", " ", "P"], size=(num_employees + 1, len(shifts)), p=[0.1, 0.8, 0.1]
-        ),
+        np.random.choice(["X", " ", "P"], size=(num_employees + 1, len(shifts)), p=[0.1, 0.8, 0.1]),
         columns=shifts,
     )
 
@@ -100,23 +98,28 @@ def display_availability(df, month, year):
     """Builds the visual display of employee availability."""
     shifts = list(df.columns)
     shifts.remove("Employee")
-    cols = [{"id": "Employee", "name": [" ", "Employee"]}] + [
-        {"id": c, "name": [f"{calendar.month_name[month]} {year}", c]} for c in shifts
-    ]
+    cols = (
+        [{"id": "Employee", "name": [" ", "Employee"]}]
+        + [{"id": c, "name": [f"{calendar.month_name[month]} {year}", c]} for c in shifts]
+        + [{"id": "final-col", "name": [" "]}]
+    )
+    df.loc[len(df)] = (
+        [" ", "P", "Preferred shifts"]
+        + [" "] * 4
+        + ["X", "Unavailable shifts"]
+        + [" "] * (len(shifts) - 8)
+    )
 
     datatable = dash_table.DataTable(
         data=df.to_dict("records"),
         columns=cols,
+        cell_selectable=False,
+        editable=False,
         style_cell={
             "textAlign": "center",
             "font-family": "verdana",
         },
         style_cell_conditional=[
-            {
-                "if": {"column_id": "Employee"},
-                "fontWeight": "bold",
-                "backgroundColor": "white",
-            },
             {
                 "if": {"column_id": df.columns[1:]},
                 "minWidth": "30px",
@@ -130,7 +133,16 @@ def display_availability(df, month, year):
             {
                 "if": {"row_index": "odd"},
                 "backgroundColor": "#EEEEEE",
-            }
+            },
+            {"if": {"row_index": len(df) - 1}, "backgroundColor": "#DDDDDD", "border-left": "0px"},
+            {
+                "if": {"column_id": "Employee"},
+                "fontWeight": "bold",
+                "backgroundColor": "#DDDDDD",
+                "minWidth": "160px",
+                "width": "220px",
+            },
+            {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "0px"},
         ]
         + [
             {
@@ -146,7 +158,7 @@ def display_availability(df, month, year):
         + [
             {
                 "if": {
-                    "filter_query": '{{{col}}} contains "P"'.format(col=col),
+                    "filter_query": '{{{col}}} = "P"'.format(col=col),
                     "column_id": col,
                 },
                 "backgroundColor": "#008c82",
@@ -154,13 +166,7 @@ def display_availability(df, month, year):
             }
             for col in df.columns[1:]
         ]
-        + [
-            {
-                "if": {"column_id": "Employee"},
-                "fontWeight": "bold",
-                "backgroundColor": "#DDDDDD",
-            },
-        ],
+        + [],
         style_header={
             "backgroundColor": "#DDDDDD",
             "color": "black",
@@ -175,7 +181,10 @@ def display_availability(df, month, year):
 def display_schedule(df, availability, month, year):
     """Builds the visual schedule for display."""
     prefs = []
-    df[df.iloc[:, 1:] == "X"] = "-"
+
+    # drop the last row containing the legend
+    df.drop(df.tail(1).index, inplace=True)
+    df[df.iloc[:, 1:] == "X"] = "\r"
     for e, a in availability.items():
         shifts = df.columns[1:]
         for i in range(len(shifts)):
@@ -188,13 +197,25 @@ def display_schedule(df, availability, month, year):
 
     shifts = list(df.columns)
     shifts.remove("Employee")
-    cols = [{"id": "Employee", "name": [" ", "Employee"]}] + [
-        {"id": c, "name": [f"{calendar.month_name[month]} {year}", c]} for c in shifts
-    ]
+    cols = (
+        [{"id": "Employee", "name": [" ", "Employee"]}]
+        + [{"id": c, "name": [f"{calendar.month_name[month]} {year}", c]} for c in shifts]
+        + [{"id": "final-col", "name": [" "]}]
+    )
+    df.loc[len(df)] = (
+        [" ", "P", "Scheduled preferred shifts"]
+        + [" "] * 7
+        + ["P", "Unscheduled preferred shifts"]
+        + [" "] * 7
+        + ["X", "Unavailable shifts"]
+        + [" "] * (len(shifts) - 20)
+    )
 
     datatable = dash_table.DataTable(
         data=df.to_dict("records"),
         columns=cols,
+        cell_selectable=False,
+        editable=False,
         style_cell={"textAlign": "center", "font-family": "verdana"},
         style_cell_conditional=[
             {
@@ -210,7 +231,15 @@ def display_schedule(df, availability, month, year):
             {
                 "if": {"row_index": "odd"},
                 "backgroundColor": "#EEEEEE",
-            }
+            },
+            {
+                "if": {"column_id": "Employee"},
+                "fontWeight": "bold",
+                "backgroundColor": "#DDDDDD",
+                "minWidth": "160px",
+                "width": "220px",
+            },
+            {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "0px"},
         ]
         + [
             {
@@ -225,9 +254,51 @@ def display_schedule(df, availability, month, year):
         ]
         + [
             {
-                "if": {"column_id": "Employee"},
-                "fontWeight": "bold",
-                "backgroundColor": "#DDDDDD",
+                "if": {
+                    "filter_query": '{{{col}}} contains "\r" && {{{col}}} contains "P"'.format(
+                        col=col
+                    ),
+                    "column_id": col,
+                },
+                "backgroundColor": "#c7003888",
+                "color": "white",
+            }
+            for col in df.columns[1:]
+        ]
+        + [
+            {"if": {"row_index": len(df) - 1}, "backgroundColor": "#DDDDDD", "border-left": "0px"},
+            {
+                "if": {"column_id": "1", "row_index": len(df) - 1},
+                "backgroundColor": "#2a7de1",
+                "color": "white",
+                "border-left": "0px",
+            },
+            {
+                "if": {"column_id": "2", "row_index": len(df) - 1},
+                "color": "black",
+                "border-left": "0px",
+            },
+            {
+                "if": {"column_id": "10", "row_index": len(df) - 1},
+                "backgroundColor": "#c7003888",
+                "color": "white",
+                "border-left": "0px",
+            },
+            {
+                "if": {"column_id": "11", "row_index": len(df) - 1},
+                "color": "black",
+                "border-left": "0px",
+            },
+            {
+                "if": {"column_id": "19", "row_index": len(df) - 1},
+                "backgroundColor": "white",
+                "color": "black",
+                "border-left": "0px",
+            },
+            {
+                "if": {"column_id": "20", "row_index": len(df) - 1},
+                "color": "black",
+                "border-left": "0px",
             },
         ],
         style_header={
