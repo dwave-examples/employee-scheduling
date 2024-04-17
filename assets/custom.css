@@ -54,6 +54,7 @@ body {
   color: var(--grey-dark);
   font-size: 1.4rem;
   margin: 0rem;
+  overflow: hidden;
 }
 
 hr {
@@ -125,10 +126,6 @@ input[type="checkbox"] {
   margin: 0 1rem 0 0;
 }
 
-#app-container {
-  min-width: 1000px;
-}
-
 #columns {
   display: flex;
   height: 100%;
@@ -145,8 +142,10 @@ input[type="checkbox"] {
 
 #left-column > div:first-child {
   width: 42rem;
+  height: calc(100vh - 5.5rem);
   transition: width 0.6s ease-in-out;
-  overflow: hidden;
+  overflow-y:auto;
+  overflow-x:hidden;
 }
 
 #left-column.collapsed > div:first-child {
@@ -157,6 +156,7 @@ input[type="checkbox"] {
   background-color: var(--grey-light);
   padding: 2rem 0 0;
   width: 100%;
+  overflow-x: auto;
 }
 
 .dash-table-container {
@@ -308,6 +308,10 @@ button:not(#left-column-collapse) {
 
 #cancel-button:hover {
   background-color: var(--red-dark);
+}
+
+#tabs {
+  min-width: 30rem;
 }
 
 .tab-container {
