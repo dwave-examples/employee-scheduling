@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This file stores the HTML layout for the app (see ``employee_scheduling.css`` for CSS styling)."""
+"""This file stores the HTML layout for the app (see ``custom.css`` for CSS styling)."""
 from __future__ import annotations
 
 import html
@@ -22,8 +22,6 @@ from dash import dcc, html
 
 from app_configs import (DESCRIPTION, MAIN_HEADER, MAX_CONSECUTIVE_SHIFTS, MIN_MAX_EMPLOYEES,
                          MIN_MAX_SHIFTS, NUM_EMPLOYEES, THUMBNAIL)
-
-map_width, map_height = 1000, 600
 
 EXAMPLE_SCENARIO = ["Custom", "Small", "Medium", "Large"]
 
@@ -111,7 +109,7 @@ def generate_control_card() -> html.Div:
                 NUM_EMPLOYEES,
             ),
             slider(
-                "Max consecutice shifts",
+                "Max consecutive shifts",
                 "consecutive-shifts-select",
                 MAX_CONSECUTIVE_SHIFTS,
             ),

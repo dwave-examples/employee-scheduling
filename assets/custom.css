@@ -49,12 +49,6 @@ Apache License, Version 2.0
   --grey-dark: #222222;
 }
 
-@font-face {
-  font-family: Acumin;
-  font-weight: bold;
-  src: url("Acumin-BdPro.otf") format("opentype");
-}
-
 body {
   background-color: #f9f9f9;
   color: var(--grey-dark);
@@ -127,13 +121,17 @@ label {
   font-weight: 500;
 }
 
+input[type="checkbox"] {
+  margin: 0 1rem 0 0;
+}
+
 #app-container {
   min-width: 1000px;
 }
 
 #columns {
   display: flex;
-  height: 100%
+  height: 100%;
 }
 
 #left-column {
@@ -142,7 +140,6 @@ label {
 
 #left-column > div > div {
   padding: 0 2rem;
-  /* width: 38rem; */
   width: 38rem;
 }
 
@@ -169,29 +166,18 @@ label {
 }
 
 .rc-slider-handle,
-.rc-slider-handle-1,
-.rc-slider-handle-2,
 .rc-slider-dot-active {
-  border-color: var(--blue-light);
+    border-color: var(--blue-light);
 }
 
 .rc-slider-handle:active,
 .rc-slider-handle:hover,
 .rc-slider-handle-click-focused,
-.rc-slider-handle-click-focused:focus
-.rc-slider-handle-1:active,
-.rc-slider-handle-1:hover,
-.rc-slider-handle-1-click-focused,
-.rc-slider-handle-1-click-focused:focus,
-.rc-slider-handle-2:active,
-.rc-slider-handle-2:hover,
-.rc-slider-handle-2-click-focused,
-.rc-slider-handle-2-click-focused:focus {
+.rc-slider-handle-click-focused:focus {
     border-color: var(--blue-dark);
 }
 
-.rc-slider-track,
-.rc-slider-track-1 {
+.rc-slider-track {
     background-color: var(--blue-light);
 }
 
@@ -353,9 +339,7 @@ div.tab.tab--disabled {
 }
 
 .tab-content {
-  background-color: #f12e2e;
   background-color: #EEEEEE;
-  /* background-color: white; */
 }
 
 .tab-content > div {

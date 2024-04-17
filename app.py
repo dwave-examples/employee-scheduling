@@ -267,7 +267,7 @@ def disp_initial_sched(
     cancel=[Input("cancel-button", "n_clicks")],
     prevent_initial_call=True,
 )
-def submitter(
+def run_optimization(
     run_click: int,
     shifts_per_employee: list[int],
     employees_per_shift: list[int],
@@ -275,40 +275,37 @@ def submitter(
     consecutive_shifts: int,
     sched_df: DataFrame,
 ) -> tuple[DataFrame, bool]:
-    """Run a job on the hybris solver when the run button is clicked."""
+    """Run a job on the hybrid solver when the run button is clicked."""
     if run_click == 0 or ctx.triggered_id != "run-button":
         raise PreventUpdate
 
-    if ctx.triggered_id == "run-button":
-        shifts = list(sched_df["props"]["data"][0].keys())
-        shifts.remove("Employee")
-        availability = utils.availability_to_dict(sched_df["props"]["data"], shifts)
-        employees = list(availability.keys())
+    shifts = list(sched_df["props"]["data"][0].keys())
+    shifts.remove("Employee")
+    availability = utils.availability_to_dict(sched_df["props"]["data"], shifts)
+    employees = list(availability.keys())
 
-        isolated_days_allowed = True if 0 in checklist else False
-        manager_required = True if 1 in checklist else False
+    isolated_days_allowed = True if 0 in checklist else False
+    manager_required = True if 1 in checklist else False
 
-        cqm = employee_scheduling.build_cqm(
-            availability,
-            shifts,
-            *shifts_per_employee,
-            *employees_per_shift,
-            manager_required,
-            isolated_days_allowed,
-            consecutive_shifts + 1,
-        )
+    cqm = employee_scheduling.build_cqm(
+        availability,
+        shifts,
+        *shifts_per_employee,
+        *employees_per_shift,
+        manager_required,
+        isolated_days_allowed,
+        consecutive_shifts + 1,
+    )
 
-        feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
-        sample = feasible_sampleset.first.sample
+    feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
+    sample = feasible_sampleset.first.sample
 
-        sched = utils.build_schedule_from_sample(sample, shifts, employees)
+    sched = utils.build_schedule_from_sample(sample, shifts, employees)
 
-        return (
-            utils.display_schedule(sched, availability, NOW.month, NOW.year),
-            False,
-        )
-
-    return no_update
+    return (
+        utils.display_schedule(sched, availability, NOW.month, NOW.year),
+        False,
+    )
 
 
 # import the html code and sets it in the app
