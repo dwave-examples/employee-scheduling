@@ -132,12 +132,14 @@ input[type="checkbox"] {
 }
 
 #left-column > div > div {
+  direction: ltr;
   padding: 0 2rem;
-  width: 38rem;
+  width: 32rem;
 }
 
 #left-column > div:first-child {
-  width: 42rem;
+  direction: rtl;
+  width: 36rem;
   height: calc(100vh - 5.5rem);
   transition: width 0.6s ease-in-out;
   overflow-y:auto;
@@ -159,6 +161,10 @@ input[type="checkbox"] {
   /* viewport height - (tab + banner height) */
   height: calc(100vh - 14.3rem);
   overflow-y: auto;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
+  overflow-x: unset !important;
 }
 
 .slider > div,
