@@ -140,7 +140,7 @@ def display_availability(df, month, year):
                 "fontWeight": "bold",
                 "backgroundColor": "#DDDDDD",
                 "minWidth": "160px",
-                "width": "220px",
+                "width": "320px",
             },
             {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "none", "border-bottom": "none"},
         ]
@@ -237,7 +237,7 @@ def display_schedule(df, availability, month, year):
                 "fontWeight": "bold",
                 "backgroundColor": "#DDDDDD",
                 "minWidth": "160px",
-                "width": "220px",
+                "width": "320px",
             },
             {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "none", "border-bottom": "none"},
         ]
