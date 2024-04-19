@@ -18,7 +18,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import diskcache
-from dash import Dash, DiskcacheManager, Input, Output, State, ctx, no_update
+from dash import Dash, DiskcacheManager, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 
 import employee_scheduling

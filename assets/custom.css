@@ -57,10 +57,6 @@ body {
   overflow: hidden;
 }
 
-hr {
-  margin: 0.3rem 0rem;
-}
-
 #description-card {
   width: 100%;
   margin: 2rem 0rem;
@@ -165,15 +161,20 @@ input[type="checkbox"] {
   overflow-y: auto;
 }
 
+.slider > div,
+.range-slider > div {
+    padding-left: 6px !important;
+}
+
 .rc-slider-handle,
 .rc-slider-dot-active {
     border-color: var(--blue-light);
 }
 
-.rc-slider-handle:active,
-.rc-slider-handle:hover,
-.rc-slider-handle-click-focused,
-.rc-slider-handle-click-focused:focus {
+.rc-slider:not(.rc-slider-disabled) .rc-slider-handle:active,
+.rc-slider:not(.rc-slider-disabled) .rc-slider-handle:hover,
+.rc-slider:not(.rc-slider-disabled) .rc-slider-handle-click-focused,
+.rc-slider:not(.rc-slider-disabled) .rc-slider-handle-click-focused:focus {
     border-color: var(--blue-dark);
 }
 
@@ -343,23 +344,11 @@ div.tab.tab--disabled {
 }
 
 .tab-content {
-  background-color: #EEEEEE;
+  background-color: var(--grey-lighter);
 }
 
 .tab-content > div {
   visibility: visible !important;
-}
-
-.tab-fail {
-  border-top: 2px solid var(--red-light) !important;
-}
-
-.tab-success {
-  border-top: 2px solid var(--teal-darker) !important;
-}
-
-.tab-warning {
-  border-top: 2px solid var(--orange) !important;
 }
 
 #seed-select {
