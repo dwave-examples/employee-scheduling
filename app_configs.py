@@ -73,7 +73,7 @@ SMALL_SCENARIO = {
     "consecutive_shifts": 5,
     "shifts_per_employee": [10, 20],
     "employees_per_shift": [3, 6],
-    "random_seed": 4,
+    "random_seed": "",
 }
 
 MEDIUM_SCENARIO = {
@@ -81,7 +81,7 @@ MEDIUM_SCENARIO = {
     "consecutive_shifts": 5,
     "shifts_per_employee": [8, 16],
     "employees_per_shift": [6, 10],
-    "random_seed": 4,
+    "random_seed": "",
 }
 
 LARGE_SCENARIO = {
@@ -89,5 +89,5 @@ LARGE_SCENARIO = {
     "consecutive_shifts": 5,
     "shifts_per_employee": [4, 16],
     "employees_per_shift": [6, 10],
-    "random_seed": 4,
+    "random_seed": "",
 }
