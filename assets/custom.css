@@ -133,8 +133,8 @@ input[type="checkbox"] {
 
 #left-column > div > div {
   direction: ltr;
-  padding: 0 2rem;
-  width: 32rem;
+  padding: 0 2.5rem;
+  width: 31rem;
 }
 
 #left-column > div:first-child {
@@ -170,6 +170,7 @@ input[type="checkbox"] {
 .slider > div,
 .range-slider > div {
     padding-left: 6px !important;
+    padding-right: 6px !important;
 }
 
 .rc-slider-handle,

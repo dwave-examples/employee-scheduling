@@ -97,7 +97,7 @@ def set_scenario(
     shifts_per_employees: list[int],
     employees_per_shift: list[int],
     random_seed: int,
-) -> tuple[int, int, list[int], list[int], int]:
+) -> tuple[int, int, list[int], list[int], int, bool, bool, bool, bool]:
     """Sets the correct scenario, reverting to the saved custom setting if chosen."""
     if scenario == 1:
         return *tuple(SMALL_SCENARIO.values()), True, True, True, True
