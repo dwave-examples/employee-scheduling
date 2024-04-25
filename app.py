@@ -242,7 +242,8 @@ def custom_random_seed(value: int, scenario: int) -> int:
     Output("schedule-content", "children", allow_duplicate=True),
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output("tabs", "value"),
-    Output("log-column-collapse", "style", allow_duplicate=True),
+    Output("log-column-collapse", "style"),
+    Output("log-column", "className", allow_duplicate=True),
     inputs=[Input("num-employees-select", "value"), Input("seed-select", "value")],
 )
 def disp_initial_sched(
@@ -265,7 +266,8 @@ def disp_initial_sched(
         init_availability_table,
         True,  # disable the shedule tab when changing parameters
         "availability-tab",  # jump back to the availability tab
-        {"display": "none"}
+        {"display": "none"},
+        "collapsed",
     )
 
 
