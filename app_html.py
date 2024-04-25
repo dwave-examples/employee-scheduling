@@ -235,6 +235,23 @@ def set_html(app):
                             )
                         ],
                     ),
+                    # Log column
+                    html.Div(
+                        id="log-column",
+                        className="collapsed",
+                        children=[
+                            html.Button(id="log-column-collapse", children=[html.Div()]),
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [
+                                            html.Div(id="errors")
+                                        ]
+                                    ),
+                                ]
+                            ),
+                        ],
+                    ),
                 ],
             ),
         ],

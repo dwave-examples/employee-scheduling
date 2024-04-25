@@ -139,8 +139,6 @@ def build_cqm(
             label=f"8Trainee scheduling issue on {shifts[s]}",
         )
 
-    # print(cqm)
-
     return cqm
 
 
@@ -152,14 +150,11 @@ def run_cqm(cqm):
     feasible_sampleset = sampleset.filter(lambda row: row.is_feasible)
 
     num_feasible = len(feasible_sampleset)
-    errors = " "
+    errors = []
     if num_feasible == 0:
-        msg = "\nNo feasible solution found.\n"
-        errors += msg
-        print(msg)
         sat_array = sampleset.first.is_satisfied
 
-        # if sampleset is all 0's, set at least one variable to 1 
+        # if sampleset is all 0's, set at least one variable to 1
         # --> this is needed for "Solve CQM" button to function propertly
         s_vals = set(sampleset.first.sample.values())
         if s_vals == {0.0}:
@@ -171,56 +166,49 @@ def run_cqm(cqm):
                 c = constraints[i]
                 if c[0] == "0":
                     msg = (
-                        "\n- Employee scheduled when unavailable: "
+                        "Employee scheduled when unavailable: "
                         + constraints[i][1:]
                     )
-                    errors += msg
-                    print(msg)
+                    errors.append(msg)
                 elif c[0] == "1":
                     msg = (
-                        "\n- Employee scheduled overtime: "
+                        "Employee scheduled overtime: "
                         + constraints[i][1:]
                     )
-                    errors += msg
-                    print(msg)
+                    errors.append(msg)
                 elif c[0] == "2":
                     msg = (
-                        "\n- Employee scheduled undertime: "
+                        "Employee scheduled undertime: "
                         + constraints[i][1:]
                     )
-                    errors += msg
-                    print(msg)
+                    errors.append(msg)
                 elif c[0] == "3":
-                    msg = "\n- Shift understaffed: " + constraints[i][1:]
-                    errors += msg
-                    print(msg)
+                    msg = "Shift understaffed: " + constraints[i][1:]
+                    errors.append(msg)
                 elif c[0] == "4":
-                    msg = "\n- Shift overstaffed: " + constraints[i][1:]
-                    errors += msg
-                    print(msg)
+                    msg = "Shift overstaffed: " + constraints[i][1:]
+                    errors.append(msg)
                 elif c[0] == "5":
-                    msg = "\n- Isolated shift: " + constraints[i][2:]
-                    errors += msg
-                    print(msg)
+                    msg = "Isolated shift: " + constraints[i][2:]
+                    errors.append(msg)
                 elif c[0] == "6":
-                    msg = "\n- Shift manager issue: " + constraints[i][1:]
-                    errors += msg
-                    print(msg)
+                    msg = "Shift manager issue: " + constraints[i][1:]
+                    errors.append(msg)
                 elif c[0] == "7":
                     msg = (
-                        "\n- Too many consecutive shifts: "
+                        "Too many consecutive shifts: "
                         + constraints[i][1:]
                     )
-                    errors += msg
-                    print(msg)
+                    errors.append(msg)
                 elif c[0] == "8":
-                    msg = "\n- " + constraints[i][1:]
-                    errors += msg
-                    print(msg)
-                else: 
-                    print("\n- Unknown constraint:", constraints[i][1:])
-        return sampleset, errors
+                    msg = "" + constraints[i][1:]
+                    errors.append(msg)
+                else:
+                    msg = "Unknown constraint:" + constraints[i][1:]
+                    errors.append(msg)
+
+        return sampleset, errors, False
 
     print("\nFeasible solution found.\n")
 
-    return feasible_sampleset, None
+    return feasible_sampleset, None, True

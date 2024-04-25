@@ -18,7 +18,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import diskcache
-from dash import Dash, DiskcacheManager, Input, Output, State, ctx
+from dash import Dash, DiskcacheManager, Input, Output, State, ctx, html, no_update
 from dash.exceptions import PreventUpdate
 
 import employee_scheduling
@@ -64,6 +64,28 @@ def toggle_left_column(left_column_collapse: int, class_name: str) -> str:
 
     Returns:
         str: The new class name of the left column.
+    """
+    if class_name:
+        return ""
+    return "collapsed"
+
+@app.callback(
+    Output("log-column", "className"),
+    inputs=[
+        Input("log-column-collapse", "n_clicks"),
+        State("log-column", "className"),
+    ],
+    prevent_initial_call=True,
+)
+def toggle_log_column(log_column_collapse: int, class_name: str) -> str:
+    """Toggles log column 'collapsed' class that hides and shows the log column.
+
+    Args:
+        log_column_collapse (int): The (total) number of times the collapse button has been clicked.
+        class_name (str): Current class name of the log column, 'collapsed' if not visible, empty string if visible
+
+    Returns:
+        str: The new class name of the log column.
     """
     if class_name:
         return ""
@@ -220,6 +242,7 @@ def custom_random_seed(value: int, scenario: int) -> int:
     Output("schedule-content", "children", allow_duplicate=True),
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output("tabs", "value"),
+    Output("log-column-collapse", "style", allow_duplicate=True),
     inputs=[Input("num-employees-select", "value"), Input("seed-select", "value")],
 )
 def disp_initial_sched(
@@ -242,12 +265,15 @@ def disp_initial_sched(
         init_availability_table,
         True,  # disable the shedule tab when changing parameters
         "availability-tab",  # jump back to the availability tab
+        {"display": "none"}
     )
 
 
 @app.long_callback(
     Output("schedule-content", "children", allow_duplicate=True),
     Output("schedule-tab", "disabled", allow_duplicate=True),
+    Output("log-column-collapse", "style", allow_duplicate=True),
+    Output("errors", "children"),
     inputs=[
         Input("run-button", "n_clicks"),
         State("shifts-per-employee-select", "value"),
@@ -263,6 +289,10 @@ def disp_initial_sched(
         # switch to schedule tab while running
         (Output("schedule-tab", "disabled"), False, False),
         (Output("tabs", "value"), "schedule-tab", "schedule-tab"),
+        (Output("control-card", "disabled"), False, False),
+        # hide the error log column
+        (Output("log-column-collapse", "style"), {"display": "none"}, no_update),
+        (Output("log-column", "className"), "collapsed", "collapsed"),
     ],
     cancel=[Input("cancel-button", "n_clicks")],
     prevent_initial_call=True,
@@ -297,7 +327,7 @@ def run_optimization(
         consecutive_shifts + 1,
     )
 
-    feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
+    feasible_sampleset, errors, feasible = employee_scheduling.run_cqm(cqm)
     sample = feasible_sampleset.first.sample
 
     sched = utils.build_schedule_from_sample(sample, shifts, employees)
@@ -305,6 +335,8 @@ def run_optimization(
     return (
         utils.display_schedule(sched, availability, NOW.month, NOW.year),
         False,
+        {"display": "none"} if feasible else {"display": "inline-block"},
+        html.Ul([html.Li(e) for e in errors]) if errors else no_update,
     )
 
 
