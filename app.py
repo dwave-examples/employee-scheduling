@@ -48,7 +48,7 @@ MIN_MAX_SHIFTS["max"] = NUM_DAYS_IN_MONTH
 
 
 @app.callback(
-    Output({"type": "to-collapse-class", "index": MATCH}, "className"),
+    Output({"type": "to-collapse-class", "index": MATCH}, "className", allow_duplicate=True),
     inputs=[
         Input({"type": "collapse-trigger", "index": MATCH}, "n_clicks"),
         State({"type": "to-collapse-class", "index": MATCH}, "className"),
@@ -223,7 +223,10 @@ def custom_random_seed(value: int, scenario: int) -> int:
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output("tabs", "value"),
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
-    inputs=[Input("num-employees-select", "value"), Input("seed-select", "value")],
+    inputs=[
+        Input("num-employees-select", "value"),
+        Input("seed-select", "value")
+    ],
 )
 def disp_initial_sched(
     num_employees: int, rand_seed: int
@@ -246,6 +249,31 @@ def disp_initial_sched(
         True,  # disable the shedule tab when changing parameters
         "availability-tab",  # jump back to the availability tab
         {"display": "none"},
+    )
+
+
+@app.callback(
+    Output({"type": "to-collapse-class", "index": 1}, "style"),
+    Output({"type": "to-collapse-class", "index": 1}, "className"),
+    inputs=[
+        Input("run-button", "n_clicks"),
+        State({"type": "to-collapse-class", "index": 1}, "className"),
+    ],
+    prevent_initial_call=True,
+)
+def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
+    """Hides and collapses error sidebar on button click."""
+    if run_click == 0 or ctx.triggered_id != "run-button":
+        raise PreventUpdate
+
+    classes = prev_classes.split(" ") if prev_classes else []
+
+    if "collapsed" in classes:
+        return no_update, no_update
+
+    return (
+        {"display": "none"},
+        prev_classes + " collapsed"
     )
 
 
