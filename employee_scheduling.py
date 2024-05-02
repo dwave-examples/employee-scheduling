@@ -11,6 +11,8 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from collections import defaultdict
+
 from dimod import (
     Binary,
     BinaryQuadraticModel,
@@ -126,7 +128,7 @@ def build_cqm(
         for s in range(len(shifts) - k + 1):
             cqm.add_constraint(
                 quicksum([x[e, shifts[s + i]] for i in range(k)]) <= k - 1,
-                label=f"7Employee {e} starting with {shifts[s]}",
+                label=f"7{e} starting with {shifts[s]}",
             )
 
     # Trainee must work on shifts with trainer
@@ -150,7 +152,7 @@ def run_cqm(cqm):
     feasible_sampleset = sampleset.filter(lambda row: row.is_feasible)
 
     num_feasible = len(feasible_sampleset)
-    errors = []
+    errors = defaultdict(list)
     if num_feasible == 0:
         sat_array = sampleset.first.is_satisfied
 
@@ -161,54 +163,40 @@ def run_cqm(cqm):
             sampleset.first.sample[list(cqm.variables)[0]] = 1.0
 
         constraints = sampleset.info["constraint_labels"]
+
+        msgs = [
+            "Employees scheduled when unavailable",
+            "Employees with scheduled overtime",
+            "Employees with not enough scheduled time",
+            "Understaffed shifts",
+            "Overstaffed shifts",
+            "Isolated shifts",
+            "Shifts with manager issues",
+            "Employees with too many consecutive shifts",
+            "Shifts with trainee scheduling issues",
+            "Unknown issues:"
+        ]
         for i in range(len(sat_array)):
             if not sat_array[i]:
                 c = constraints[i]
-                if c[0] == "0":
-                    msg = (
-                        "Employee scheduled when unavailable: "
-                        + constraints[i][1:]
-                    )
-                    errors.append(msg)
-                elif c[0] == "1":
-                    msg = (
-                        "Employee scheduled overtime: "
-                        + constraints[i][1:]
-                    )
-                    errors.append(msg)
-                elif c[0] == "2":
-                    msg = (
-                        "Employee scheduled undertime: "
-                        + constraints[i][1:]
-                    )
-                    errors.append(msg)
-                elif c[0] == "3":
-                    msg = "Shift understaffed: " + constraints[i][1:]
-                    errors.append(msg)
-                elif c[0] == "4":
-                    msg = "Shift overstaffed: " + constraints[i][1:]
-                    errors.append(msg)
-                elif c[0] == "5":
-                    msg = "Isolated shift: " + constraints[i][2:]
-                    errors.append(msg)
-                elif c[0] == "6":
-                    msg = "Shift manager issue: " + constraints[i][1:]
-                    errors.append(msg)
-                elif c[0] == "7":
-                    msg = (
-                        "Too many consecutive shifts: "
-                        + constraints[i][1:]
-                    )
-                    errors.append(msg)
-                elif c[0] == "8":
-                    msg = "" + constraints[i][1:]
-                    errors.append(msg)
+                if c[0].isdigit():
+                    key = int(c[0])
+                    if key < 0 or key > 9:
+                        key = 9
                 else:
-                    msg = "Unknown constraint:" + constraints[i][1:]
-                    errors.append(msg)
+                    key = 9
 
-        return sampleset, errors, False
+                start_index = 2 if key == 5 else 1
+                error = constraints[i][start_index:]
+                msg = msgs[key]
+
+                if errors[msg]:
+                    errors[msg].append(error)
+                else:
+                    errors[msg] = [error]
+
+        return sampleset, errors
 
     print("\nFeasible solution found.\n")
 
-    return feasible_sampleset, None, True
+    return feasible_sampleset, None

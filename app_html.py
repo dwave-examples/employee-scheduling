@@ -177,7 +177,8 @@ def set_html(app):
                 children=[
                     # Left column
                     html.Div(
-                        id="left-column",
+                        id={"type": "to-collapse-class", "index": 0},
+                        className="left-column",
                         children=[
                             html.Div(
                                 [
@@ -194,8 +195,10 @@ def set_html(app):
                                     ),
                                 ]
                             ),
-                            html.Div(
-                                html.Button(id="left-column-collapse", children=[html.Div()]),
+                            html.Button(
+                                id={"type": "collapse-trigger", "index": 0},
+                                className="left-column-collapse",
+                                children=[html.Div(className="collapse-arrow")]
                             ),
                         ],
                     ),
@@ -237,17 +240,17 @@ def set_html(app):
                     ),
                     # Log column
                     html.Div(
-                        id="log-column",
-                        className="collapsed",
+                        id={"type": "to-collapse-class", "index": 1},
+                        className="log-column collapsed",
                         children=[
-                            html.Button(id="log-column-collapse", children=[html.Div()]),
+                            html.Button(
+                                id={"type": "collapse-trigger", "index": 1},
+                                className="log-column-collapse",
+                                children=[html.Div(className="collapse-arrow")]
+                            ),
                             html.Div(
                                 [
-                                    html.Div(
-                                        [
-                                            html.Div(id="errors")
-                                        ]
-                                    ),
+                                    html.Div(id="errors")
                                 ]
                             ),
                         ],
@@ -256,3 +259,46 @@ def set_html(app):
             ),
         ],
     )
+
+
+def errors_list(errors: dict) -> html.Div:
+    """Creates html list of errors."""
+    error_lists = []
+    error_counter = 0
+    for error_key, error_list in errors.items():
+        error_lists.append(
+            html.Div(
+                id={
+                    "type": "to-collapse-class",
+                    "index": 3 + error_counter,
+                },
+                className="details-collapse-wrapper collapsed",
+                children=[
+                    html.Button(
+                        id={
+                            "type": "collapse-trigger",
+                            "index": 3 + error_counter,
+                        },
+                        className="details-collapse",
+                        children=[
+                            html.H5(error_key),
+                            html.Div(
+                                className="collapse-arrow"
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="details-to-collapse",
+                        children=[
+                            html.Ul(
+                                [
+                                    html.Li(error) for error in error_list
+                                ]
+                            )
+                        ]
+                    )
+                ]
+            )
+        )
+        error_counter += 1
+    return html.Div([html.H4("The following constraints were not satisfied:"), *error_lists])
