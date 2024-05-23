@@ -18,14 +18,14 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import diskcache
-from dash import Dash, DiskcacheManager, Input, Output, State, ctx
+from dash import Dash, DiskcacheManager, Input, MATCH, Output, State, ctx, no_update
 from dash.exceptions import PreventUpdate
 
 import employee_scheduling
 import utils
 from app_configs import (APP_TITLE, DEBUG, LARGE_SCENARIO, MEDIUM_SCENARIO, MIN_MAX_EMPLOYEES,
                          MIN_MAX_SHIFTS, MONTH, SMALL_SCENARIO)
-from app_html import set_html
+from app_html import errors_list, set_html
 
 if TYPE_CHECKING:
     from pandas import DataFrame
@@ -48,26 +48,28 @@ MIN_MAX_SHIFTS["max"] = NUM_DAYS_IN_MONTH
 
 
 @app.callback(
-    Output("left-column", "className"),
+    Output({"type": "to-collapse-class", "index": MATCH}, "className", allow_duplicate=True),
     inputs=[
-        Input("left-column-collapse", "n_clicks"),
-        State("left-column", "className"),
+        Input({"type": "collapse-trigger", "index": MATCH}, "n_clicks"),
+        State({"type": "to-collapse-class", "index": MATCH}, "className"),
     ],
     prevent_initial_call=True,
 )
-def toggle_left_column(left_column_collapse: int, class_name: str) -> str:
-    """Toggles left column 'collapsed' class that hides and shows the left column.
+def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
+    """Toggles a 'collapsed' class that hides and shows some aspect of the UI.
 
     Args:
-        left_column_collapse (int): The (total) number of times the collapse button has been clicked.
-        class_name (str): Current class name of the left column, 'collapsed' if not visible, empty string if visible
+        collapse_trigger (int): The (total) number of times a collapse button has been clicked.
+        to_collapse_class (str): Current class name of the thing to collapse, 'collapsed' if not visible, empty string if visible
 
     Returns:
-        str: The new class name of the left column.
+        str: The new class name of the thing to collapse.
     """
-    if class_name:
-        return ""
-    return "collapsed"
+    classes = to_collapse_class.split(" ") if to_collapse_class else []
+    if "collapsed" in classes:
+        classes.remove("collapsed")
+        return " ".join(classes)
+    return to_collapse_class + " collapsed" if to_collapse_class else "collapsed"
 
 
 @app.callback(
@@ -220,11 +222,15 @@ def custom_random_seed(value: int, scenario: int) -> int:
     Output("schedule-content", "children", allow_duplicate=True),
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output("tabs", "value"),
-    inputs=[Input("num-employees-select", "value"), Input("seed-select", "value")],
+    Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
+    inputs=[
+        Input("num-employees-select", "value"),
+        Input("seed-select", "value")
+    ],
 )
 def disp_initial_sched(
     num_employees: int, rand_seed: int
-) -> tuple[DataFrame, DataFrame, bool, str]:
+) -> tuple[DataFrame, DataFrame, bool, str, dict]:
     """Display initial availability schedule.
 
     Display initial schedule in, and switch to, the availability
@@ -242,12 +248,40 @@ def disp_initial_sched(
         init_availability_table,
         True,  # disable the shedule tab when changing parameters
         "availability-tab",  # jump back to the availability tab
+        {"display": "none"},
+    )
+
+
+@app.callback(
+    Output({"type": "to-collapse-class", "index": 1}, "style"),
+    Output({"type": "to-collapse-class", "index": 1}, "className"),
+    inputs=[
+        Input("run-button", "n_clicks"),
+        State({"type": "to-collapse-class", "index": 1}, "className"),
+    ],
+    prevent_initial_call=True,
+)
+def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
+    """Hides and collapses error sidebar on button click."""
+    if run_click == 0 or ctx.triggered_id != "run-button":
+        raise PreventUpdate
+
+    classes = prev_classes.split(" ") if prev_classes else []
+
+    if "collapsed" in classes:
+        return no_update, no_update
+
+    return (
+        {"display": "none"},
+        prev_classes + " collapsed"
     )
 
 
 @app.long_callback(
     Output("schedule-content", "children", allow_duplicate=True),
     Output("schedule-tab", "disabled", allow_duplicate=True),
+    Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
+    Output("errors", "children"),
     inputs=[
         Input("run-button", "n_clicks"),
         State("shifts-per-employee-select", "value"),
@@ -263,6 +297,7 @@ def disp_initial_sched(
         # switch to schedule tab while running
         (Output("schedule-tab", "disabled"), False, False),
         (Output("tabs", "value"), "schedule-tab", "schedule-tab"),
+        (Output("control-card", "disabled"), False, False),
     ],
     cancel=[Input("cancel-button", "n_clicks")],
     prevent_initial_call=True,
@@ -274,7 +309,7 @@ def run_optimization(
     checklist: list[int],
     consecutive_shifts: int,
     sched_df: DataFrame,
-) -> tuple[DataFrame, bool]:
+) -> tuple[DataFrame, bool, dict, list]:
     """Run a job on the hybrid solver when the run button is clicked."""
     if run_click == 0 or ctx.triggered_id != "run-button":
         raise PreventUpdate
@@ -282,6 +317,9 @@ def run_optimization(
     shifts = list(sched_df["props"]["data"][0].keys())
     shifts.remove("Employee")
     availability = utils.availability_to_dict(sched_df["props"]["data"], shifts)
+    # remove legend row (last row) before building cqm
+    _ = availability.pop(" ", None)
+
     employees = list(availability.keys())
 
     isolated_days_allowed = True if 0 in checklist else False
@@ -305,6 +343,8 @@ def run_optimization(
     return (
         utils.display_schedule(sched, availability, NOW.month, NOW.year),
         False,
+        {"display": "flex"} if errors else {"display": "none"},
+        errors_list(errors) if errors else no_update,
     )
 
 

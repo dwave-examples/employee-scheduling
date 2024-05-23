@@ -182,8 +182,6 @@ def display_schedule(df, availability, month, year):
     """Builds the visual schedule for display."""
     prefs = []
 
-    # drop the last row containing the legend
-    df.drop(df.tail(1).index, inplace=True)
     df[df.iloc[:, 1:] == "X"] = "\r"
     for e, a in availability.items():
         shifts = df.columns[1:]
