@@ -317,6 +317,9 @@ def run_optimization(
     shifts = list(sched_df["props"]["data"][0].keys())
     shifts.remove("Employee")
     availability = utils.availability_to_dict(sched_df["props"]["data"], shifts)
+    # remove legend row (last row) before building cqm
+    _ = availability.pop(" ", None)
+
     employees = list(availability.keys())
 
     isolated_days_allowed = True if 0 in checklist else False
