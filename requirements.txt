@@ -3,3 +3,4 @@ dash-bootstrap-components==1.5.0
 dwave-ocean-sdk>=6.7
 Faker==21.0.0
 pandas>=2.1
+fastapi>=0.110.3

@@ -130,11 +130,11 @@ def build_cqm(
             )
 
     # Trainee must work on shifts with trainer
-    tr_list = [e for e in employees if e[-2:] == "Tr"]
+    tr_list = [e for e in employees if e[-3:] == "-Tr"]
     for s in range(len(shifts)):
         cqm.add_constraint(
             x[tr_list[0], shifts[s]]
-            - x[tr_list[0], shifts[s]] * x[tr_list[0][:-3], shifts[s]]
+            - x[tr_list[0], shifts[s]] * x[tr_list[0], shifts[s]]
             == 0,
             label=f"8Trainee scheduling issue on {shifts[s]}",
         )
