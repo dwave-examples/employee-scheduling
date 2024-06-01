@@ -10,7 +10,7 @@ class Employee(BaseModel):
     name: str
     job_function: str
     qualifications: list[str]
-    availability: list[datetime]
+    availability: list[datetime] #these are more like preferred working days
     non_availability: list[datetime]
     experience_level: int
     is_trainee: bool
@@ -20,8 +20,8 @@ class Employee(BaseModel):
 class ShiftTemplate(BaseModel):
     id: str
     name: str
-    start_time: datetime
-    end_time: datetime
+    start_time: str
+    end_time: str
     hours_to_count: int
     number_required: int
     job_function_required: str
@@ -47,12 +47,13 @@ class Pairing(BaseModel):
 
 @app.post("/employees")
 async def employees(employees: list[Employee]):
+    #TODO: add verification that unavailable days are not also within available (preferred) days, and vice versa
     app.state.employees = employees
     return employees
 
 
 @app.post("/shift_template")
-async def shift_template(shift_template: ShiftTemplate):
+async def shift_template(shift_template: list[ShiftTemplate]):
     app.state.shift_template = shift_template
     return shift_template
 

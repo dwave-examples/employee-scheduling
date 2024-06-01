@@ -251,14 +251,3 @@ def availability_to_dict(input, shifts):
         ]
 
     return availability
-
-# which month to use for employee scheduling (0 uses current month)
-MONTH = 0
-
-# min/max number of shifts per employee range slider (value means default)
-MIN_MAX_SHIFTS = {
-    "min": 1,
-    "max": 31,
-    "step": 1,
-    "value": [10, 20],
-}

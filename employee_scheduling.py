@@ -11,6 +11,8 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from collections import defaultdict
+
 from dimod import (
     Binary,
     BinaryQuadraticModel,
@@ -59,14 +61,14 @@ def build_cqm(
         sched = availability[e]
         for s in range(len(shifts)):
             if sched[s] == 0:
-                cqm.add_constraint(x[e, shifts[s]] == 0, label=f"0{e} on {s}")
+                cqm.add_constraint(x[e, shifts[s]] == 0, label=f"unavailable,{e},{s}")
 
     # Schedule employees for at most max_shifts
     for e in employees:
         cqm.add_constraint(
             quicksum(x[e, shifts[s]] for s in range(len(shifts)))
             <= max_shifts,
-            label=f"1{e} has too many shifts",
+            label=f"overtime,{e},",
         )
 
     # Schedule employees for at least min_shifts
@@ -74,18 +76,18 @@ def build_cqm(
         cqm.add_constraint(
             quicksum(x[e, shifts[s]] for s in range(len(shifts)))
             >= min_shifts,
-            label=f"2{e} doesn't have enough shifts",
+            label=f"insufficient,{e},",
         )
 
     # Every shift needs shift_min and shift_max employees working
     for s in range(len(shifts)):
         cqm.add_constraint(
             sum(x[e, shifts[s]] for e in employees) >= shift_min,
-            label=f"3{shifts[s]} understaffed",
+            label=f"understaffed,,{shifts[s]}",
         )
         cqm.add_constraint(
             sum(x[e, shifts[s]] for e in employees) <= shift_max,
-            label=f"4{shifts[s]} overstaffed",
+            label=f"overstaffed,,{shifts[s]}",
         )
 
     # Days off are consecutive
@@ -99,26 +101,26 @@ def build_cqm(
                     + x[e, shifts[s + 1]] * x[e, shifts[s + 2]]
                     + x[e, shifts[s]] * x[e, shifts[s + 2]]
                     <= 0,
-                    label=f"5aDay off {shifts[s+1]} is isolated for {e}",
+                    label=f"isolated,{e},{shifts[s + 1]}",
                 )
         # end shifts - patterns 01 at start and 10 at end penalized
         for e in employees:
             cqm.add_constraint(
                 x[e, shifts[1]] - x[e, shifts[0]] <= 0,
-                label=f"5bDay off {shifts[0]} is isolated for {e}",
+                label=f"isolated,{e},{shifts[0]}",
             )
             cqm.add_constraint(
                 x[e, shifts[-2]] - x[e, shifts[-1]] <= 0,
-                label=f"5cDay off {shifts[-1]} is isolated for {e}",
+                label=f"isolated,{e},{shifts[-1]}",
             )
 
     # Require a manager on every shift
     if manager:
-        mgr_list = [e for e in employees if e[-3:] == "Mgr"]
+        mgr_list = [e for e in employees if e[-4:] == "-Mgr"]
         for s in range(len(shifts)):
             cqm.add_constraint(
                 quicksum(x[m, shifts[s]] for m in mgr_list) == 1,
-                label=f"6Issue on {shifts[s]}",
+                label=f"manager_issue,,{shifts[s]}",
             )
 
     # No k shifts consecutive
@@ -126,7 +128,7 @@ def build_cqm(
         for s in range(len(shifts) - k + 1):
             cqm.add_constraint(
                 quicksum([x[e, shifts[s + i]] for i in range(k)]) <= k - 1,
-                label=f"7Employee {e} starting with {shifts[s]}",
+                label=f"too_many_consecutive,{e},{shifts[s]}",
             )
 
     # Trainee must work on shifts with trainer
@@ -136,10 +138,8 @@ def build_cqm(
             x[tr_list[0], shifts[s]]
             - x[tr_list[0], shifts[s]] * x[tr_list[0], shifts[s]]
             == 0,
-            label=f"8Trainee scheduling issue on {shifts[s]}",
+            label=f"trainee_issue,,{shifts[s]}",
         )
-
-    # print(cqm)
 
     return cqm
 
@@ -152,75 +152,67 @@ def run_cqm(cqm):
     feasible_sampleset = sampleset.filter(lambda row: row.is_feasible)
 
     num_feasible = len(feasible_sampleset)
-    errors = " "
     if num_feasible == 0:
-        msg = "\nNo feasible solution found.\n"
-        errors += msg
-        print(msg)
+        errors = defaultdict(list)
         sat_array = sampleset.first.is_satisfied
 
-        # if sampleset is all 0's, set at least one variable to 1 
+        # if sampleset is all 0's, set at least one variable to 1
         # --> this is needed for "Solve CQM" button to function propertly
         s_vals = set(sampleset.first.sample.values())
         if s_vals == {0.0}:
             sampleset.first.sample[list(cqm.variables)[0]] = 1.0
 
-        constraints = sampleset.info["constraint_labels"]
-        for i in range(len(sat_array)):
+        msgs = {
+            "unavailable": (
+                "Employees scheduled when unavailable",
+                "{employee} on day {day}"
+            ),
+            "overtime": (
+                "Employees with scheduled overtime",
+                "{employee} has too many shifts"
+            ),
+            "insufficient": (
+                "Employees with not enough scheduled time",
+                "{employee} doesn't have enough shifts"
+            ),
+            "understaffed": (
+                "Understaffed shifts",
+                "Day {day} is understaffed"
+            ),
+            "overstaffed": (
+                "Overstaffed shifts",
+                "Day {day} is overstaffed"
+            ),
+            "isolated": (
+                "Isolated shifts",
+                "Day off {day} is isolated for {employee}"
+            ),
+            "manager_issue": (
+                "Shifts with manager issues",
+                "No manager scheduled on day {day}"
+            ),
+            "too_many_consecutive": (
+                "Employees with too many consecutive shifts",
+                "{employee} starting with day {day}"
+            ),
+            "trainee_issue": (
+                "Shifts with trainee scheduling issues",
+                "Trainee scheduling issue on day {day}"
+            ),
+        }
+        for i, _ in enumerate(sat_array):
             if not sat_array[i]:
-                c = constraints[i]
-                if c[0] == "0":
-                    msg = (
-                        "\n- Employee scheduled when unavailable: "
-                        + constraints[i][1:]
-                    )
-                    errors += msg
-                    print(msg)
-                elif c[0] == "1":
-                    msg = (
-                        "\n- Employee scheduled overtime: "
-                        + constraints[i][1:]
-                    )
-                    errors += msg
-                    print(msg)
-                elif c[0] == "2":
-                    msg = (
-                        "\n- Employee scheduled undertime: "
-                        + constraints[i][1:]
-                    )
-                    errors += msg
-                    print(msg)
-                elif c[0] == "3":
-                    msg = "\n- Shift understaffed: " + constraints[i][1:]
-                    errors += msg
-                    print(msg)
-                elif c[0] == "4":
-                    msg = "\n- Shift overstaffed: " + constraints[i][1:]
-                    errors += msg
-                    print(msg)
-                elif c[0] == "5":
-                    msg = "\n- Isolated shift: " + constraints[i][2:]
-                    errors += msg
-                    print(msg)
-                elif c[0] == "6":
-                    msg = "\n- Shift manager issue: " + constraints[i][1:]
-                    errors += msg
-                    print(msg)
-                elif c[0] == "7":
-                    msg = (
-                        "\n- Too many consecutive shifts: "
-                        + constraints[i][1:]
-                    )
-                    errors += msg
-                    print(msg)
-                elif c[0] == "8":
-                    msg = "\n- " + constraints[i][1:]
-                    errors += msg
-                    print(msg)
-                else: 
-                    print("\n- Unknown constraint:", constraints[i][1:])
-        return sampleset, errors
+                key, *data = sampleset.info["constraint_labels"][i].split(",")
+                try:
+                    heading, error_msg = msgs[key]
+                except KeyError:
+                    # ignore any unknown constraint labels
+                    continue
 
-    print("\nFeasible solution found.\n")
+                # constraint label should be of form "key,employee,day"
+                format_dict = dict(zip(["employee", "day"], data))
+                errors[heading].append(error_msg.format(**format_dict))
+
+        return sampleset, errors
 
     return feasible_sampleset, None
