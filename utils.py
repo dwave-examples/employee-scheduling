@@ -11,14 +11,27 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import calendar
+
+import datetime
 import random
 import string
 
+from app_configs import REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
 import numpy as np
 import pandas as pd
 from dash import dash_table
 from faker import Faker
+
+NOW = datetime.datetime.now()
+SCHEDULE_LENGTH = 14
+# Determine how many days away Sunday is then get two Sundays from that Sunday
+START_DATE = NOW + datetime.timedelta(6 - NOW.weekday() + 14)
+COL_IDS = [str(i+1) for i in range(SCHEDULE_LENGTH)] # The ids for each column
+# The shift dates
+SHIFTS = [
+    (START_DATE + datetime.timedelta(i)).strftime("%-d")
+    for i in range(SCHEDULE_LENGTH)
+]
 
 
 def get_random_string(length):
@@ -50,15 +63,15 @@ def get_random_names(num_employees):
     return names
 
 
-def build_random_sched(num_employees, shifts, rand_seed=None):
+def build_random_sched(num_employees, rand_seed=None):
     """Builds a random availability schedule for employees."""
 
     if rand_seed:
         np.random.seed(rand_seed)
 
     data = pd.DataFrame(
-        np.random.choice(["X", " ", "P"], size=(num_employees + 1, len(shifts)), p=[0.1, 0.8, 0.1]),
-        columns=shifts,
+        np.random.choice([UNAVAILABLE_ICON, " ", REQUESTED_SHIFT_ICON], size=(num_employees + 1, len(COL_IDS)), p=[0.1, 0.8, 0.1]),
+        columns=COL_IDS,
     )
 
     num_managers = 2
@@ -71,17 +84,17 @@ def build_random_sched(num_employees, shifts, rand_seed=None):
 
     data.insert(0, "Employee", employees)
 
-    data[shifts[0]].replace("X", " ", inplace=True)
-    data[shifts[-1]].replace("X", " ", inplace=True)
+    data[COL_IDS[0]].replace(UNAVAILABLE_ICON, " ", inplace=True)
+    data[COL_IDS[-1]].replace(UNAVAILABLE_ICON, " ", inplace=True)
 
     data.loc[data.Employee == employees[-1], data.columns[1:]] = " "
 
     return data
 
 
-def build_schedule_from_sample(sample, shifts, employees):
+def build_schedule_from_sample(sample, employees):
     """Builds a schedule from the sample returned."""
-    data = pd.DataFrame(columns=shifts)
+    data = pd.DataFrame(columns=COL_IDS)
     data.insert(0, "Employee", employees)
 
     for key, val in sample.items():
@@ -89,228 +102,138 @@ def build_schedule_from_sample(sample, shifts, employees):
         if val == 1.0:
             data.loc[data["Employee"] == row, col] = " "
         else:
-            data.loc[data["Employee"] == row, col] = "X"
+            data.loc[data["Employee"] == row, col] = UNAVAILABLE_ICON
 
     return data
 
+def get_cols():
+    days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-def display_availability(df, month, year):
+    start_month = START_DATE.strftime("%B %Y") # Get month and year
+    end_month = (START_DATE + datetime.timedelta(SCHEDULE_LENGTH-1)).strftime("%B %Y") # Get month and year
+    month_display = [start_month, end_month]
+
+    return (
+        [{"id": "Employee", "name": ["", "", "Employee"]}]
+        + [{"id": str(i+1), "name": [
+            month_display[0 if i < 7 else 1], days[i%7], c
+        ]} for i, c in enumerate(SHIFTS)]
+    )
+
+def get_cell_styling(cols):
+    return [
+            {
+                "if": {"column_id": cols[1:]},
+                "minWidth": "45px",
+                "width": "45px",
+                "maxWidth": "45px",
+            },
+        ]
+
+
+def display_availability(df):
     """Builds the visual display of employee availability."""
-    shifts = list(df.columns)
-    shifts.remove("Employee")
-    cols = (
-        [{"id": "Employee", "name": [" ", "Employee"]}]
-        + [{"id": c, "name": [f"{calendar.month_name[month]} {year}", c]} for c in shifts]
-        + [{"id": "final-col", "name": [" "]}]
-    )
-    df.loc[len(df)] = (
-        [" ", "P", "Preferred shifts"]
-        + [" "] * 4
-        + ["X", "Unavailable shifts"]
-        + [" "] * (len(shifts) - 8)
-    )
 
     datatable = dash_table.DataTable(
         data=df.to_dict("records"),
-        columns=cols,
+        columns=get_cols(),
         cell_selectable=False,
         editable=False,
-        style_cell={
-            "textAlign": "center",
-            "font-family": "verdana",
-        },
-        style_cell_conditional=[
-            {
-                "if": {"column_id": df.columns[1:]},
-                "minWidth": "30px",
-                "width": "30px",
-                "maxWidth": "30px",
-                "textAlign": "center",
-            },
-        ],
-        style_data={"color": "black", "backgroundColor": "white"},
+        style_cell={"textAlign": "center"},
+        style_cell_conditional=get_cell_styling(df.columns),
         style_data_conditional=[
             {
                 "if": {"row_index": "odd"},
                 "backgroundColor": "#EEEEEE",
             },
-            {"if": {"row_index": len(df) - 1}, "backgroundColor": "#DDDDDD", "border-left": "none", "border-right": "none"},
-            {
-                "if": {"column_id": "Employee"},
-                "fontWeight": "bold",
-                "backgroundColor": "#DDDDDD",
-                "minWidth": "160px",
-                "width": "320px",
-            },
-            {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "none", "border-bottom": "none"},
         ]
         + [
             {
                 "if": {
-                    "filter_query": '{{{col}}} contains "X"'.format(col=col),
-                    "column_id": col,
+                    "filter_query": f'{{{col_id}}} = {UNAVAILABLE_ICON}',
+                    "column_id": col_id,
                 },
-                "backgroundColor": "#FF7006",
+                "backgroundColor": "#FF7006", # orange
                 "color": "white",
             }
-            for col in df.columns[1:]
+            for col_id in COL_IDS
         ]
         + [
             {
                 "if": {
-                    "filter_query": '{{{col}}} = "P"'.format(col=col),
-                    "column_id": col,
+                    "filter_query": f'{{{col_id}}} = {REQUESTED_SHIFT_ICON}',
+                    "column_id": col_id,
                 },
-                "backgroundColor": "#008c82",
+                "backgroundColor": "#008c82", # teal
                 "color": "white",
             }
-            for col in df.columns[1:]
-        ]
-        + [],
-        style_header={
-            "backgroundColor": "#DDDDDD",
-            "color": "black",
-            "fontWeight": "bold",
-        },
+            for col_id in COL_IDS
+        ],
         merge_duplicate_headers=True,
     )
 
     return datatable
 
 
-def display_schedule(df, availability, month, year):
+def display_schedule(df, availability):
     """Builds the visual schedule for display."""
-    prefs = []
 
-    df[df.iloc[:, 1:] == "X"] = "\r"
-    for e, a in availability.items():
-        shifts = df.columns[1:]
-        for i in range(len(shifts)):
-            if a[i] == 0:
-                df.loc[df["Employee"] == e, shifts[i]] = "X"
-            elif a[i] == 2:
-                df.loc[df["Employee"] == e, shifts[i]] += "P"
-
-                prefs.append((e, shifts[i]))
-
-    shifts = list(df.columns)
-    shifts.remove("Employee")
-    cols = (
-        [{"id": "Employee", "name": [" ", "Employee"]}]
-        + [{"id": c, "name": [f"{calendar.month_name[month]} {year}", c]} for c in shifts]
-        + [{"id": "final-col", "name": [" "]}]
-    )
-    df.loc[len(df)] = (
-        [" ", "P", "Scheduled preferred shifts"]
-        + [" "] * 7
-        + ["P", "Unscheduled preferred shifts"]
-        + [" "] * 7
-        + ["X", "Unavailable shifts"]
-        + [" "] * (len(shifts) - 20)
-    )
+    df[df.iloc[:, 1:] == UNAVAILABLE_ICON] = "\r" # mark all unscheduled days with an invisible character
+    for employee_name, employee_availability in availability.items():
+        for i, col_id in enumerate(COL_IDS):
+            if employee_availability[i] == 0: # not available
+                df.loc[df["Employee"] == employee_name, col_id] = UNAVAILABLE_ICON
+            elif employee_availability[i] == 2: # available
+                df.loc[df["Employee"] == employee_name, col_id] += REQUESTED_SHIFT_ICON
 
     datatable = dash_table.DataTable(
         data=df.to_dict("records"),
-        columns=cols,
+        columns=get_cols(),
         cell_selectable=False,
         editable=False,
-        style_cell={"textAlign": "center", "font-family": "verdana"},
-        style_cell_conditional=[
-            {
-                "if": {"column_id": df.columns[1:]},
-                "minWidth": "30px",
-                "width": "30px",
-                "maxWidth": "30px",
-                "textAlign": "center",
-            },
-        ],
-        style_data={"color": "black", "backgroundColor": "white"},
+        style_cell={"textAlign": "center"},
+        style_cell_conditional=get_cell_styling(df.columns),
         style_data_conditional=[
             {
                 "if": {"row_index": "odd"},
                 "backgroundColor": "#EEEEEE",
             },
-            {
-                "if": {"column_id": "Employee"},
-                "fontWeight": "bold",
-                "backgroundColor": "#DDDDDD",
-                "minWidth": "160px",
-                "width": "320px",
-            },
-            {"if": {"column_id": "final-col"}, "backgroundColor": "#DDDDDD", "border-top": "none", "border-bottom": "none"},
         ]
         + [
             {
                 "if": {
-                    "filter_query": '{{{col}}} contains " "'.format(col=col),
-                    "column_id": col,
+                    "filter_query": f'{{{col_id}}} contains " "',
+                    "column_id": col_id,
                 },
-                "backgroundColor": "#2a7de1",
+                "backgroundColor": "#2a7de1", # blue
                 "color": "white",
             }
-            for col in df.columns[1:]
+            for col_id in COL_IDS
         ]
         + [
             {
                 "if": {
-                    "filter_query": '{{{col}}} contains "\r" && {{{col}}} contains "P"'.format(
-                        col=col
-                    ),
-                    "column_id": col,
+                    "filter_query": f'{{{col_id}}} contains "\r" && {{{col_id}}} contains {REQUESTED_SHIFT_ICON}',
+                    "column_id": col_id,
                 },
-                "backgroundColor": "#c7003888",
+                "backgroundColor": "#c7003888", # light red
                 "color": "white",
             }
-            for col in df.columns[1:]
-        ]
-        + [
-            {"if": {"row_index": len(df) - 1}, "backgroundColor": "#DDDDDD", "border-left": "none", "border-right": "none"},
-            {
-                "if": {"column_id": "1", "row_index": len(df) - 1},
-                "backgroundColor": "#2a7de1",
-                "color": "white",
-            },
-            {
-                "if": {"column_id": "2", "row_index": len(df) - 1},
-                "color": "black",
-            },
-            {
-                "if": {"column_id": "10", "row_index": len(df) - 1},
-                "backgroundColor": "#c7003888",
-                "color": "white",
-            },
-            {
-                "if": {"column_id": "11", "row_index": len(df) - 1},
-                "color": "black",
-            },
-            {
-                "if": {"column_id": "19", "row_index": len(df) - 1},
-                "backgroundColor": "white",
-                "color": "black",
-            },
-            {
-                "if": {"column_id": "20", "row_index": len(df) - 1},
-                "color": "black",
-            },
+            for col_id in COL_IDS
         ],
-        style_header={
-            "backgroundColor": "#DDDDDD",
-            "color": "black",
-            "fontWeight": "bold",
-        },
         merge_duplicate_headers=True,
     )
 
     return datatable
 
 
-def availability_to_dict(input, shifts):
+def availability_to_dict(availability_list):
     """Converts employee availability to a dictionary."""
-    availability = {}
+    availability_dict = {}
 
-    for i in input:
-        availability[i["Employee"]] = [
-            0 if i[j] == "X" else 2 if i[j] == "P" else 1 for j in shifts
+    for row in availability_list:
+        availability_dict[row["Employee"]] = [
+            0 if row[col_id] == UNAVAILABLE_ICON else 2 if row[col_id] == REQUESTED_SHIFT_ICON else 1 for col_id in COL_IDS
         ]
 
-    return availability
+    return availability_dict

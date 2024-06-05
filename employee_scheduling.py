@@ -21,6 +21,8 @@ from dimod import (
 )
 from dwave.system import LeapHybridCQMSampler
 
+import scipy_solver as scipy_solver
+
 
 def build_cqm(
     availability,
@@ -29,116 +31,120 @@ def build_cqm(
     max_shifts,
     shift_min,
     shift_max,
-    manager,
-    isolated,
-    k,
+    requires_manager,
+    allow_isolated_days_off,
+    max_consecutive_shifts,
 ):
     """Builds the ConstrainedQuadraticModel for the given scenario."""
     cqm = ConstrainedQuadraticModel()
     employees = list(availability.keys())
 
     # Create variables: one per employee per shift
-    x = {(i, j): Binary(i + "_" + j) for j in shifts for i in employees}
+    x = {(employee, shift): Binary(employee + "_" + shift) for shift in shifts for employee in employees}
 
+    # OBJECTIVES:
     # Objective: give employees preferred schedules (val = 2)
     obj = BinaryQuadraticModel(vartype="BINARY")
-    for e in employees:
-        sched = availability[e]
-        for s in range(len(shifts)):
-            if sched[s] == 2:
-                obj += -x[e, shifts[s]]
+    for employee, schedule in availability.items():
+        for i, shift in enumerate(shifts):
+            if schedule[i] == 2:
+                obj += -x[employee, shift]
 
     # Objective: for infeasible solutions, focus on right number of shifts for employees
     num_s = (min_shifts + max_shifts) / 2
-    for e in employees:
+    for employee in employees:
         obj += (
-            quicksum(x[e, shifts[s]] for s in range(len(shifts))) - num_s
+            quicksum(x[employee, shift] for shift in shifts) - num_s
         ) ** 2
     cqm.set_objective(obj)
 
-    # Only schedule employees when they're available
-    for e in employees:
-        sched = availability[e]
-        for s in range(len(shifts)):
-            if sched[s] == 0:
-                cqm.add_constraint(x[e, shifts[s]] == 0, label=f"unavailable,{e},{s}")
 
-    # Schedule employees for at most max_shifts
-    for e in employees:
+    # CONSTRAINTS:
+    # Only schedule employees when they're available
+    for employee, schedule in availability.items():
+        for i, shift in enumerate(shifts):
+            if schedule[i] == 0:
+                cqm.add_constraint(x[employee, shift] == 0, label=f"unavailable,{employee},{shift}")
+
+    for employee in employees:
+        # Schedule employees for at most max_shifts
         cqm.add_constraint(
-            quicksum(x[e, shifts[s]] for s in range(len(shifts)))
+            quicksum(x[employee, shift] for shift in shifts)
             <= max_shifts,
-            label=f"overtime,{e},",
+            label=f"overtime,{employee},",
         )
 
-    # Schedule employees for at least min_shifts
-    for e in employees:
+        # Schedule employees for at least min_shifts
         cqm.add_constraint(
-            quicksum(x[e, shifts[s]] for s in range(len(shifts)))
+            quicksum(x[employee, shift] for shift in shifts)
             >= min_shifts,
-            label=f"insufficient,{e},",
+            label=f"insufficient,{employee},",
         )
 
     # Every shift needs shift_min and shift_max employees working
-    for s in range(len(shifts)):
+    for shift in shifts:
         cqm.add_constraint(
-            sum(x[e, shifts[s]] for e in employees) >= shift_min,
-            label=f"understaffed,,{shifts[s]}",
+            sum(x[employee, shift] for employee in employees) >= shift_min,
+            label=f"understaffed,,{shift}",
         )
         cqm.add_constraint(
-            sum(x[e, shifts[s]] for e in employees) <= shift_max,
-            label=f"overstaffed,,{shifts[s]}",
+            sum(x[employee, shift] for employee in employees) <= shift_max,
+            label=f"overstaffed,,{shift}",
         )
 
-    # Days off are consecutive
-    if not isolated:
+    # Days off must be consecutive
+    if not allow_isolated_days_off:
         # middle range shifts - pattern 101 penalized
-        for s in range(len(shifts) - 2):
-            for e in employees:
+        for i, prev_shift in enumerate(shifts[:-2]):
+            shift = shifts[i + 1]
+            next_shift = shifts[i + 2]
+            for employee in employees:
                 cqm.add_constraint(
-                    -3 * x[e, shifts[s + 1]]
-                    + x[e, shifts[s]] * x[e, shifts[s + 1]]
-                    + x[e, shifts[s + 1]] * x[e, shifts[s + 2]]
-                    + x[e, shifts[s]] * x[e, shifts[s + 2]]
+                    -3 * x[employee, shift]
+                    + x[employee, prev_shift] * x[employee, shift]
+                    + x[employee, shift] * x[employee, next_shift]
+                    + x[employee, prev_shift] * x[employee, next_shift]
                     <= 0,
-                    label=f"isolated,{e},{shifts[s + 1]}",
+                    label=f"isolated,{employee},{shift}",
                 )
         # end shifts - patterns 01 at start and 10 at end penalized
-        for e in employees:
+        for employee in employees:
             cqm.add_constraint(
-                x[e, shifts[1]] - x[e, shifts[0]] <= 0,
-                label=f"isolated,{e},{shifts[0]}",
+                x[employee, shifts[1]] - x[employee, shifts[0]] <= 0,
+                label=f"isolated,{employee},{shifts[0]}",
             )
             cqm.add_constraint(
-                x[e, shifts[-2]] - x[e, shifts[-1]] <= 0,
-                label=f"isolated,{e},{shifts[-1]}",
+                x[employee, shifts[-2]] - x[employee, shifts[-1]] <= 0,
+                label=f"isolated,{employee},{shifts[-1]}",
             )
 
     # Require a manager on every shift
-    if manager:
-        mgr_list = [e for e in employees if e[-3:] == "Mgr"]
-        for s in range(len(shifts)):
+    if requires_manager:
+        managers = [employee for employee in employees if employee[-3:] == "Mgr"]
+        for shift in shifts:
             cqm.add_constraint(
-                quicksum(x[m, shifts[s]] for m in mgr_list) == 1,
-                label=f"manager_issue,,{shifts[s]}",
+                quicksum(x[manager, shift] for manager in managers) == 1,
+                label=f"manager_issue,,{shift}",
             )
 
-    # No k shifts consecutive
-    for e in employees:
-        for s in range(len(shifts) - k + 1):
+    # Don't exceed max_consecutive_shifts
+    for employee in employees:
+        for s in range(len(shifts) - max_consecutive_shifts + 1):
             cqm.add_constraint(
-                quicksum([x[e, shifts[s + i]] for i in range(k)]) <= k - 1,
-                label=f"too_many_consecutive,{e},{shifts[s]}",
+                quicksum(
+                    [x[employee, shifts[s + i]] for i in range(max_consecutive_shifts)]
+                ) <= max_consecutive_shifts - 1,
+                label=f"too_many_consecutive,{employee},{shifts[s]}",
             )
 
     # Trainee must work on shifts with trainer
-    tr_list = [e for e in employees if e[-2:] == "Tr"]
-    for s in range(len(shifts)):
+    trainees = [employee for employee in employees if employee[-2:] == "Tr"]
+    for shift in shifts:
         cqm.add_constraint(
-            x[tr_list[0], shifts[s]]
-            - x[tr_list[0], shifts[s]] * x[tr_list[0][:-3], shifts[s]]
+            x[trainees[0], shift]
+            - x[trainees[0], shift] * x[trainees[0][:-3], shift]
             == 0,
-            label=f"trainee_issue,,{shifts[s]}",
+            label=f"trainee_issue,,{shift}",
         )
 
     return cqm
@@ -147,6 +153,7 @@ def build_cqm(
 def run_cqm(cqm):
     """Run the provided CQM on the Leap Hybrid CQM Sampler."""
     sampler = LeapHybridCQMSampler()
+    # sampler = scipy_solver.SciPyCQMSolver()
 
     sampleset = sampler.sample_cqm(cqm)
     feasible_sampleset = sampleset.filter(lambda row: row.is_feasible)

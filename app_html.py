@@ -21,7 +21,7 @@ from typing import Any
 from dash import dcc, html
 
 from app_configs import (DESCRIPTION, MAIN_HEADER, MAX_CONSECUTIVE_SHIFTS, MIN_MAX_EMPLOYEES,
-                         MIN_MAX_SHIFTS, NUM_EMPLOYEES, THUMBNAIL)
+                         MIN_MAX_SHIFTS, NUM_EMPLOYEES, REQUESTED_SHIFT_ICON, THUMBNAIL, UNAVAILABLE_ICON)
 
 EXAMPLE_SCENARIO = ["Custom", "Small", "Medium", "Large"]
 
@@ -216,11 +216,25 @@ def set_html(app):
                                         value="availability-tab",  # used for switching to programatically
                                         className="tab",
                                         children=[
-                                            html.Div(id="availability-content"),
+                                            html.Div(
+                                                className="schedule",
+                                                children=[
+                                                    html.Div(id="availability-content"),
+                                                    html.Div(
+                                                        className="legend",
+                                                        children=[
+                                                            html.Div(className="requested-shifts", children=[REQUESTED_SHIFT_ICON]),
+                                                            html.Label("Requested"),
+                                                            html.Div(className="unavailable-shifts", children=[UNAVAILABLE_ICON]),
+                                                            html.Label("Unavailable"),
+                                                        ]
+                                                    )
+                                                ]
+                                            ),
                                         ],
                                     ),
                                     dcc.Tab(
-                                        label="Schedule",
+                                        label="Scheduled Shifts",
                                         id="schedule-tab",
                                         value="schedule-tab",  # used for switching to programatically
                                         className="tab",
@@ -229,7 +243,23 @@ def set_html(app):
                                                 id="loading",
                                                 type="circle",
                                                 color="#2A7DE1",
-                                                children=html.Div(id="schedule-content"),
+                                                children=html.Div(
+                                                    className="schedule",
+                                                    children=[
+                                                        html.Div(id="schedule-content"),
+                                                        html.Div(
+                                                            className="legend",
+                                                            children=[
+                                                                html.Div(className="scheduled-shifts"),
+                                                                html.Label("Scheduled"),
+                                                                html.Div(className="unscheduled-requested-shifts", children=[REQUESTED_SHIFT_ICON]),
+                                                                html.Label("Unscheduled requested"),
+                                                                html.Div(UNAVAILABLE_ICON),
+                                                                html.Label("Unavailable"),
+                                                            ]
+                                                        )
+                                                    ]
+                                                ),
                                             ),
                                         ],
                                         disabled=True,
