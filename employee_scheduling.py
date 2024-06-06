@@ -22,6 +22,7 @@ from dimod import (
 from dwave.system import LeapHybridCQMSampler
 
 import scipy_solver as scipy_solver
+from utils import DAYS, SHIFTS
 
 
 def build_cqm(
@@ -172,7 +173,7 @@ def run_cqm(cqm):
         msgs = {
             "unavailable": (
                 "Employees scheduled when unavailable",
-                "{employee} on day {day}"
+                "{employee} on {day}"
             ),
             "overtime": (
                 "Employees with scheduled overtime",
@@ -184,27 +185,27 @@ def run_cqm(cqm):
             ),
             "understaffed": (
                 "Understaffed shifts",
-                "Day {day} is understaffed"
+                "{day} is understaffed"
             ),
             "overstaffed": (
                 "Overstaffed shifts",
-                "Day {day} is overstaffed"
+                "{day} is overstaffed"
             ),
             "isolated": (
                 "Isolated shifts",
-                "Day off {day} is isolated for {employee}"
+                "{day} is an isolated day off for {employee}"
             ),
             "manager_issue": (
                 "Shifts with no manager",
-                "No manager scheduled on day {day}"
+                "No manager scheduled on {day}"
             ),
             "too_many_consecutive": (
                 "Employees with too many consecutive shifts",
-                "{employee} starting with day {day}"
+                "{employee} starting with {day}"
             ),
             "trainee_issue": (
                 "Shifts with trainee scheduling issues",
-                "Trainee scheduling issue on day {day}"
+                "Trainee scheduling issue on {day}"
             ),
         }
         for i, _ in enumerate(sat_array):
@@ -218,6 +219,12 @@ def run_cqm(cqm):
 
                 # constraint label should be of form "key,employee,day"
                 format_dict = dict(zip(["employee", "day"], data))
+
+                # translate day index into day of week and date
+                if format_dict["day"]:
+                    index = int(format_dict["day"]) - 1
+                    format_dict["day"] = f"{DAYS[index%7]} {SHIFTS[index]}"
+
                 errors[heading].append(error_msg.format(**format_dict))
 
         return sampleset, errors

@@ -32,7 +32,6 @@ Apache License, Version 2.0
 */
 
 :root {
-  --blue-bright: #DDDDDD;
   --blue-bright: #03B8FF;
   --blue-light: #2A7DE1;
   --blue-dark: #074C91;
@@ -546,4 +545,12 @@ td[data-dash-column="Employee"] {
   overflow-x: visible;
   max-height: calc(100vh - 20rem);
   max-width: 90rem;
+}
+
+/* Highlight weekend headers */
+tr:not(:first-child) .dash-header.column-1,
+tr:not(:first-child) .dash-header.column-7,
+tr:not(:first-child) .dash-header.column-8,
+tr:not(:first-child) .dash-header.column-14 {
+  background-color: var(--grey-lighter) !important;
 }

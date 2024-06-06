@@ -32,6 +32,7 @@ SHIFTS = [
     (START_DATE + datetime.timedelta(i)).strftime("%-d")
     for i in range(SCHEDULE_LENGTH)
 ]
+DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 
 def get_random_string(length):
@@ -107,8 +108,6 @@ def build_schedule_from_sample(sample, employees):
     return data
 
 def get_cols():
-    days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-
     start_month = START_DATE.strftime("%B %Y") # Get month and year
     end_month = (START_DATE + datetime.timedelta(SCHEDULE_LENGTH-1)).strftime("%B %Y") # Get month and year
     month_display = [start_month, end_month]
@@ -116,7 +115,7 @@ def get_cols():
     return (
         [{"id": "Employee", "name": ["", "", "Employee"]}]
         + [{"id": str(i+1), "name": [
-            month_display[0 if i < 7 else 1], days[i%7], c
+            month_display[0 if i < 7 else 1], DAYS[i%7], c
         ]} for i, c in enumerate(SHIFTS)]
     )
 
