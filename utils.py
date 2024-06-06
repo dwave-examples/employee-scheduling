@@ -108,6 +108,7 @@ def build_schedule_from_sample(sample, employees):
     return data
 
 def get_cols():
+    """Gets information for column headers, including months and days."""
     start_month = START_DATE.strftime("%B %Y") # Get month and year
     end_month = (START_DATE + datetime.timedelta(SCHEDULE_LENGTH-1)).strftime("%B %Y") # Get month and year
     month_display = [start_month, end_month]
@@ -120,6 +121,7 @@ def get_cols():
     )
 
 def get_cell_styling(cols):
+    """Sets conditional cell styling."""
     return [
             {
                 "if": {"column_id": cols[1:]},
