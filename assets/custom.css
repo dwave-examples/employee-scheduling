@@ -48,7 +48,7 @@ Apache License, Version 2.0
   --grey-medium: #777777;
   --grey-dark: #222222;
   --left-col-width: 35rem;
-  --error-col-width: 40rem;
+  --error-col-width: 42rem;
   --banner-height: 5.5rem;
 }
 
@@ -57,11 +57,6 @@ body {
   color: var(--grey-dark);
   font-size: 1.4rem;
   margin: 0;
-}
-
-#description-card {
-  width: 100%;
-  margin: 2rem 0rem;
 }
 
 #banner {
@@ -128,6 +123,8 @@ input[type="checkbox"] {
 
 .log-column {
   display: none;
+  background-color: white;
+  z-index: 10;
 }
 
 .left-column > div > div {
@@ -165,7 +162,8 @@ input[type="checkbox"] {
 #right-column {
   background-color: var(--grey-light);
   padding: 2rem 0 0;
-  width: 100%;
+  min-width: 40rem;
+  flex-grow: 1;
 }
 
 .slider > div,
@@ -293,6 +291,7 @@ div.dash-sk-circle {
   border-radius: 0;
   padding: 0 0.5rem 0 0;
   transition: background-color 0.25s ease-in-out;
+  overflow: hidden;
 }
 
 .details-collapse,
@@ -392,10 +391,6 @@ div.dash-sk-circle {
   background-color: var(--red-dark);
 }
 
-#tabs {
-  min-width: 30rem;
-}
-
 .tab-container {
   border-bottom: 3px solid var(--blue-light);
   flex-direction: row !important;
@@ -427,6 +422,12 @@ div.tab.tab--disabled {
 .tab-content {
   background-color: white;
   padding: 2rem;
+  overflow-x: auto;
+  display: inline-flex;
+}
+
+.tab-content > div {
+  min-width: 101rem;
 }
 
 #seed-select {
@@ -443,15 +444,15 @@ div.tab.tab--disabled {
   align-content: start;
   align-items: center;
   max-width: 22rem;
-  margin: 4.3rem 0 0 2rem;
+  margin: 4.3rem 0 0 1rem;
 }
 
 .legend div {
-  width: 45px;
-  margin-right: 6px;
+  width: 4.5rem;
+  margin-right: 0.6rem;
   text-align: center;
   font-size: 1.8rem;
-  height: 30px;
+  height: 3rem;
 }
 
 .legend > * {
@@ -473,8 +474,10 @@ div.tab.tab--disabled {
 }
 
 .unscheduled-requested-shifts {
-  background-color: #c7003888;
-  color: white;
+  background-image: linear-gradient(-45deg, #c7003860 10%, transparent 10%, transparent 20%,
+  #c7003860 20%, #c7003860 30%, transparent 30%, transparent 40%, #c7003860 40%, #c7003860 50%,
+  transparent 50%, transparent 60%, #c7003860 60%, #c7003860 70%, transparent 70%, transparent 80%, #c7003860 80%,
+  #c7003860 90%, transparent 90%, #fff);
 }
 
 .unavailable-shifts {

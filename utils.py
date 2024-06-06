@@ -216,8 +216,10 @@ def display_schedule(df, availability):
                     "filter_query": f'{{{col_id}}} contains "\r" && {{{col_id}}} contains {REQUESTED_SHIFT_ICON}',
                     "column_id": col_id,
                 },
-                "backgroundColor": "#c7003888", # light red
-                "color": "white",
+                "backgroundImage": "linear-gradient(-45deg, #c7003860 10%, transparent 10%, transparent 20%,\
+                #c7003860 20%, #c7003860 30%, transparent 30%, transparent 40%, #c7003860 40%, #c7003860 50%,\
+                transparent 50%, transparent 60%, #c7003860 60%, #c7003860 70%, transparent 70%, transparent 80%,\
+                #c7003860 80%, #c7003860 90%, transparent 90%, #fff)", # light red
             }
             for col_id in COL_IDS
         ],

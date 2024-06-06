@@ -18,7 +18,7 @@ THUMBNAIL = "assets/dwave_logo.svg"
 
 # Sets Dash debug. Set to True if developing and False if
 # demoing. App should be restarted to see change.
-DEBUG = True
+DEBUG = False
 
 APP_TITLE = "Employee Scheduling Demo"
 MAIN_HEADER = "Employee Scheduling"

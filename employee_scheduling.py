@@ -176,11 +176,11 @@ def run_cqm(cqm):
             ),
             "overtime": (
                 "Employees with scheduled overtime",
-                "{employee} has too many shifts"
+                "{employee}"
             ),
             "insufficient": (
                 "Employees with not enough scheduled time",
-                "{employee} doesn't have enough shifts"
+                "{employee}"
             ),
             "understaffed": (
                 "Understaffed shifts",
@@ -195,7 +195,7 @@ def run_cqm(cqm):
                 "Day off {day} is isolated for {employee}"
             ),
             "manager_issue": (
-                "Shifts with manager issues",
+                "Shifts with no manager",
                 "No manager scheduled on day {day}"
             ),
             "too_many_consecutive": (
