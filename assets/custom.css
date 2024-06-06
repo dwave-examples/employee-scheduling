@@ -46,7 +46,7 @@ Apache License, Version 2.0
   --grey: #AAAAAA;
   --grey-medium: #777777;
   --grey-dark: #222222;
-  --left-col-width: 35rem;
+  --left-col-width: 36rem;
   --error-col-width: 42rem;
   --banner-height: 5.5rem;
 }
@@ -452,6 +452,7 @@ div.tab.tab--disabled {
   text-align: center;
   font-size: 1.8rem;
   height: 3rem;
+  border: 1px solid var(--grey-light);
 }
 
 .legend > * {
@@ -460,7 +461,7 @@ div.tab.tab--disabled {
 
 .legend label {
   margin: 0;
-  flex: calc(100% - 51px);
+  flex: 1 0 75%;
 }
 
 .scheduled-shifts {

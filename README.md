@@ -55,9 +55,8 @@ In the chart, there are three different types of employees.
   has the same name as their trainer. The trainee can **only** be scheduled to
   work on a shift that their trainer is also scheduled to work.
 
-The chart displays employee preferences and availability for this month. It will
-always display the current month, with one column for each day in this current
-month.
+The chart displays employee preferences and availability over two weeks. It will
+always display two weeks starting two Sundays from now, with one column for each day the two week period.
 
 ### Inputs
 
@@ -74,7 +73,7 @@ Additional input options under the Advanced Configuration tab are as follows:
 - Require a manager on every shift: Checked, this option means that every shift
   must have exactly one manager on duty to supervise.
 - Min/max shifts per employee: The range you set determines the number of shifts an
-  employee can work in the month.
+  employee can work.
 - Min/max employees per shift: The range you set determines how many employees need
   to be assigned to each shift.
 - Max consecutive shifts: The maximum number of consecutive shifts an employee

@@ -21,7 +21,6 @@ from dimod import (
 )
 from dwave.system import LeapHybridCQMSampler
 
-import scipy_solver as scipy_solver
 from utils import DAYS, SHIFTS
 
 
@@ -154,7 +153,6 @@ def build_cqm(
 def run_cqm(cqm):
     """Run the provided CQM on the Leap Hybrid CQM Sampler."""
     sampler = LeapHybridCQMSampler()
-    # sampler = scipy_solver.SciPyCQMSolver()
 
     sampleset = sampler.sample_cqm(cqm)
     feasible_sampleset = sampleset.filter(lambda row: row.is_feasible)
