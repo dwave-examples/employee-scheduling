@@ -63,10 +63,13 @@ NUM_EMPLOYEES = {
 # max consecutive shifts slider (value means default)
 MAX_CONSECUTIVE_SHIFTS = {
     "min": 1,
-    "max": 80,
+    "max": 14,
     "step": 1,
     "value": 5,
 }
+
+# example scenario labels (must have 4, first is custom scenario)
+EXAMPLE_SCENARIO = ["Custom", "Small", "Medium", "Large"]
 
 # default scenarios (don't change order of items)
 SMALL_SCENARIO = {

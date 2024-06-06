@@ -20,10 +20,8 @@ from typing import Any
 
 from dash import dcc, html
 
-from app_configs import (DESCRIPTION, MAIN_HEADER, MAX_CONSECUTIVE_SHIFTS, MIN_MAX_EMPLOYEES,
+from app_configs import (DESCRIPTION, EXAMPLE_SCENARIO, MAIN_HEADER, MAX_CONSECUTIVE_SHIFTS, MIN_MAX_EMPLOYEES,
                          MIN_MAX_SHIFTS, NUM_EMPLOYEES, REQUESTED_SHIFT_ICON, THUMBNAIL, UNAVAILABLE_ICON)
-
-EXAMPLE_SCENARIO = ["Custom", "Small", "Medium", "Large"]
 
 
 def description_card():
