@@ -33,6 +33,7 @@ SHIFTS = [
     for i in range(SCHEDULE_LENGTH)
 ]
 DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+WEEKEND_IDS = ["1", "7", "8", "14"]
 
 
 def get_random_string(length):
@@ -150,6 +151,12 @@ def display_availability(df):
         ]
         + [
             {
+                "if": {"column_id": weekend_id},
+                "backgroundColor": "#EEEEEE",
+            } for weekend_id in WEEKEND_IDS
+        ]
+        + [
+            {
                 "if": {
                     "filter_query": f'{{{col_id}}} = {UNAVAILABLE_ICON}',
                     "column_id": col_id,
@@ -199,6 +206,12 @@ def display_schedule(df, availability):
                 "if": {"row_index": "odd"},
                 "backgroundColor": "#EEEEEE",
             },
+        ]
+        + [
+            {
+                "if": {"column_id": weekend_id},
+                "backgroundColor": "#EEEEEE",
+            } for weekend_id in WEEKEND_IDS
         ]
         + [
             {

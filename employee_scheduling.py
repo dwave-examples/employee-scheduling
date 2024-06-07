@@ -107,16 +107,6 @@ def build_cqm(
                     <= 0,
                     label=f"isolated,{employee},{shift}",
                 )
-        # end shifts - patterns 01 at start and 10 at end penalized
-        for employee in employees:
-            cqm.add_constraint(
-                x[employee, shifts[1]] - x[employee, shifts[0]] <= 0,
-                label=f"isolated,{employee},{shifts[0]}",
-            )
-            cqm.add_constraint(
-                x[employee, shifts[-2]] - x[employee, shifts[-1]] <= 0,
-                label=f"isolated,{employee},{shifts[-1]}",
-            )
 
     # Require a manager on every shift
     if requires_manager:

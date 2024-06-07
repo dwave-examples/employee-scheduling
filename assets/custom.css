@@ -420,13 +420,15 @@ div.tab.tab--disabled {
 
 .tab-content {
   background-color: white;
-  padding: 2rem;
+  padding: 2rem 2rem 4rem;
   overflow-x: auto;
-  display: inline-flex;
 }
 
-.tab-content > div {
-  min-width: 101rem;
+@media screen and (min-width: 1700px) {
+  .tab-content {
+    padding-top: 4rem;
+    padding-left: 8rem;
+  }
 }
 
 #seed-select {
@@ -442,16 +444,17 @@ div.tab.tab--disabled {
   flex-wrap: wrap;
   align-content: start;
   align-items: center;
-  max-width: 22rem;
+  width: 22rem;
   margin: 4.3rem 0 0 1rem;
+  flex-shrink: 0;
 }
 
 .legend div {
   width: 4.5rem;
+  height: 3rem;
   margin-right: 0.6rem;
   text-align: center;
   font-size: 1.8rem;
-  height: 3rem;
   border: 1px solid var(--grey-light);
 }
 
@@ -538,14 +541,6 @@ td[data-dash-column="Employee"] {
   border-bottom: 2px solid var(--grey-medium) !important;
   border-top: none !important;
   padding-top: 0;
-}
-
-#availability-content,
-#schedule-content {
-  overflow-y: auto;
-  overflow-x: visible;
-  max-height: calc(100vh - 20rem);
-  max-width: 90rem;
 }
 
 /* Highlight weekend headers */
