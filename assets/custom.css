@@ -548,5 +548,5 @@ tr:not(:first-child) .dash-header.column-1,
 tr:not(:first-child) .dash-header.column-7,
 tr:not(:first-child) .dash-header.column-8,
 tr:not(:first-child) .dash-header.column-14 {
-  background-color: var(--grey-lighter) !important;
+  background-color: #E5E5E5 !important;
 }

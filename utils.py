@@ -146,13 +146,13 @@ def display_availability(df):
         style_data_conditional=[
             {
                 "if": {"row_index": "odd"},
-                "backgroundColor": "#EEEEEE",
+                "backgroundColor": "#f5f5f5",
             },
         ]
         + [
             {
                 "if": {"column_id": weekend_id},
-                "backgroundColor": "#EEEEEE",
+                "backgroundColor": "#E5E5E5",
             } for weekend_id in WEEKEND_IDS
         ]
         + [
@@ -204,13 +204,13 @@ def display_schedule(df, availability):
         style_data_conditional=[
             {
                 "if": {"row_index": "odd"},
-                "backgroundColor": "#EEEEEE",
+                "backgroundColor": "#f5f5f5",
             },
         ]
         + [
             {
                 "if": {"column_id": weekend_id},
-                "backgroundColor": "#EEEEEE",
+                "backgroundColor": "#E5E5E5",
             } for weekend_id in WEEKEND_IDS
         ]
         + [
