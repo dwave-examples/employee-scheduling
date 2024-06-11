@@ -234,28 +234,29 @@ def set_html(app):
                                         value="schedule-tab",  # used for switching to programatically
                                         className="tab",
                                         children=[
-                                            dcc.Loading(
-                                                id="loading",
-                                                type="circle",
-                                                color="#2A7DE1",
-                                                children=html.Div(
-                                                    className="schedule",
-                                                    children=[
-                                                        html.Div(id="schedule-content"),
-                                                        html.Div(
-                                                            className="legend",
-                                                            children=[
-                                                                html.Div(className="scheduled-shifts"),
-                                                                html.Label("Scheduled"),
-                                                                html.Div(className="unscheduled-requested-shifts", children=[REQUESTED_SHIFT_ICON]),
-                                                                html.Label("Unscheduled requested"),
-                                                                html.Div(UNAVAILABLE_ICON),
-                                                                html.Label("Unavailable"),
-                                                            ]
-                                                        )
-                                                    ]
-                                                ),
-                                            ),
+                                            html.Div(
+                                                className="schedule",
+                                                children=[
+                                                    dcc.Loading(
+                                                        id="loading",
+                                                        type="circle",
+                                                        color="#2A7DE1",
+                                                        parent_className="schedule-loading",
+                                                        children=html.Div(id="schedule-content"),
+                                                    ),
+                                                    html.Div(
+                                                        className="legend",
+                                                        children=[
+                                                            html.Div(className="scheduled-shifts"),
+                                                            html.Label("Scheduled"),
+                                                            html.Div(className="unscheduled-requested-shifts", children=[REQUESTED_SHIFT_ICON]),
+                                                            html.Label("Unscheduled requested"),
+                                                            html.Div(UNAVAILABLE_ICON),
+                                                            html.Label("Unavailable"),
+                                                        ]
+                                                    )
+                                                ]
+                                            )
                                         ],
                                         disabled=True,
                                     ),

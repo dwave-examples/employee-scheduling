@@ -244,13 +244,15 @@ input[type="checkbox"] {
   transition: filter 0.1s linear, opacity 0.1s linear;
 }
 
-#schedule-content {
-  height: auto;
-}
-
 div.dash-sk-circle {
   height: 6rem;
   width: 6rem;
+}
+
+/* Specific targeting for the loading circle */
+.schedule-loading > div:last-child {
+  top: 30vh !important;
+  height: auto !important;
 }
 
 #control-card > p {
@@ -549,4 +551,8 @@ tr:not(:first-child) .dash-header.column-7,
 tr:not(:first-child) .dash-header.column-8,
 tr:not(:first-child) .dash-header.column-14 {
   background-color: #E5E5E5 !important;
+}
+
+.tab-content .schedule-loading {
+  visibility: visible !important;
 }
