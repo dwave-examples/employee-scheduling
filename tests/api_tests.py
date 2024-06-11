@@ -58,6 +58,28 @@ employees = json.loads("""[
     "must_pair_with": null
 },
 {
+    "id": "pilot_4",
+    "name": "Alex",
+    "job_function": "Pilot",
+    "qualifications": ["best", "great"],
+    "availability": [],
+    "non_availability": [],
+    "experience_level": 5,
+    "is_trainee": false,
+    "must_pair_with": null
+},
+{
+    "id": "pilot_5",
+    "name": "Kate",
+    "job_function": "Pilot",
+    "qualifications": ["best", "great"],
+    "availability": [],
+    "non_availability": [],
+    "experience_level": 5,
+    "is_trainee": false,
+    "must_pair_with": null
+},
+{
     "id": "trainee_1",
     "name": "Rik",
     "job_function": "Trainee",
@@ -99,18 +121,20 @@ shift_templates = json.loads("""[{
     "qualification_required": "Requires Flying Licence",
     "experience_required": 2,
     "accept_trainee": true
-},{
-    "id": "shift_1",
-    "name": "night",
-    "start_time": "21:00",
-    "end_time": "06:59",
-    "hours_to_count": 5,
-    "number_required": 2,
-    "job_function_required": "Captain",
-    "qualification_required": "Requires Flying Licence",
-    "experience_required": 2,
-    "accept_trainee": false
 }]
 """)
+#
+# ,{
+#     "id": "shift_2",
+#     "name": "night",
+#     "start_time": "21:00",
+#     "end_time": "06:59",
+#     "hours_to_count": 5,
+#     "number_required": 2,
+#     "job_function_required": "Captain",
+#     "qualification_required": "Requires Flying Licence",
+#     "experience_required": 2,
+#     "accept_trainee": false
+# }
 
 generate_roster(employees, shift_templates, 5, 2024)

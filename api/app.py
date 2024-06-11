@@ -4,10 +4,10 @@ import pandas as pd
 
 import utils
 from api.endpoints.schedule import Employee, ShiftTemplate
-from employee_scheduling import build_cqm
+from employee_scheduling import build_cqm, run_cqm
 
 NOW = datetime.now()
-
+employees_names = []
 
 def create_schedule_header(shift_names, days_in_month):
     header_names = []
@@ -20,7 +20,7 @@ def create_schedule_header(shift_names, days_in_month):
 def build_sched(employees_list: [Employee], shift_names, days_in_month, full_sched_list):
     """Builds availability schedule for employees."""
 
-    employees_names = []
+    #employees_names = []
     for employee in employees_list:
         if employee.is_trainee:
             employees_names.append(employee.name + "-Tr")
@@ -62,19 +62,31 @@ def build_sched(employees_list: [Employee], shift_names, days_in_month, full_sch
     return data
 
 
+def get_shifts(shift_templates):
+    shifts_list = []
+    for shift in shift_templates:
+        shifts_list.append(ShiftTemplate.parse_obj(shift))
+
+    return shifts_list
+
+
+def get_employees(employees):
+    employees_list = []
+    for employee in employees:
+        emp = Employee.parse_obj(employee)
+        employees_list.append(emp)
+
+    return employees_list
+
+
 def generate_roster(employees, shift_templates, month, year):
 
     NUM_DAYS_IN_MONTH = calendar.monthrange(year, month)[1]
     days = [str(i + 1) for i in range(NUM_DAYS_IN_MONTH)]
     manager = False
 
-    employees_list = []
-    for employee in employees:
-        employees_list.append(Employee.parse_obj(employee))
-
-    shifts_list = []
-    for shift in shift_templates:
-        shifts_list.append(ShiftTemplate.parse_obj(shift))
+    employees_list = get_employees(employees)
+    shifts_list = get_shifts(shift_templates)
     shift_names = [shift.name for shift in shifts_list]
 
     # if "captain" in shifttemplate.job_function_required.lower():
@@ -93,10 +105,20 @@ def generate_roster(employees, shift_templates, month, year):
     print("availability:", availability)
 
     cqm = build_cqm(
-        availability, full_sched_list, 1, 6,
+        availability, full_sched_list, 15, 22,
         shift_min=shifts_list[0].number_required, shift_max=shifts_list[0].number_required,
         manager=manager, isolated=False, k=6
     )
 
     print("cqm vars:", cqm.constraint_labels)
-    #run_cqm(cqm)
+
+    #This will run the CQM on the hybrid solvers. Uncomment this only when required to save on free Dwave account time
+    solutions = run_cqm(cqm)
+    print("feasible solutions:", solutions)
+
+    first_solution = solutions[0].first.sample
+
+    easy_read_version = utils.build_schedule_from_sample(first_solution, full_sched_list, employees_names)
+
+    #easy_read_version = utils.reshape_solution(first_solution, [emp.name for emp in employees_list], days)
+    print(easy_read_version.to_string())

@@ -25,13 +25,13 @@ from dwave.system import LeapHybridCQMSampler
 def build_cqm(
     availability,
     shifts,
-    min_shifts,
-    max_shifts,
-    shift_min,
-    shift_max,
-    manager,
-    isolated,
-    k,
+    min_shifts, #the minimum number of shifts an employee can work in the month
+    max_shifts, #the maximum number of shifts an employee can work in the month
+    shift_min, #the minimum number of employees that need to be assigned to each shift
+    shift_max, #the maximum number of employees that need to be assigned to each shift
+    manager, #Checked, this option means that every shift must have exactly one manager on duty to supervise.
+    isolated, #Unchecked, this option means that employees are scheduled at least two consecutive days off between work days.
+    k, #Random seed: Optional; use if you want consistency between subsequent runs of the example.
 ):
     """Builds the ConstrainedQuadraticModel for the given scenario."""
     cqm = ConstrainedQuadraticModel()
@@ -148,10 +148,14 @@ def run_cqm(cqm):
     """Run the provided CQM on the Leap Hybrid CQM Sampler."""
     sampler = LeapHybridCQMSampler()
 
-    sampleset = sampler.sample_cqm(cqm)
+    #set time limit of 1 second
+    sampleset = sampler.sample_cqm(cqm, time_limit=5)
     feasible_sampleset = sampleset.filter(lambda row: row.is_feasible)
+    print("sampleset info", sampleset.info)
+    print("feasible_sampleset info", feasible_sampleset)
 
     num_feasible = len(feasible_sampleset)
+    print("How many were feasible?:", num_feasible)
     if num_feasible == 0:
         errors = defaultdict(list)
         sat_array = sampleset.first.is_satisfied
