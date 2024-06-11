@@ -28,19 +28,20 @@ due to real-world constraints. This example demonstrates a scheduling
 scenario with a variety of employees and rules.
 """
 
+REQUESTED_SHIFT_ICON = "✓"
+UNAVAILABLE_ICON = "x"
+
 
 #######################################
 # Sliders, buttons and option entries #
 #######################################
-# which month to use for employee scheduling (0 uses current month)
-MONTH = 0
 
 # min/max number of shifts per employee range slider (value means default)
 MIN_MAX_SHIFTS = {
     "min": 1,
-    "max": 31,
+    "max": 14,
     "step": 1,
-    "value": [10, 20],
+    "value": [5, 7],
 }
 
 # min/max number of employees per shift range slider (value means default)
@@ -62,16 +63,19 @@ NUM_EMPLOYEES = {
 # max consecutive shifts slider (value means default)
 MAX_CONSECUTIVE_SHIFTS = {
     "min": 1,
-    "max": 80,
+    "max": 14,
     "step": 1,
     "value": 5,
 }
+
+# example scenario labels (must have 4, first is custom scenario)
+EXAMPLE_SCENARIO = ["Custom", "Small", "Medium", "Large"]
 
 # default scenarios (don't change order of items)
 SMALL_SCENARIO = {
     "num_employees": 12,
     "consecutive_shifts": 5,
-    "shifts_per_employee": [10, 20],
+    "shifts_per_employee": [5, 7],
     "employees_per_shift": [3, 6],
     "random_seed": "",
 }
@@ -79,15 +83,15 @@ SMALL_SCENARIO = {
 MEDIUM_SCENARIO = {
     "num_employees": 20,
     "consecutive_shifts": 5,
-    "shifts_per_employee": [8, 16],
-    "employees_per_shift": [6, 10],
+    "shifts_per_employee": [5, 10],
+    "employees_per_shift": [5, 10],
     "random_seed": "",
 }
 
 LARGE_SCENARIO = {
     "num_employees": 40,
     "consecutive_shifts": 5,
-    "shifts_per_employee": [4, 16],
-    "employees_per_shift": [6, 10],
+    "shifts_per_employee": [5, 10],
+    "employees_per_shift": [10, 20],
     "random_seed": "",
 }

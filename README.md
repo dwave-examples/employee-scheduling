@@ -38,14 +38,14 @@ Leap account [here](https://docs.dwavesys.com/docs/latest/doc_leap_dev_env.html)
 To run the demo, type the ``python app.py`` command into your terminal and then open a web browser
 to the URL printed to the terminal.
 
-Set any of the input options to configure the problem and then click the "Solve CQM"
-button. While the problem is being solved, you can see status updates in the browser and terminal.
+Set any of the input options to configure the problem and then click the "Solve"
+button.
 
 ### Introducing the Demo
 
 The employee availability chart shows employee shift preferences and unavailable
-days (PTO). Preferred shifts are in teal and marked with a 'P', while
-unavailable shifts are in orange and marked with an 'X'.
+days (PTO). Requested shifts are in teal and marked with a '✓', while
+unavailable shifts are in orange and marked with an 'x'.
 
 In the chart, there are three different types of employees.
 
@@ -55,39 +55,35 @@ In the chart, there are three different types of employees.
   has the same name as their trainer. The trainee can **only** be scheduled to
   work on a shift that their trainer is also scheduled to work.
 
-The chart displays employee preferences and availability for this month. It will
-always display the current month, with one column for each day in this current
-month.
+The chart displays employee preferences and availability over two weeks. It will
+always display two weeks starting two Sundays from now, with one column for each day of the two week period.
 
 ### Inputs
 
-Input options under the Basic Configuration tab are as follows:
+The scenario preset auto-populates all settings with scenarios of varying
+sizes. If 'Custom' is selected, the following settings become available:
 
-- Number of employees: Schedules always include 2 managers  and 1 trainee.
-- Example scenario: Auto-populates all settings with scenarios of varying
-  sizes that produce feasible solutions.
-
-Additional input options under the Advanced Configuration tab are as follows:
-
-- Allow isolated days off: Unchecked, this option means that employees are
-  scheduled at least two consecutive days off between work days.
-- Require a manager on every shift: Checked, this option means that every shift
-  must have exactly one manager on duty to supervise.
-- Min/max shifts per employee: The range you set determines the number of shifts an
-  employee can work in the month.
-- Min/max employees per shift: The range you set determines how many employees need
-  to be assigned to each shift.
+- Number of employees: Schedules always include 2 managers and 1 trainee.
 - Max consecutive shifts: The maximum number of consecutive shifts an employee
   can be scheduled before a day off must be scheduled.
-- Random seed: Optional; use if you want consistency between subsequent runs of the example.
+- Min/max shifts per employee: This range determines the number of shifts an
+  employee can work.
+- Min/max employees per shift: This range determines how many employees need
+  to be assigned to each shift.
+- Allow isolated days off: If unchecked, employees must be
+  scheduled for at least two consecutive days off between work days.
+- Require a manager on every shift: If checked, every shift
+  must have exactly one manager on duty to supervise.
+- Random seed (optional): If set with an integer, it will ensure consistency
+between subsequent runs of the same example.
 
 ### Outputs
 
 Once the problem has completed, the best solution returned is displayed in
-place of "Employee Availability". Click back to "Employee Availability" using
-the tabs at the top of the schedule card.
+the "Scheduled Shifts" tab.
 
 The solution returned is either the best feasible solution (if a feasible
 solution is found) or the best infeasible solution (if no feasible solution is
-found). If an infeasible solution is found, scrolling down shows the list of
-constraints that were violated.
+found). If an infeasible solution is found, a collapsible error bar will show
+on the right side of the demo with more information about what makes the solution
+infeasible.

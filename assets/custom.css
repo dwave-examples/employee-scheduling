@@ -32,7 +32,6 @@ Apache License, Version 2.0
 */
 
 :root {
-  --blue-bright: #DDDDDD;
   --blue-bright: #03B8FF;
   --blue-light: #2A7DE1;
   --blue-dark: #074C91;
@@ -48,24 +47,19 @@ Apache License, Version 2.0
   --grey-medium: #777777;
   --grey-dark: #222222;
   --left-col-width: 36rem;
-  --error-col-width: 40rem;
+  --error-col-width: 42rem;
+  --banner-height: 5.5rem;
 }
 
 body {
   background-color: #f9f9f9;
   color: var(--grey-dark);
   font-size: 1.4rem;
-  margin: 0rem;
-  overflow: hidden;
-}
-
-#description-card {
-  width: 100%;
-  margin: 2rem 0rem;
+  margin: 0;
 }
 
 #banner {
-  height: 5.5rem;
+  height: var(--banner-height);
   background-color: var(--blue-dark);
   display: flex;
   flex-direction: row;
@@ -119,7 +113,7 @@ input[type="checkbox"] {
 
 #columns {
   display: flex;
-  height: 100%;
+  height: calc(100vh - var(--banner-height));
 }
 
 .left-column {
@@ -128,6 +122,8 @@ input[type="checkbox"] {
 
 .log-column {
   display: none;
+  background-color: white;
+  z-index: 10;
 }
 
 .left-column > div > div {
@@ -165,18 +161,8 @@ input[type="checkbox"] {
 #right-column {
   background-color: var(--grey-light);
   padding: 2rem 0 0;
-  width: 100%;
-  overflow-x: auto;
-}
-
-.dash-table-container {
-  /* viewport height - (tab + banner height) */
-  height: calc(100vh - 14.3rem);
-  overflow-y: auto;
-}
-
-.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
-  overflow-x: unset !important;
+  min-width: 40rem;
+  flex-grow: 1;
 }
 
 .slider > div,
@@ -258,13 +244,15 @@ input[type="checkbox"] {
   transition: filter 0.1s linear, opacity 0.1s linear;
 }
 
-#schedule-content {
-  height: auto;
-}
-
 div.dash-sk-circle {
   height: 6rem;
   width: 6rem;
+}
+
+/* Specific targeting for the loading circle */
+.schedule-loading > div:last-child {
+  top: 30vh !important;
+  height: auto !important;
 }
 
 #control-card > p {
@@ -304,6 +292,7 @@ div.dash-sk-circle {
   border-radius: 0;
   padding: 0 0.5rem 0 0;
   transition: background-color 0.25s ease-in-out;
+  overflow: hidden;
 }
 
 .details-collapse,
@@ -403,10 +392,6 @@ div.dash-sk-circle {
   background-color: var(--red-dark);
 }
 
-#tabs {
-  min-width: 30rem;
-}
-
 .tab-container {
   border-bottom: 3px solid var(--blue-light);
   flex-direction: row !important;
@@ -436,13 +421,138 @@ div.tab.tab--disabled {
 }
 
 .tab-content {
-  background-color: var(--grey-lighter);
+  background-color: white;
+  padding: 2rem 2rem 4rem;
+  overflow-x: auto;
 }
 
-.tab-content > div {
-  visibility: visible !important;
+@media screen and (min-width: 1700px) {
+  .tab-content {
+    padding-top: 4rem;
+    padding-left: 8rem;
+  }
 }
 
 #seed-select {
   margin-bottom: 2rem;
+}
+
+.schedule {
+  display: flex;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  align-items: center;
+  width: 22rem;
+  margin: 4.3rem 0 0 1rem;
+  flex-shrink: 0;
+}
+
+.legend div {
+  width: 4.5rem;
+  height: 3rem;
+  margin-right: 0.6rem;
+  text-align: center;
+  font-size: 1.8rem;
+  border: 1px solid var(--grey-light);
+}
+
+.legend > * {
+  margin-bottom: 0.2rem;
+}
+
+.legend label {
+  margin: 0;
+  flex: 1 0 75%;
+}
+
+.scheduled-shifts {
+  background-color: var(--blue-light);
+}
+
+.requested-shifts {
+  background-color: var(--teal-darker);
+  color: white;
+}
+
+.unscheduled-requested-shifts {
+  background-image: linear-gradient(-45deg, #c7003860 10%, transparent 10%, transparent 20%,
+  #c7003860 20%, #c7003860 30%, transparent 30%, transparent 40%, #c7003860 40%, #c7003860 50%,
+  transparent 50%, transparent 60%, #c7003860 60%, #c7003860 70%, transparent 70%, transparent 80%, #c7003860 80%,
+  #c7003860 90%, transparent 90%, #fff);
+}
+
+.unavailable-shifts {
+  background-color: var(--orange);
+  color: white;
+}
+
+td[data-dash-column="Employee"] {
+  padding-left: 1.2rem !important;
+  padding-right: 1.2rem !important;
+  border-right: 2px solid var(--grey-medium) !important;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td:not([data-dash-column="Employee"]) div {
+  font-size: 1.8rem;
+  vertical-align: baseline;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th.dash-header {
+  background-color: white;
+  color: var(--grey-dark);
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(1) th:nth-child(2) {
+  text-align: left !important;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(1) th:nth-child(3) {
+  text-align: right !important;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(1) th {
+  border: none !important;
+  padding-top: 1.5rem;
+  padding-bottom: 0.6rem;
+  font-size: 1.8rem;
+  font-weight: 400;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(2) th {
+  font-weight: 400;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  text-align: left !important;
+  border-bottom: none !important;
+  padding-bottom: 0;
+  vertical-align: bottom;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(3) th:not(:first-child) {
+  text-align: left !important;
+  font-size: 1.8rem;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(3) th {
+  border-bottom: 2px solid var(--grey-medium) !important;
+  border-top: none !important;
+  padding-top: 0;
+}
+
+/* Highlight weekend headers */
+tr:not(:first-child) .dash-header.column-1,
+tr:not(:first-child) .dash-header.column-7,
+tr:not(:first-child) .dash-header.column-8,
+tr:not(:first-child) .dash-header.column-14 {
+  background-color: #E5E5E5 !important;
+}
+
+.tab-content .schedule-loading {
+  visibility: visible !important;
 }

@@ -13,8 +13,6 @@
 #    limitations under the License.
 from __future__ import annotations
 
-import calendar
-from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import diskcache
@@ -24,7 +22,7 @@ from dash.exceptions import PreventUpdate
 import employee_scheduling
 import utils
 from app_configs import (APP_TITLE, DEBUG, LARGE_SCENARIO, MEDIUM_SCENARIO, MIN_MAX_EMPLOYEES,
-                         MIN_MAX_SHIFTS, MONTH, SMALL_SCENARIO)
+                         SMALL_SCENARIO)
 from app_html import errors_list, set_html
 
 if TYPE_CHECKING:
@@ -40,11 +38,6 @@ app = Dash(
     background_callback_manager=background_callback_manager,
 )
 app.title = APP_TITLE
-
-NOW = datetime.now()
-NUM_DAYS_IN_MONTH = calendar.monthrange(NOW.year, MONTH or NOW.month)[1]
-# update maximum number of shifts to maximum number of days in current month
-MIN_MAX_SHIFTS["max"] = NUM_DAYS_IN_MONTH
 
 
 @app.callback(
@@ -239,10 +232,9 @@ def disp_initial_sched(
     # one less to account for trainee
     num_employees -= 1
 
-    shifts = [str(i + 1) for i in range(NUM_DAYS_IN_MONTH)]
-    df = utils.build_random_sched(num_employees, shifts, rand_seed)
+    df = utils.build_random_sched(num_employees, rand_seed)
 
-    init_availability_table = utils.display_availability(df, NOW.month, NOW.year)
+    init_availability_table = utils.display_availability(df)
     return (
         init_availability_table,
         init_availability_table,
@@ -316,10 +308,8 @@ def run_optimization(
 
     shifts = list(sched_df["props"]["data"][0].keys())
     shifts.remove("Employee")
-    availability = utils.availability_to_dict(sched_df["props"]["data"], shifts)
-    # remove legend row (last row) before building cqm
-    _ = availability.pop(" ", None)
 
+    availability = utils.availability_to_dict(sched_df["props"]["data"])
     employees = list(availability.keys())
 
     isolated_days_allowed = True if 0 in checklist else False
@@ -338,10 +328,10 @@ def run_optimization(
     feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
     sample = feasible_sampleset.first.sample
 
-    sched = utils.build_schedule_from_sample(sample, shifts, employees)
+    sched = utils.build_schedule_from_sample(sample, employees)
 
     return (
-        utils.display_schedule(sched, availability, NOW.month, NOW.year),
+        utils.display_schedule(sched, availability),
         False,
         {"display": "flex"} if errors else {"display": "none"},
         errors_list(errors) if errors else no_update,
