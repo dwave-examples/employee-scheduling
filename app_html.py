@@ -15,9 +15,6 @@
 """This file stores the HTML layout for the app (see ``custom.css`` for CSS styling)."""
 from __future__ import annotations
 
-import html
-from typing import Any
-
 from dash import dcc, html
 
 from app_configs import (DESCRIPTION, EXAMPLE_SCENARIO, MAIN_HEADER, MAX_CONSECUTIVE_SHIFTS, MIN_MAX_EMPLOYEES,
