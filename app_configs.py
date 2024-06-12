@@ -20,10 +20,10 @@ THUMBNAIL = "assets/dwave_logo.svg"
 # demoing. App should be restarted to see change.
 DEBUG = False
 
-APP_TITLE = "Employee Scheduling Demo"
-MAIN_HEADER = "Employee Scheduling"
+APP_TITLE = "Workforce Scheduling Demo"
+MAIN_HEADER = "Workforce Scheduling"
 DESCRIPTION = """\
-Employee scheduling is a common industry problem that often becomes complex
+Workforce scheduling is a common industry problem that often becomes complex
 due to real-world constraints. This example demonstrates a scheduling
 scenario with a variety of employees and rules.
 """

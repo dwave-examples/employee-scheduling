@@ -5,9 +5,9 @@
   https://circleci.com/gh/dwave-examples/employee-scheduling.svg?style=shield)](
   https://circleci.com/gh/dwave-examples/employee-scheduling) -->
 
-# Employee Scheduling
+# Workforce Scheduling
 
-Employee scheduling is a common industry problem that often becomes complex
+Workforce scheduling is a common industry problem that often becomes complex
 due to real-world constraints. This example demonstrates
 a scheduling scenario with a variety of employees and rules.
 
