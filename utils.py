@@ -29,7 +29,7 @@ START_DATE = NOW + datetime.timedelta(6 - NOW.weekday() + 14)
 COL_IDS = [str(i+1) for i in range(SCHEDULE_LENGTH)] # The ids for each column
 # The shift dates
 SHIFTS = [
-    (START_DATE + datetime.timedelta(i)).strftime("%-d")
+    (START_DATE + datetime.timedelta(i)).strftime("%e").strip()
     for i in range(SCHEDULE_LENGTH)
 ]
 DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
