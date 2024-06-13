@@ -25,7 +25,7 @@ class TestDemo(unittest.TestCase):
     def test_initial_sched(self):
         num_employees = 12
 
-        sched_df = disp_initial_sched(num_employees, None).data
+        sched_df = disp_initial_sched(num_employees, None)[0].data
 
         self.assertEqual(len(sched_df), num_employees)
 
@@ -33,10 +33,10 @@ class TestDemo(unittest.TestCase):
     def test_cqm(self):
         num_employees = 12
 
-        sched_df = disp_initial_sched(num_employees, None).data
+        sched_df = disp_initial_sched(num_employees, None)[0].data
         shifts = list(sched_df[0].keys())
         shifts.remove("Employee")
-        availability = utils.availability_to_dict(sched_df, shifts)
+        availability = utils.availability_to_dict(sched_df)
 
         cqm = employee_scheduling.build_cqm(
             availability, shifts, 1, 6, 5, 16, True, False, 6
@@ -131,17 +131,16 @@ class TestDemo(unittest.TestCase):
         self.assertFalse(cqm.check_feasible(infeasible_sample))
 
     def test_build_from_sample(self):
-        shifts = [str(i + 1) for i in range(5)]
         employees = ["A-Mgr", "B-Mgr", "C", "D", "E", "E-Tr"]
 
         # Make every employee available for every shift
         availability = {
-            "A-Mgr": [1] * 5,
-            "B-Mgr": [1] * 5,
-            "C": [1] * 5,
-            "D": [1] * 5,
-            "E": [1] * 5,
-            "E-Tr": [1] * 5,
+            "A-Mgr": [1] * 14,
+            "B-Mgr": [1] * 14,
+            "C": [1] * 14,
+            "D": [1] * 14,
+            "E": [1] * 14,
+            "E-Tr": [1] * 14,
         }
 
         sample = {
@@ -178,10 +177,8 @@ class TestDemo(unittest.TestCase):
         }
 
         disp_datatable = utils.display_schedule(
-            utils.build_schedule_from_sample(sample, shifts, employees),
+            utils.build_schedule_from_sample(sample, employees),
             availability,
-            12,
-            2023,
         )
 
         # This should verify we don't have any issues in the object created for display from a sample

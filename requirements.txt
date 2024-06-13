@@ -2,4 +2,4 @@ dash[diskcache]==2.16.1
 dash-bootstrap-components==1.6.0
 dwave-ocean-sdk>=6.7
 Faker==21.0.0
-pandas>=2.1
+pandas>=2.0
