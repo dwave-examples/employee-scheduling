@@ -31,6 +31,12 @@ if TYPE_CHECKING:
 cache = diskcache.Cache("./cache")
 background_callback_manager = DiskcacheManager(cache)
 
+# Fix for Dash background callbacks crashing on macOS 10.13+ (https://bugs.python.org/issue33725)
+# See https://github.com/dwave-examples/flow-shop-scheduling/pull/4 for more details.
+import multiprocess
+if multiprocess.get_start_method(allow_none=True) is None:
+    multiprocess.set_start_method('spawn')
+
 app = Dash(
     __name__,
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
@@ -269,11 +275,12 @@ def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
     )
 
 
-@app.long_callback(
+@app.callback(
     Output("schedule-content", "children", allow_duplicate=True),
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
     Output("errors", "children"),
+    background=True,
     inputs=[
         Input("run-button", "n_clicks"),
         State("shifts-per-employee-select", "value"),
