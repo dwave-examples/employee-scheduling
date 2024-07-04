@@ -19,7 +19,11 @@ from dimod import (
     ConstrainedQuadraticModel,
     quicksum,
 )
-from dwave.system import LeapHybridCQMSampler
+from dwave.optimization.model import (
+    Model,
+    BinaryVariable
+)
+from dwave.system import LeapHybridCQMSampler, LeapHybridNLSampler
 
 from utils import DAYS, SHIFTS
 
@@ -218,3 +222,21 @@ def run_cqm(cqm):
         return sampleset, errors
 
     return feasible_sampleset, None
+
+
+def build_nl(
+    availability,
+    shifts,
+    min_shifts,
+    max_shifts,
+    shift_min,
+    shift_max,
+    requires_manager,
+    allow_isolated_days_off,
+    max_consecutive_shifts,
+):
+    ...
+
+
+def run_nl(nl):
+    ...
