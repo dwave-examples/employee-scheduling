@@ -13,6 +13,7 @@
 #    limitations under the License.
 from __future__ import annotations
 
+import multiprocess
 from typing import TYPE_CHECKING, Any
 
 import diskcache
@@ -21,8 +22,14 @@ from dash.exceptions import PreventUpdate
 
 import employee_scheduling
 import utils
-from app_configs import (APP_TITLE, DEBUG, LARGE_SCENARIO, MEDIUM_SCENARIO, MIN_MAX_EMPLOYEES,
-                         SMALL_SCENARIO)
+from app_configs import (
+    APP_TITLE,
+    DEBUG,
+    LARGE_SCENARIO,
+    MEDIUM_SCENARIO,
+    MIN_MAX_EMPLOYEES,
+    SMALL_SCENARIO,
+)
 from app_html import errors_list, set_html
 
 if TYPE_CHECKING:
@@ -33,9 +40,8 @@ background_callback_manager = DiskcacheManager(cache)
 
 # Fix for Dash background callbacks crashing on macOS 10.13+ (https://bugs.python.org/issue33725)
 # See https://github.com/dwave-examples/flow-shop-scheduling/pull/4 for more details.
-import multiprocess
 if multiprocess.get_start_method(allow_none=True) is None:
-    multiprocess.set_start_method('spawn')
+    multiprocess.set_start_method("spawn")
 
 app = Dash(
     __name__,
@@ -47,7 +53,9 @@ app.title = APP_TITLE
 
 
 @app.callback(
-    Output({"type": "to-collapse-class", "index": MATCH}, "className", allow_duplicate=True),
+    Output(
+        {"type": "to-collapse-class", "index": MATCH}, "className", allow_duplicate=True
+    ),
     inputs=[
         Input({"type": "collapse-trigger", "index": MATCH}, "n_clicks"),
         State({"type": "to-collapse-class", "index": MATCH}, "className"),
@@ -114,7 +122,10 @@ def set_scenario(
         shifts_per_employees,
         employees_per_shift,
         random_seed,
-        False, False, False, False
+        False,
+        False,
+        False,
+        False,
     )
 
 
@@ -129,7 +140,9 @@ def set_scenario(
         State("employees-per-shift-select", "tooltip"),
     ],
 )
-def update_employees_per_shift(value: int, tooltip: dict[str, Any]) -> tuple[int, dict, dict]:
+def update_employees_per_shift(
+    value: int, tooltip: dict[str, Any]
+) -> tuple[int, dict, dict]:
     """Update the employees-per-shift slider max if num-employees is changed."""
     marks = {
         MIN_MAX_EMPLOYEES["min"]: str(MIN_MAX_EMPLOYEES["min"]),
@@ -222,10 +235,7 @@ def custom_random_seed(value: int, scenario: int) -> int:
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output("tabs", "value"),
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
-    inputs=[
-        Input("num-employees-select", "value"),
-        Input("seed-select", "value")
-    ],
+    inputs=[Input("num-employees-select", "value"), Input("seed-select", "value")],
 )
 def disp_initial_sched(
     num_employees: int, rand_seed: int
@@ -269,10 +279,7 @@ def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
     if "collapsed" in classes:
         return no_update, no_update
 
-    return (
-        {"display": "none"},
-        prev_classes + " collapsed"
-    )
+    return ({"display": "none"}, prev_classes + " collapsed")
 
 
 @app.callback(
@@ -291,8 +298,16 @@ def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
     ],
     running=[
         # show cancel button and hide run button, and disable and animate results tab
-        (Output("cancel-button", "style"), {"display": "inline-block"}, {"display": "none"}),
-        (Output("run-button", "style"), {"display": "none"}, {"display": "inline-block"}),
+        (
+            Output("cancel-button", "style"),
+            {"display": "inline-block"},
+            {"display": "none"},
+        ),
+        (
+            Output("run-button", "style"),
+            {"display": "none"},
+            {"display": "inline-block"},
+        ),
         # switch to schedule tab while running
         (Output("schedule-tab", "disabled"), False, False),
         (Output("tabs", "value"), "schedule-tab", "schedule-tab"),
