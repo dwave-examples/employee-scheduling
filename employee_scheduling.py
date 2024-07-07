@@ -103,16 +103,21 @@ def build_cqm(
                     <= 0,
                     label=f"isolated,{e},{shifts[s + 1]}",
                 )
+
+        #I) No less than [x] Consecutive Days Off in the previous [y] days
+
+
         # end shifts - patterns 01 at start and 10 at end penalized
-        for e in employees:
-            cqm.add_constraint(
-                x[e, shifts[1]] - x[e, shifts[0]] <= 0,
-                label=f"isolated,{e},{shifts[0]}",
-            )
-            cqm.add_constraint(
-                x[e, shifts[-2]] - x[e, shifts[-1]] <= 0,
-                label=f"isolated,{e},{shifts[-1]}",
-            )
+        #TODO - check - might not need this bit
+        # for e in employees:
+        #     cqm.add_constraint(
+        #         x[e, shifts[1]] - x[e, shifts[0]] <= 0,
+        #         label=f"isolated,{e},{shifts[0]}",
+        #     )
+        #     cqm.add_constraint(
+        #         x[e, shifts[-2]] - x[e, shifts[-1]] <= 0,
+        #         label=f"isolated,{e},{shifts[-1]}",
+        #     )
 
     # Require a manager on every shift
     if manager:
@@ -148,8 +153,8 @@ def run_cqm(cqm):
     """Run the provided CQM on the Leap Hybrid CQM Sampler."""
     sampler = LeapHybridCQMSampler()
 
-    #set time limit of 1 second
-    sampleset = sampler.sample_cqm(cqm, time_limit=5)
+    #set time limit of 5 seconds
+    sampleset = sampler.sample_cqm(cqm, time_limit=5, label="Hybrid CQM - Crew Scheduling")
     feasible_sampleset = sampleset.filter(lambda row: row.is_feasible)
     print("sampleset info", sampleset.info)
     print("feasible_sampleset info", feasible_sampleset)

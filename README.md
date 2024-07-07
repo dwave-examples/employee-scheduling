@@ -91,3 +91,16 @@ The solution returned is either the best feasible solution (if a feasible
 solution is found) or the best infeasible solution (if no feasible solution is
 found). If an infeasible solution is found, scrolling down shows the list of
 constraints that were violated.
+
+### STEPH NOTES: 
+### Testing with API inputs
+
+The file api_tests.py can be used to test the solution received from Dwave for a given 
+employee list and shift template list. Please note that although an array of shift 
+templates is accepted (for future API use), only the first will be used when running the cqm, 
+until such a time it will be adapted to consider multiple shift templates.
+
+In the run_cqm function, you can adjust the time limit to allow extra time for dwave computing to 
+find an optimal solution. I set it to the minimum which is 5 seconds, purely to minimise consumption 
+of the free dwave minutes.
+

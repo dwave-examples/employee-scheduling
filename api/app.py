@@ -89,8 +89,8 @@ def generate_roster(employees, shift_templates, month, year):
     shifts_list = get_shifts(shift_templates)
     shift_names = [shift.name for shift in shifts_list]
 
-    # if "captain" in shifttemplate.job_function_required.lower():
-    #     manager = True
+    if "captain" in shifts_list[0].job_function_required.lower():
+        manager = True
 
     days_in_month = []
     for monthNum in range(1, len(days) + 1):
