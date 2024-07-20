@@ -89,9 +89,9 @@ def build_schedule_from_sample(sample, shifts, employees):
     for key, val in sample.items():
         row, col = key.split("_")
         if val == 1.0:
-            data.loc[data["Employee"] == row, col] = " "
+            data.loc[data["Employee"] == row, col] = "ON"
         else:
-            data.loc[data["Employee"] == row, col] = "X"
+            data.loc[data["Employee"] == row, col] = "OFF"
 
     return data
 
@@ -251,3 +251,23 @@ def availability_to_dict(input, shifts):
         ]
 
     return availability
+
+
+
+#Use this for testing a basic array (if you are simulating a result returned from the solver)
+def reshape_solution(leapsolver_returned_solution, employee_names, days):
+    num_employees = len(employee_names)
+    num_shifts = len(days)
+
+    reshaped_array = np.array(leapsolver_returned_solution).reshape(num_employees, num_shifts)
+    print(reshaped_array)
+
+    data = pd.DataFrame(reshaped_array, columns=days)
+    data.insert(0, "Employee", employee_names)
+
+    for day in days:
+        data[day] = data[day].astype(object)
+        data.loc[data[day] == 1.0, day] = "ON"
+        data.loc[data[day] == 0.0, day] = "OFF"
+
+    return data
