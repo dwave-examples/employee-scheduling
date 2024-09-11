@@ -57,6 +57,8 @@ def build_nl(
 
     # Create availability constant
     availability_list = [availability[employee] for employee in employees]
+    for i, sublist in enumerate(availability_list):
+        availability_list[i] = [a if a != 2 else 100 for a in sublist]
     availability_const = model.constant(availability_list)
 
     # Initialize model constants
@@ -65,6 +67,7 @@ def build_nl(
     shift_min_constant = model.constant(shift_min)
     shift_max_constant = model.constant(shift_max)
     max_consecutive_shifts_c = model.constant(max_consecutive_shifts)
+    one_c = model.constant(1)
 
     # OBJECTIVES:
     # Objective: give employees preferred schedules (val = 2)
@@ -76,6 +79,7 @@ def build_nl(
         (assignments[e, :].sum() - target_shifts) ** 2 for e in range(num_employees)
     ]
     obj += add(*shift_difference_list)
+
     model.minimize(-obj)
 
     # CONSTRAINTS:
@@ -104,6 +108,7 @@ def build_nl(
     if not allow_isolated_days_off:
         negthree_c = model.constant(-3)
         zero_c = model.constant(0)
+        # Adding many small constraints greatly improves feasibility
         for e in range(len(employees)):
             for s1 in range(len(shifts) - 2):
                 s2, s3 = s1 + 1, s1 + 2
@@ -116,7 +121,6 @@ def build_nl(
                 )
 
     if requires_manager:
-        one_c = model.constant(1)
         for shift in range(len(shifts)):
             model.add_constraint(assignments[managers_c][:, shift].sum() >= one_c)
 
@@ -358,12 +362,9 @@ if __name__ == "__main__":
         max_consecutive_shifts,
     )
 
-    # model.states.resize(1)
-    # state = np.ones(12 * 14).reshape(12, 14)
-    # state[0, 2] = 0
-    # assignments.set_state(0, state)
-
     model.lock()
+
+    time_limit = max(len(availability), len(shifts))
 
     sampler: LeapHybridNLSampler = LeapHybridNLSampler()
     sampler.sample(model)
