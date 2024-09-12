@@ -13,6 +13,7 @@
 # limitations under the License.
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import dash
@@ -21,7 +22,7 @@ from dash.exceptions import PreventUpdate
 
 import employee_scheduling
 import utils
-from demo_configs import (LARGE_SCENARIO, MEDIUM_SCENARIO, MIN_MAX_EMPLOYEES,
+from demo_configs import (LARGE_SCENARIO, MEDIUM_SCENARIO, MIN_MAX_EMPLOYEES, NUM_FULL_TIME,
                          SMALL_SCENARIO)
 from demo_interface import errors_list
 import pandas as pd
@@ -104,19 +105,26 @@ def set_scenario(
     Output("employees-per-shift-select", "marks"),
     # required to refresh tooltip
     Output("employees-per-shift-select", "tooltip"),
+    Output("num-full-time", "max"),
+    Output("num-full-time", "marks"),
     inputs=[
         Input("num-employees-select", "value"),
         # passthrough input; required to refresh tooltip
         State("employees-per-shift-select", "tooltip"),
     ],
 )
-def update_employees_per_shift(value: int, tooltip: dict[str, Any]) -> tuple[int, dict, dict]:
+def update_employees_per_shift(num_employees: int, tooltip: dict[str, Any]) -> tuple[int, dict, dict]:
     """Update the employees-per-shift slider max if num-employees is changed."""
-    marks = {
+    per_shift_marks = {
         MIN_MAX_EMPLOYEES["min"]: str(MIN_MAX_EMPLOYEES["min"]),
-        value: str(value),
+        num_employees: str(num_employees),
     }
-    return value, marks, tooltip
+    new_full_time_max = math.floor(num_employees/2)
+    full_time_marks = {
+        NUM_FULL_TIME["min"]: str(NUM_FULL_TIME["min"]),
+        new_full_time_max: str(new_full_time_max),
+    }
+    return num_employees, per_shift_marks, tooltip, new_full_time_max, full_time_marks
 
 
 ########
@@ -205,22 +213,20 @@ def custom_random_seed(value: int, scenario: int) -> int:
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
     inputs=[
         Input("num-employees-select", "value"),
-        Input("seed-select", "value")
+        Input("num-full-time", "value"),
+        Input("seed-select", "value"),
     ],
     prevent_initial_call='initial_duplicate',
 )
 def disp_initial_sched(
-    num_employees: int, rand_seed: int
+    num_employees: int, num_full_time: int, rand_seed: int
 ) -> tuple[pd.DataFrame, pd.DataFrame, bool, str, dict]:
     """Display initial availability schedule.
 
     Display initial schedule in, and switch to, the availability
     tab if number of employees or seed is changed.
     """
-    # one less to account for trainee
-    num_employees -= 1
-
-    df = utils.build_random_sched(num_employees, rand_seed)
+    df = utils.build_random_sched(num_employees, num_full_time, rand_seed)
 
     init_availability_table = utils.display_availability(df)
     return (

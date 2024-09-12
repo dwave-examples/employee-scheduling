@@ -65,20 +65,31 @@ def get_random_names(num_employees):
     return names
 
 
-def build_random_sched(num_employees, rand_seed=None):
+def build_random_sched(num_employees, num_full_time, rand_seed=None):
     """Builds a random availability schedule for employees."""
 
     if rand_seed:
         np.random.seed(rand_seed)
 
+    full_time_schedule = np.array(
+        [
+            [UNAVAILABLE_ICON, *(REQUESTED_SHIFT_ICON*5), *(UNAVAILABLE_ICON*2), *(REQUESTED_SHIFT_ICON*5), UNAVAILABLE_ICON]
+        ]
+    )
+
     data = pd.DataFrame(
-        np.random.choice([UNAVAILABLE_ICON, " ", REQUESTED_SHIFT_ICON], size=(num_employees + 1, len(COL_IDS)), p=[0.1, 0.8, 0.1]),
+        np.concatenate(
+            (
+                *(np.roll(full_time_schedule, -np.random.randint(0, num_full_time)) for i in range(num_full_time)),
+                np.random.choice([UNAVAILABLE_ICON, " ", REQUESTED_SHIFT_ICON], size=(num_employees-num_full_time, len(COL_IDS)), p=[0.1, 0.8, 0.1])
+            )
+        ),
         columns=COL_IDS,
     )
 
     num_managers = 2
 
-    employees = get_random_names(num_employees)
+    employees = get_random_names(num_employees-1)  # one less to account for trainee
 
     for i in range(num_managers):
         employees[i] += "-Mgr"
@@ -86,8 +97,8 @@ def build_random_sched(num_employees, rand_seed=None):
 
     data.insert(0, "Employee", employees)
 
-    data[COL_IDS[0]].replace(UNAVAILABLE_ICON, " ", inplace=True)
-    data[COL_IDS[-1]].replace(UNAVAILABLE_ICON, " ", inplace=True)
+    # data[COL_IDS[0]].replace(UNAVAILABLE_ICON, " ", inplace=True)
+    # data[COL_IDS[-1]].replace(UNAVAILABLE_ICON, " ", inplace=True)
 
     data.loc[data.Employee == employees[-1], data.columns[1:]] = " "
 

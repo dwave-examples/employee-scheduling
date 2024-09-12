@@ -25,6 +25,7 @@ from demo_configs import (
     MIN_MAX_EMPLOYEES,
     MIN_MAX_SHIFTS,
     NUM_EMPLOYEES,
+    NUM_FULL_TIME,
     REQUESTED_SHIFT_ICON,
     THUMBNAIL,
     UNAVAILABLE_ICON
@@ -115,6 +116,11 @@ def generate_settings_form() -> html.Div:
                 "Number of employees",
                 "num-employees-select",
                 NUM_EMPLOYEES,
+            ),
+            slider(
+                "Number of full-time employees",
+                "num-full-time",
+                NUM_FULL_TIME,
             ),
             slider(
                 "Max consecutive shifts",

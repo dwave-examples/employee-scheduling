@@ -62,6 +62,14 @@ NUM_EMPLOYEES = {
     "value": 12,
 }
 
+# number of full time employees slider (value means default)
+NUM_FULL_TIME = {
+    "min": 0,
+    "max": 6,
+    "step": 1,
+    "value": 4,
+}
+
 # max consecutive shifts slider (value means default)
 MAX_CONSECUTIVE_SHIFTS = {
     "min": 1,
