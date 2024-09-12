@@ -17,7 +17,7 @@ from dash import dash_table
 
 import employee_scheduling
 import utils
-from app import disp_initial_sched
+from demo_callbacks import disp_initial_sched
 
 
 class TestDemo(unittest.TestCase):

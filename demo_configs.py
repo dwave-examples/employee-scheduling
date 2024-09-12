@@ -1,4 +1,4 @@
-# Copyright 2024 D-Wave Systems Inc.
+# Copyright 2024 D-Wave
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
 
 """This file stores input parameters for the app."""
 
-THUMBNAIL = "assets/dwave_logo.svg"
+# THEME_COLOR is used for the button, text, and banner and should be dark
+# and pass accessibility checks with white: https://webaim.org/resources/contrastchecker/
+# THEME_COLOR_SECONDARY can be light or dark and is used for sliders, loading icon, and tabs
+THEME_COLOR = "#074C91"  # D-Wave dark blue default #074C91
+THEME_COLOR_SECONDARY = "#2A7DE1"  # D-Wave blue default #2A7DE1
 
-# Sets Dash debug. Set to True if developing and False if
-# demoing. App should be restarted to see change.
-DEBUG = False
+THUMBNAIL = "static/dwave_logo.svg"
 
 APP_TITLE = "Workforce Scheduling Demo"
 MAIN_HEADER = "Workforce Scheduling"

@@ -16,7 +16,7 @@ import datetime
 import random
 import string
 
-from app_configs import REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
+from demo_configs import REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
 import numpy as np
 import pandas as pd
 from dash import dash_table

@@ -12,31 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This file stores the HTML layout for the app (see ``custom.css`` for CSS styling)."""
+"""This file stores the Dash HTML layout for the app."""
 from __future__ import annotations
 
 from dash import dcc, html
 
-from app_configs import (DESCRIPTION, EXAMPLE_SCENARIO, MAIN_HEADER, MAX_CONSECUTIVE_SHIFTS, MIN_MAX_EMPLOYEES,
-                         MIN_MAX_SHIFTS, NUM_EMPLOYEES, REQUESTED_SHIFT_ICON, THUMBNAIL, UNAVAILABLE_ICON)
+from demo_configs import (
+    DESCRIPTION,
+    EXAMPLE_SCENARIO,
+    MAIN_HEADER,
+    MAX_CONSECUTIVE_SHIFTS,
+    MIN_MAX_EMPLOYEES,
+    MIN_MAX_SHIFTS,
+    NUM_EMPLOYEES,
+    REQUESTED_SHIFT_ICON,
+    THUMBNAIL,
+    UNAVAILABLE_ICON
+)
 
 
-def description_card():
-    """A Div containing dashboard title & descriptions."""
+def slider(label: str, id: str, config: dict) -> html.Div:
+    """Slider element for value selection.
+
+    Args:
+        label: The title that goes above the slider.
+        id: A unique selector for this element.
+        config: A dictionary of slider configerations, see dcc.Slider Dash docs.
+    """
     return html.Div(
-        id="description-card",
-        children=[html.H1(MAIN_HEADER), html.P(DESCRIPTION)],
-    )
-
-
-def slider(name: str, id: str, config: dict) -> html.Div:
-    """Slider element for value selection."""
-    return html.Div(
-        className="slider",
+        className="slider-wrapper",
         children=[
-            html.Label(name),
+            html.Label(label),
             dcc.Slider(
                 id=id,
+                className="slider",
                 **config,
                 marks={
                     config["min"]: str(config["min"]),
@@ -51,12 +60,12 @@ def slider(name: str, id: str, config: dict) -> html.Div:
     )
 
 
-def range_slider(name: str, id: str, config: dict) -> html.Div:
+def range_slider(label: str, id: str, config: dict) -> html.Div:
     """Range slider element for value selection."""
     return html.Div(
         className="range-slider",
         children=[
-            html.Label(name),
+            html.Label(label),
             dcc.RangeSlider(
                 id=id,
                 **config,
@@ -73,16 +82,21 @@ def range_slider(name: str, id: str, config: dict) -> html.Div:
     )
 
 
-def generate_control_card() -> html.Div:
-    """Generates the control card for the dashboard.
+def generate_options(options_list: list) -> list[dict]:
+    """Generates options for dropdowns, checklists, radios, etc."""
+    return [{"label": label, "value": i} for i, label in enumerate(options_list)]
+
+
+def generate_settings_form() -> html.Div:
+    """This function generates settings for selecting the scenario, model, and solver.
 
     Returns:
-        html.Div: A Div containing the dropdowns for selecting the scenario,
-        model, and solver.
+        html.Div: A Div containing the settings for selecting the scenario, model, and solver.
     """
-    example_scenario = [{"label": size, "value": i} for i, size in enumerate(EXAMPLE_SCENARIO)]
+    example_scenario = generate_options(EXAMPLE_SCENARIO)
 
     return html.Div(
+        className="settings",
         id="control-card",
         children=[
             html.Div(
@@ -97,7 +111,6 @@ def generate_control_card() -> html.Div:
                     ),
                 ]
             ),
-            # add sliders for employees and shifts
             slider(
                 "Number of employees",
                 "num-employees-select",
@@ -108,7 +121,6 @@ def generate_control_card() -> html.Div:
                 "consecutive-shifts-select",
                 MAX_CONSECUTIVE_SHIFTS,
             ),
-            # add range sliders for min/max employees and shifts
             range_slider(
                 "Min/max shifts per employee",
                 "shifts-per-employee-select",
@@ -133,42 +145,42 @@ def generate_control_card() -> html.Div:
                     dcc.Input(id="seed-select", type="number", min=0),
                 ]
             ),
-            html.Div(
-                id="button-group",
-                children=[
-                    html.Button(id="run-button", children="Solve", n_clicks=0),
-                    html.Button(
-                        id="cancel-button",
-                        children="Cancel",
-                        n_clicks=0,
-                        style={"display": "none"},
-                    ),
-                ],
+        ],
+    )
+
+
+def generate_run_buttons() -> html.Div:
+    """Run and cancel buttons to run the optimization."""
+    return html.Div(
+        id="button-group",
+        children=[
+            html.Button(id="run-button", children="Run Optimization", n_clicks=0, disabled=False),
+            html.Button(
+                id="cancel-button",
+                children="Cancel Optimization",
+                n_clicks=0,
+                className="display-none",
             ),
         ],
     )
 
 
-def set_html(app):
+def create_interface():
     """Set the application HTML."""
-    app.layout = html.Div(
+    return html.Div(
         id="app-container",
         children=[
-            html.Div(
-                id="custom-parameters",
-                children=[
-                    dcc.Store(id="custom-num-employees"),
-                    dcc.Store(id="custom-consecutive-shifts"),
-                    dcc.Store(id="custom-shifts-per-employees"),
-                    dcc.Store(id="custom-employees-per-shift"),
-                    dcc.Store(id="custom-random-seed"),
-                ],
-            ),
+            dcc.Store(id="custom-num-employees"),
+            dcc.Store(id="custom-consecutive-shifts"),
+            dcc.Store(id="custom-shifts-per-employees"),
+            dcc.Store(id="custom-employees-per-shift"),
+            dcc.Store(id="custom-random-seed"),
             dcc.Store(id="submission_indicator"),
-            # Banner
-            html.Div(id="banner", children=[html.Img(src=THUMBNAIL)]),
+            # Header brand banner
+            html.Div(className="banner", children=[html.Img(src=THUMBNAIL)]),
+            # Settings and results columns
             html.Div(
-                id="columns",
+                className="columns-main",
                 children=[
                     # Left column
                     html.Div(
@@ -176,39 +188,41 @@ def set_html(app):
                         className="left-column",
                         children=[
                             html.Div(
-                                [
+                                className="left-column-layer-1",  # Fixed width Div to collapse
+                                children=[
                                     html.Div(
-                                        [
-                                            description_card(),
-                                            generate_control_card(),
-                                            html.Div(
-                                                ["initial child"],
-                                                id="output-clientside",
-                                                style={"display": "none"},
-                                            ),
-                                        ]
-                                    ),
-                                ]
+                                        className="left-column-layer-2",  # Padding and content wrapper
+                                        children=[
+                                            html.H1(MAIN_HEADER),
+                                            html.P(DESCRIPTION),
+                                            generate_settings_form(),
+                                            generate_run_buttons(),
+                                        ],
+                                    )
+                                ],
                             ),
-                            html.Button(
-                                id={"type": "collapse-trigger", "index": 0},
-                                className="left-column-collapse",
-                                children=[html.Div(className="collapse-arrow")]
+                            # Left column collapse button
+                            html.Div(
+                                html.Button(
+                                    id={"type": "collapse-trigger", "index": 0},
+                                    className="left-column-collapse",
+                                    children=[html.Div(className="collapse-arrow")],
+                                ),
                             ),
                         ],
                     ),
                     # Right column
                     html.Div(
-                        id="right-column",
+                        className="right-column",
                         children=[
                             dcc.Tabs(
                                 id="tabs",
-                                value="availability-tab",
+                                value="input-tab",
                                 children=[
                                     dcc.Tab(
                                         label="Availability",
-                                        id="availability-tab",
-                                        value="availability-tab",  # used for switching to programatically
+                                        id="input-tab",
+                                        value="input-tab",  # used for switching to programatically
                                         className="tab",
                                         children=[
                                             html.Div(
@@ -307,7 +321,7 @@ def errors_list(errors: dict) -> html.Div:
                         },
                         className="details-collapse",
                         children=[
-                            html.H5(error_key),
+                            html.H6(error_key),
                             html.Div(
                                 className="collapse-arrow"
                             ),
