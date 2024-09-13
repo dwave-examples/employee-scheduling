@@ -55,48 +55,38 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
 
 @dash.callback(
     Output("num-employees-select", "value"),
+    Output("num-full-time-select", "value"),
     Output("consecutive-shifts-select", "value"),
     Output("shifts-per-employee-select", "value"),
     Output("employees-per-shift-select", "value"),
     Output("seed-select", "value"),
     Output("num-employees-select", "disabled"),
+    Output("num-full-time-select", "disabled"),
     Output("consecutive-shifts-select", "disabled"),
     Output("shifts-per-employee-select", "disabled"),
     Output("employees-per-shift-select", "disabled"),
     inputs=[
         Input("example-scenario-select", "value"),
-        State("custom-num-employees", "data"),
-        State("custom-consecutive-shifts", "data"),
-        State("custom-shifts-per-employees", "data"),
-        State("custom-employees-per-shift", "data"),
-        State("custom-random-seed", "data"),
+        State("custom-saved-data", "data"),
     ],
     prevent_initial_call=True,
 )
 def set_scenario(
     scenario: int,
-    num_employees: int,
-    consecutive_shifts: int,
-    shifts_per_employees: list[int],
-    employees_per_shift: list[int],
-    random_seed: int,
+    custom_saved_data: dict,
 ) -> tuple[int, int, list[int], list[int], int, bool, bool, bool, bool]:
     """Sets the correct scenario, reverting to the saved custom setting if chosen."""
     if scenario == 1:
-        return *tuple(SMALL_SCENARIO.values()), True, True, True, True
+        return *tuple(SMALL_SCENARIO.values()), True, True, True, True, True
     elif scenario == 2:
-        return *tuple(MEDIUM_SCENARIO.values()), True, True, True, True
+        return *tuple(MEDIUM_SCENARIO.values()), True, True, True, True, True
     elif scenario == 3:
-        return *tuple(LARGE_SCENARIO.values()), True, True, True, True
+        return *tuple(LARGE_SCENARIO.values()), True, True, True, True, True
 
     # else return custom stored selections
     return (
-        num_employees,
-        consecutive_shifts,
-        shifts_per_employees,
-        employees_per_shift,
-        random_seed,
-        False, False, False, False
+        *custom_saved_data.values(),
+        False, False, False, False, False
     )
 
 
@@ -105,15 +95,15 @@ def set_scenario(
     Output("employees-per-shift-select", "marks"),
     # required to refresh tooltip
     Output("employees-per-shift-select", "tooltip"),
-    Output("num-full-time", "max"),
-    Output("num-full-time", "marks"),
+    Output("num-full-time-select", "max"),
+    Output("num-full-time-select", "marks"),
     inputs=[
         Input("num-employees-select", "value"),
         # passthrough input; required to refresh tooltip
         State("employees-per-shift-select", "tooltip"),
     ],
 )
-def update_employees_per_shift(num_employees: int, tooltip: dict[str, Any]) -> tuple[int, dict, dict]:
+def update_employee_settings(num_employees: int, tooltip: dict[str, Any]) -> tuple[int, dict, dict]:
     """Update the employees-per-shift slider max if num-employees is changed."""
     per_shift_marks = {
         MIN_MAX_EMPLOYEES["min"]: str(MIN_MAX_EMPLOYEES["min"]),
@@ -127,82 +117,45 @@ def update_employees_per_shift(num_employees: int, tooltip: dict[str, Any]) -> t
     return num_employees, per_shift_marks, tooltip, new_full_time_max, full_time_marks
 
 
-########
-# following callbacks all store custom parameters if changed
-
-
 @dash.callback(
-    Output("custom-num-employees", "data"),
+    Output("custom-saved-data", "data"),
     inputs=[
         Input("num-employees-select", "value"),
-        State("example-scenario-select", "value"),
-    ],
-)
-def custom_num_employees(value: int, scenario: int) -> int:
-    """Save num-employers value if changed under custom scenario."""
-    if scenario == 0:
-        return value
-    raise PreventUpdate
-
-
-@dash.callback(
-    Output("custom-consecutive-shifts", "data"),
-    inputs=[
+        Input("num-full-time-select", "value"),
         Input("consecutive-shifts-select", "value"),
-        State("example-scenario-select", "value"),
-    ],
-)
-def custom_consecutive_shifts(value: int, scenario: int) -> int:
-    """Save consecutive-shifts value if changed under custom scenario."""
-    if scenario == 0:
-        return value
-    raise PreventUpdate
-
-
-@dash.callback(
-    Output("custom-shifts-per-employees", "data"),
-    inputs=[
         Input("shifts-per-employee-select", "value"),
-        State("example-scenario-select", "value"),
-    ],
-)
-def custom_shifts_per_employee(value: list[int], scenario: int) -> int:
-    """Save shift-per-employee value if changed under custom scenario."""
-    if scenario == 0:
-        return value
-    raise PreventUpdate
-
-
-@dash.callback(
-    Output("custom-employees-per-shift", "data"),
-    inputs=[
         Input("employees-per-shift-select", "value"),
-        State("example-scenario-select", "value"),
-    ],
-)
-def custom_employees_per_shift(value: list[int], scenario: int) -> int:
-    """Save employees-per-shift value if changed under custom scenario."""
-    if scenario == 0:
-        return value
-    raise PreventUpdate
-
-
-@dash.callback(
-    Output("custom-random-seed", "data"),
-    inputs=[
         Input("seed-select", "value"),
         State("example-scenario-select", "value"),
+        State("custom-saved-data", "data"),
     ],
 )
-def custom_random_seed(value: int, scenario: int) -> int:
-    """Save random-seed value if changed under custom scenario."""
+def custom_saved_data(
+    num_employees: int,
+    num_full_time: int,
+    consecutive_shifts: int,
+    shifts_per_employees: list[int],
+    employees_per_shift: list[int],
+    random_seed: int,
+    scenario: int,
+    custom_saved_data: dict,
+) -> int:
+    """Save custom data if changed under custom scenario."""
+    if not ctx.triggered_id:
+        return {
+            "num-employees-select": num_employees,
+            "num-full-time-select": num_full_time,
+            "consecutive-shifts-select": consecutive_shifts,
+            "shifts-per-employee-select": shifts_per_employees,
+            "employees-per-shift-select": employees_per_shift,
+            "seed-select": random_seed,
+        }
+
     if scenario == 0:
-        return value
+        custom_saved_data.update({ctx.triggered_id: ctx.triggered[0]["value"]})
+        return custom_saved_data
+
     raise PreventUpdate
-
-
-# done storing custom parameters
-########
 
 
 @dash.callback(
@@ -213,7 +166,7 @@ def custom_random_seed(value: int, scenario: int) -> int:
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
     inputs=[
         Input("num-employees-select", "value"),
-        Input("num-full-time", "value"),
+        Input("num-full-time-select", "value"),
         Input("seed-select", "value"),
     ],
     prevent_initial_call='initial_duplicate',

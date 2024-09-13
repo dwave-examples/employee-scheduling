@@ -102,7 +102,7 @@ def generate_settings_form() -> html.Div:
         children=[
             html.Div(
                 children=[
-                    html.Label("Scenario preset (sets sliders below)"),
+                    html.Label("Presets (sets sliders below)"),
                     dcc.Dropdown(
                         id="example-scenario-select",
                         options=example_scenario,
@@ -112,43 +112,76 @@ def generate_settings_form() -> html.Div:
                     ),
                 ]
             ),
-            slider(
-                "Number of employees",
-                "num-employees-select",
-                NUM_EMPLOYEES,
-            ),
-            slider(
-                "Number of full-time employees",
-                "num-full-time",
-                NUM_FULL_TIME,
-            ),
-            slider(
-                "Max consecutive shifts",
-                "consecutive-shifts-select",
-                MAX_CONSECUTIVE_SHIFTS,
-            ),
-            range_slider(
-                "Min/max shifts per employee",
-                "shifts-per-employee-select",
-                MIN_MAX_SHIFTS,
-            ),
-            range_slider(
-                "Min/max employees per shift",
-                "employees-per-shift-select",
-                MIN_MAX_EMPLOYEES,
-            ),
-            dcc.Checklist(
-                options=[
-                    {"label": "Allow isolated days off", "value": 0},
-                    {"label": "Require exactly one manager on every shift", "value": 1},
-                ],
-                value=[1],
-                id="checklist-input",
-            ),
             html.Div(
                 children=[
                     html.Label("Random seed (optional)"),
                     dcc.Input(id="seed-select", type="number", min=0),
+                ]
+            ),
+            slider(
+                "Employees",
+                "num-employees-select",
+                NUM_EMPLOYEES,
+            ),
+            slider(
+                "Full-Time Employees",
+                "num-full-time-select",
+                NUM_FULL_TIME,
+            ),
+            dcc.Checklist(
+                options=[
+                    {"label": "Exactly one manager per shift", "value": 1},
+                ],
+                value=[0],
+                id="checklist-input-2",
+            ),
+            html.Div(
+                id={
+                    "type": "to-collapse-class",
+                    "index": 3,
+                },
+                className="details-collapse-wrapper",
+                children=[
+                    html.Button(
+                        id={
+                            "type": "collapse-trigger",
+                            "index": 3,
+                        },
+                        className="details-collapse part-time-settings",
+                        children=[
+                            html.Label("Advanced settings"),
+                            html.Div(
+                                className="collapse-arrow"
+                            ),
+                        ],
+                    ),
+                    html.Div(
+                        className="details-to-collapse part-time-collapse",
+                        children=[
+                            slider(
+                                "Max Consecutive Part-Time Shifts",
+                                "consecutive-shifts-select",
+                                MAX_CONSECUTIVE_SHIFTS,
+                            ),
+                            range_slider(
+                                "Part-Time Employees Per Shift",
+                                "employees-per-shift-select",
+                                MIN_MAX_EMPLOYEES,
+                            ),
+                            range_slider(
+                                "Shifts Per Part-Time Employee",
+                                "shifts-per-employee-select",
+                                MIN_MAX_SHIFTS,
+                            ),
+                            dcc.Checklist(
+                                options=[
+                                    {"label": "Allow isolated days off", "value": 0},
+                                ],
+                                value=[],
+                                id="checklist-input",
+                            ),
+                        ]
+                    )
                 ]
             ),
         ],
@@ -177,10 +210,12 @@ def create_interface():
         id="app-container",
         children=[
             dcc.Store(id="custom-num-employees"),
+            dcc.Store(id="custom-num-full-time"),
             dcc.Store(id="custom-consecutive-shifts"),
             dcc.Store(id="custom-shifts-per-employees"),
             dcc.Store(id="custom-employees-per-shift"),
             dcc.Store(id="custom-random-seed"),
+            dcc.Store(id="custom-saved-data"),
             dcc.Store(id="submission_indicator"),
             # Header brand banner
             html.Div(className="banner", children=[html.Img(src=THUMBNAIL)]),
@@ -316,14 +351,14 @@ def errors_list(errors: dict) -> html.Div:
             html.Div(
                 id={
                     "type": "to-collapse-class",
-                    "index": 3 + error_counter,
+                    "index": 4 + error_counter,
                 },
                 className="details-collapse-wrapper collapsed",
                 children=[
                     html.Button(
                         id={
                             "type": "collapse-trigger",
-                            "index": 3 + error_counter,
+                            "index": 4 + error_counter,
                         },
                         className="details-collapse",
                         children=[

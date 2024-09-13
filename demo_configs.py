@@ -84,6 +84,7 @@ EXAMPLE_SCENARIO = ["Custom", "Small", "Medium", "Large"]
 # default scenarios (don't change order of items)
 SMALL_SCENARIO = {
     "num_employees": 12,
+    "num_full_time": 4,
     "consecutive_shifts": 5,
     "shifts_per_employee": [5, 7],
     "employees_per_shift": [3, 6],
@@ -92,6 +93,7 @@ SMALL_SCENARIO = {
 
 MEDIUM_SCENARIO = {
     "num_employees": 20,
+    "num_full_time": 6,
     "consecutive_shifts": 5,
     "shifts_per_employee": [5, 10],
     "employees_per_shift": [5, 10],
@@ -100,6 +102,7 @@ MEDIUM_SCENARIO = {
 
 LARGE_SCENARIO = {
     "num_employees": 40,
+    "num_full_time": 10,
     "consecutive_shifts": 5,
     "shifts_per_employee": [5, 10],
     "employees_per_shift": [10, 20],
