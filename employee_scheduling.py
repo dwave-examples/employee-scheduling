@@ -19,10 +19,9 @@ from dimod import (
     ConstrainedQuadraticModel,
     quicksum,
 )
-from dwave.optimization.model import (
-    Model
-)
+from dwave.optimization.model import Model
 from dwave.optimization.mathematical import add
+from dwave.optimization.symbols import BinaryVariable
 from dwave.system import LeapHybridCQMSampler, LeapHybridNLSampler
 import numpy as np
 
@@ -227,7 +226,7 @@ def run_cqm(cqm):
 
 def build_nl(
     availability: dict[str, list[int]],
-    shifts: dict[str],
+    shifts: list[str],
     min_shifts: int,
     max_shifts: int,
     shift_min: int,
@@ -235,7 +234,32 @@ def build_nl(
     requires_manager: bool,
     allow_isolated_days_off: bool,
     max_consecutive_shifts: int,
-) -> Model:
+) -> tuple[Model, BinaryVariable]:
+    """Builds an employee scheduling nonlinear model.
+
+    Args:
+        availability (dict[str, list[int]]): employee availability, structured
+            as a dictionary like the following:
+            ```
+            availability = {"Employee Name": [
+                0, # 0 if employee is unavailable
+                1, # 1 if employee is available
+                2, # 2 if employee prefers this shift
+                ...
+            ]}
+            ```
+        shifts (list[str]): list of shift labels
+        min_shifts (int): min shifts scheduled per employee
+        max_shifts (int): max shifts scheduled per employee
+        shift_min (int): min employees scheduled per shift
+        shift_max (int): max employees scheduled per shift
+        requires_manager (bool): whether a manager is required on every shift
+        allow_isolated_days_off (bool): whether to allow an isolated day off
+        max_consecutive_shifts (int): maximum number of shifts in a row an employee is allowed to work
+
+    Returns:
+        tuple[Model, BinaryVariable]: the NL model and assignments decision variable
+    """
     # Create list of employees
     employees = list(availability.keys())
     model = Model()
@@ -248,6 +272,8 @@ def build_nl(
 
     # Create availability constant
     availability_list = [availability[employee] for employee in employees]
+    for i, sublist in enumerate(availability_list):
+        availability_list[i] = [a if a != 2 else 100 for a in sublist]
     availability_const = model.constant(availability_list)
 
     # Initialize model constants
@@ -255,6 +281,8 @@ def build_nl(
     max_shifts_constant = model.constant(max_shifts)
     shift_min_constant = model.constant(shift_min)
     shift_max_constant = model.constant(shift_max)
+    max_consecutive_shifts_c = model.constant(max_consecutive_shifts)
+    one_c = model.constant(1)
 
     # OBJECTIVES:
     # Objective: give employees preferred schedules (val = 2)
@@ -262,45 +290,73 @@ def build_nl(
 
     # Objective: for infeasible solutions, focus on right number of shifts for employees
     target_shifts = model.constant((min_shifts + max_shifts) / 2)
-    shift_difference_list = [(assignments[e,:].sum() - target_shifts) ** 2 
-                             for e in num_employees]
+    shift_difference_list = [
+        (assignments[e, :].sum() - target_shifts) ** 2 for e in range(num_employees)
+    ]
     obj += add(*shift_difference_list)
 
+    model.minimize(-obj)
 
     # CONSTRAINTS:
     # Only schedule employees when they're available
-    model.add_constraint(assignments >= availability_const)
+    model.add_constraint((availability_const >= assignments).all())
 
-    for e, employee in enumerate(employees):
+    for e in range(len(employees)):
         # Schedule employees for at most max_shifts
-        model.add_constraint(assignments[e,:].sum() <= max_shifts_constant)
+        model.add_constraint(assignments[e, :].sum() <= max_shifts_constant)
 
         # Schedule employees for at least min_shifts
-        model.add_constraint(assignments[e,:].sum() >= min_shifts_constant)
+        model.add_constraint(assignments[e, :].sum() >= min_shifts_constant)
 
     # Every shift needs shift_min and shift_max employees working
     for s in range(num_shifts):
-        model.add_constraint(assignments[:,s].sum() <= shift_max_constant)
-        model.add_constraint(assignments[:,s].sum() >= shift_min_constant)
+        model.add_constraint(assignments[:, s].sum() <= shift_max_constant)
+        model.add_constraint(assignments[:, s].sum() >= shift_min_constant)
 
-    # Days off must be consecutive
+    managers_c = model.constant(
+        [employees.index(e) for e in employees if e[-3:] == "Mgr"]
+    )
+    trainees_c = model.constant(
+        [employees.index(e) for e in employees if e[-2:] == "Tr"]
+    )
+
     if not allow_isolated_days_off:
-        # middle range shifts - pattern 101 penalized
-        ...
+        negthree_c = model.constant(-3)
+        zero_c = model.constant(0)
+        # Adding many small constraints greatly improves feasibility
+        for e in range(len(employees)):
+            for s1 in range(len(shifts) - 2):
+                s2, s3 = s1 + 1, s1 + 2
+                model.add_constraint(
+                    negthree_c * assignments[e, s2]
+                    + assignments[e][s1] * assignments[e][s2]
+                    + assignments[e][s1] * assignments[e][s3]
+                    + assignments[e][s2] * assignments[e][s3]
+                    <= zero_c
+                )
 
-    # Require a manager on every shift
     if requires_manager:
-        ...
+        for shift in range(len(shifts)):
+            model.add_constraint(assignments[managers_c][:, shift].sum() >= one_c)
 
     # Don't exceed max_consecutive_shifts
+    for e in range(num_employees):
+        for s in range(num_shifts - max_consecutive_shifts + 1):
+            s_window = s + max_consecutive_shifts + 1
+            model.add_constraint(
+                assignments[e][s : s_window + 1].sum() <= max_consecutive_shifts_c
+            )
 
     # Trainee must work on shifts with trainer
+    trainers = []
+    for i in trainees_c.state():
+        trainer_name = employees[int(i)][:-3]
+        trainers.append(employees.index(trainer_name))
+    trainers_c = model.constant(trainers)
 
-    return model
+    model.add_constraint((assignments[trainees_c] <= assignments[trainers_c]).all())
 
-
-def run_nl(nl: Model) -> tuple[Model, defaultdict[str, list[str]]]:
-    ...
+    return model, assignments
 
 
 if __name__ == '__main__':
