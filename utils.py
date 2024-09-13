@@ -16,6 +16,7 @@ import datetime
 import random
 import string
 from collections import defaultdict
+from dataclasses import dataclass
 
 from app_configs import REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
 import numpy as np
@@ -36,6 +37,18 @@ SHIFTS = [
 ]
 DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 WEEKEND_IDS = ["1", "7", "8", "14"]
+
+@dataclass
+class ModelParams:
+    availability: dict[str, list[int]]
+    shifts: list[str]
+    min_shifts: int
+    max_shifts: int
+    shift_min: int
+    shift_max: int
+    requires_manager: bool
+    allow_isolated_days_off: bool
+    max_consecutive_shifts: int
 
 
 def get_random_string(length):

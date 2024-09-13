@@ -12,7 +12,6 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 from collections import defaultdict
-from dataclasses import dataclass
 from typing import Optional
 
 from dimod import (
@@ -27,7 +26,7 @@ from dwave.optimization.symbols import BinaryVariable
 from dwave.system import LeapHybridCQMSampler, LeapHybridNLSampler
 import numpy as np
 
-from utils import DAYS, SHIFTS, validate_nl_schedule
+from utils import DAYS, SHIFTS, ModelParams, validate_nl_schedule
 
 
 MSGS = {
@@ -69,17 +68,6 @@ MSGS = {
     ),
 }
 
-@dataclass
-class ModelParams:
-    availability: dict[str, list[int]]
-    shifts: list[str]
-    min_shifts: int
-    max_shifts: int
-    shift_min: int
-    shift_max: int
-    requires_manager: bool
-    allow_isolated_days_off: bool
-    max_consecutive_shifts: int
 
 def build_cqm(params: ModelParams):
     """Builds the ConstrainedQuadraticModel for the given scenario."""
