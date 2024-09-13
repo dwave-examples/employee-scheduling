@@ -25,8 +25,47 @@ from dwave.optimization.symbols import BinaryVariable
 from dwave.system import LeapHybridCQMSampler, LeapHybridNLSampler
 import numpy as np
 
-from utils import DAYS, SHIFTS
+from utils import DAYS, SHIFTS, validate_nl_schedule
 
+
+MSGS = {
+    "unavailable": (
+        "Employees scheduled when unavailable",
+        "{employee} on {day}"
+    ),
+    "overtime": (
+        "Employees with scheduled overtime",
+        "{employee}"
+    ),
+    "insufficient": (
+        "Employees with not enough scheduled time",
+        "{employee}"
+    ),
+    "understaffed": (
+        "Understaffed shifts",
+        "{day} is understaffed"
+    ),
+    "overstaffed": (
+        "Overstaffed shifts",
+        "{day} is overstaffed"
+    ),
+    "isolated": (
+        "Isolated shifts",
+        "{day} is an isolated day off for {employee}"
+    ),
+    "manager_issue": (
+        "Shifts with no manager",
+        "No manager scheduled on {day}"
+    ),
+    "too_many_consecutive": (
+        "Employees with too many consecutive shifts",
+        "{employee} starting with {day}"
+    ),
+    "trainee_issue": (
+        "Shifts with trainee scheduling issues",
+        "Trainee scheduling issue on {day}"
+    ),
+}
 
 def build_cqm(
     availability,
@@ -144,7 +183,7 @@ def build_cqm(
     return cqm
 
 
-def run_cqm(cqm):
+def run_cqm(cqm, msgs=MSGS):
     """Run the provided CQM on the Leap Hybrid CQM Sampler."""
     sampler = LeapHybridCQMSampler()
 
@@ -162,44 +201,6 @@ def run_cqm(cqm):
         if s_vals == {0.0}:
             sampleset.first.sample[list(cqm.variables)[0]] = 1.0
 
-        msgs = {
-            "unavailable": (
-                "Employees scheduled when unavailable",
-                "{employee} on {day}"
-            ),
-            "overtime": (
-                "Employees with scheduled overtime",
-                "{employee}"
-            ),
-            "insufficient": (
-                "Employees with not enough scheduled time",
-                "{employee}"
-            ),
-            "understaffed": (
-                "Understaffed shifts",
-                "{day} is understaffed"
-            ),
-            "overstaffed": (
-                "Overstaffed shifts",
-                "{day} is overstaffed"
-            ),
-            "isolated": (
-                "Isolated shifts",
-                "{day} is an isolated day off for {employee}"
-            ),
-            "manager_issue": (
-                "Shifts with no manager",
-                "No manager scheduled on {day}"
-            ),
-            "too_many_consecutive": (
-                "Employees with too many consecutive shifts",
-                "{employee} starting with {day}"
-            ),
-            "trainee_issue": (
-                "Shifts with trainee scheduling issues",
-                "Trainee scheduling issue on {day}"
-            ),
-        }
         for i, _ in enumerate(sat_array):
             if not sat_array[i]:
                 key, *data = sampleset.info["constraint_labels"][i].split(",")
@@ -357,6 +358,29 @@ def build_nl(
     model.add_constraint((assignments[trainees_c] <= assignments[trainers_c]).all())
 
     return model, assignments
+
+
+# def run_nl(
+#     model: Model,
+#     assignments: BinaryVariable,
+#     time_limit: int | None = None,
+# ) -> BinaryVariable, defaultdict[str, list[str]]:
+#     """Solves the NL scheduling model and detects any errors.
+
+#     Args:
+#         model (Model): NL model to solve
+#         assignments (BinaryVariable): decision variable for employee shifts
+#         time_limit (int | None, optional): time limit for sampling. Defaults to None.
+#     """
+#     if not model.is_locked():
+#         model.lock()
+
+#     sampler = LeapHybridNLSampler()
+#     sampler.sample(model, time_limit=time_limit)
+#     if solution_printer is not None:
+#         solution_printer(assignments)
+#     else:
+#         print(model.state_size())
 
 
 if __name__ == '__main__':
