@@ -20,10 +20,11 @@ from dimod import (
     quicksum,
 )
 from dwave.optimization.model import (
-    Model,
-    BinaryVariable
+    Model
 )
+from dwave.optimization.mathematical import add
 from dwave.system import LeapHybridCQMSampler, LeapHybridNLSampler
+import numpy as np
 
 from utils import DAYS, SHIFTS
 
@@ -225,18 +226,82 @@ def run_cqm(cqm):
 
 
 def build_nl(
-    availability,
-    shifts,
-    min_shifts,
-    max_shifts,
-    shift_min,
-    shift_max,
-    requires_manager,
-    allow_isolated_days_off,
-    max_consecutive_shifts,
-):
+    availability: dict[str, list[int]],
+    shifts: dict[str],
+    min_shifts: int,
+    max_shifts: int,
+    shift_min: int,
+    shift_max: int,
+    requires_manager: bool,
+    allow_isolated_days_off: bool,
+    max_consecutive_shifts: int,
+) -> Model:
+    # Create list of employees
+    employees = list(availability.keys())
+    model = Model()
+
+    # Create a binary symbol representing the assignment of employees to shifts
+    # i.e. assignments[employee][shift] = 1 if assigned, else 0
+    num_employees = len(employees)
+    num_shifts = len(shifts)
+    assignments = model.binary((num_employees, num_shifts))
+
+    # Create availability constant
+    availability_list = [availability[employee] for employee in employees]
+    availability_const = model.constant(availability_list)
+
+    # Initialize model constants
+    min_shifts_constant = model.constant(min_shifts)
+    max_shifts_constant = model.constant(max_shifts)
+    shift_min_constant = model.constant(shift_min)
+    shift_max_constant = model.constant(shift_max)
+
+    # OBJECTIVES:
+    # Objective: give employees preferred schedules (val = 2)
+    obj = (assignments * availability_const).sum()
+
+    # Objective: for infeasible solutions, focus on right number of shifts for employees
+    target_shifts = model.constant((min_shifts + max_shifts) / 2)
+    shift_difference_list = [(assignments[e,:].sum() - target_shifts) ** 2 
+                             for e in num_employees]
+    obj += add(*shift_difference_list)
+
+
+    # CONSTRAINTS:
+    # Only schedule employees when they're available
+    model.add_constraint(assignments >= availability_const)
+
+    for e, employee in enumerate(employees):
+        # Schedule employees for at most max_shifts
+        model.add_constraint(assignments[e,:].sum() <= max_shifts_constant)
+
+        # Schedule employees for at least min_shifts
+        model.add_constraint(assignments[e,:].sum() >= min_shifts_constant)
+
+    # Every shift needs shift_min and shift_max employees working
+    for s in range(num_shifts):
+        model.add_constraint(assignments[:,s].sum() <= shift_max_constant)
+        model.add_constraint(assignments[:,s].sum() >= shift_min_constant)
+
+    # Days off must be consecutive
+    if not allow_isolated_days_off:
+        # middle range shifts - pattern 101 penalized
+        ...
+
+    # Require a manager on every shift
+    if requires_manager:
+        ...
+
+    # Don't exceed max_consecutive_shifts
+
+    # Trainee must work on shifts with trainer
+
+    return model
+
+
+def run_nl(nl: Model) -> tuple[Model, defaultdict[str, list[str]]]:
     ...
 
 
-def run_nl(nl):
+if __name__ == '__main__':
     ...
