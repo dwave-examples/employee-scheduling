@@ -24,7 +24,6 @@ from dwave.optimization.model import Model
 from dwave.optimization.mathematical import add
 from dwave.optimization.symbols import BinaryVariable
 from dwave.system import LeapHybridCQMSampler, LeapHybridNLSampler
-import numpy as np
 
 from utils import DAYS, SHIFTS, ModelParams, validate_nl_schedule
 
@@ -327,30 +326,39 @@ def build_nl(params: ModelParams) -> tuple[Model, BinaryVariable]:
     return model, assignments
 
 
-# def run_nl(
-#     model: Model,
-#     assignments: BinaryVariable,
-#     availability: dict[str, list[int]],
-#     shifts: list[str],
-#     min
-#     time_limit: int | None = None,
-#     msgs: dict[str, tuple[str, str]] = MSGS
-# ) -> tuple[BinaryVariable, Optional[defaultdict[str, list[str]]]]:
-#     """Solves the NL scheduling model and detects any errors.
+def run_nl(
+    model: Model,
+    assignments: BinaryVariable,
+    params: ModelParams,
+    time_limit: int | None = None,
+    msgs: dict[str, tuple[str, str]] = MSGS
+) -> Optional[defaultdict[str, list[str]]]:
+    """Solves the NL scheduling model and detects any errors.
 
-#     Args:
-#         model (Model): NL model to solve
-#         assignments (BinaryVariable): decision variable for employee shifts
-#         time_limit (int | None, optional): time limit for sampling. Defaults to None.
-#     """
-#     if not model.is_locked():
-#         model.lock()
+    Args:
+        model (Model): NL model to solve
+        assignments (BinaryVariable): decision variable for employee shifts
+        time_limit (int | None, optional): time limit for sampling. Defaults to None.
+    """
+    if not model.is_locked():
+        model.lock()
 
-#     sampler = LeapHybridNLSampler()
-#     sampler.sample(model, time_limit=time_limit)
-#     errors = validate_nl_schedule(assignments, ava)
+    # If time limit is None, use heuristic of largest `assignments` dimension 
+    # rounded up to 5
+    if time_limit is None:
+        time_limit = (max_dim := max(assignments.shape())) + max_dim % 5
+
+    sampler = LeapHybridNLSampler()
+    sampler.sample(model, time_limit=time_limit)
+    errors = validate_nl_schedule(assignments, params, msgs)
+
+    # Return errors if any error message list is populated
+    for error_list in errors.values():
+        if len(error_list) > 0:
+            return errors
+
+    return None
     
-
 
 if __name__ == '__main__':
     ...
