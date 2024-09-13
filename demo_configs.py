@@ -32,6 +32,8 @@ scenario with a variety of employees and rules.
 
 REQUESTED_SHIFT_ICON = "✓"
 UNAVAILABLE_ICON = "x"
+FULL_TIME_ICON = "S"
+FULL_TIME_OFF_ICON = "/"
 
 
 #######################################

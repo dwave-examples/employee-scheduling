@@ -43,5 +43,5 @@ Dash reads all css files contained in `/assets/` so no imports are necessary.
     --problem-details-height: 12rem;
     /*** Add new variables here ***/
     --error-col-width: 42rem;
-    --part-time-settings-height: 30rem;
+    --part-time-settings-height: 34rem;
 }

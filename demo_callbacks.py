@@ -20,8 +20,8 @@ import dash
 from dash import Input, MATCH, Output, State, ctx, no_update
 from dash.exceptions import PreventUpdate
 
-import employee_scheduling
-import utils
+import employee_scheduling as employee_scheduling
+import utils as utils
 from demo_configs import (LARGE_SCENARIO, MEDIUM_SCENARIO, MIN_MAX_EMPLOYEES, NUM_FULL_TIME,
                          SMALL_SCENARIO)
 from demo_interface import errors_list
@@ -228,6 +228,7 @@ def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
         State("employees-per-shift-select", "value"),
         State("checklist-input", "value"),
         State("consecutive-shifts-select", "value"),
+        State("num-full-time-select", "value"),
         State("availability-content", "children"),
     ],
     running=[
@@ -248,6 +249,7 @@ def run_optimization(
     employees_per_shift: list[int],
     checklist: list[int],
     consecutive_shifts: int,
+    num_full_time: int,
     sched_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, bool, dict, list]:
     """Runs the optimization and updates UI accordingly.
@@ -291,6 +293,7 @@ def run_optimization(
         manager_required,
         isolated_days_allowed,
         consecutive_shifts + 1,
+        num_full_time,
     )
 
     feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)

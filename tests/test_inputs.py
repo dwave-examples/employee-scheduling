@@ -15,8 +15,8 @@ import unittest
 
 from dash import dash_table
 
-import employee_scheduling
-import utils
+import employee_scheduling as employee_scheduling
+import utils as utils
 from demo_callbacks import disp_initial_sched
 
 

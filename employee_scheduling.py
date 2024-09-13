@@ -34,10 +34,13 @@ def build_cqm(
     requires_manager,
     allow_isolated_days_off,
     max_consecutive_shifts,
+    num_full_time,
 ):
     """Builds the ConstrainedQuadraticModel for the given scenario."""
     cqm = ConstrainedQuadraticModel()
     employees = list(availability.keys())
+    employees_ft = employees[:num_full_time]
+    employees_pt = employees[num_full_time:]
 
     # Create variables: one per employee per shift
     x = {(employee, shift): Binary(employee + "_" + shift) for shift in shifts for employee in employees}
@@ -50,9 +53,9 @@ def build_cqm(
             if schedule[i] == 2:
                 obj += -x[employee, shift]
 
-    # Objective: for infeasible solutions, focus on right number of shifts for employees
+    # Objective: for infeasible solutions, focus on right number of shifts for part-time employees
     num_s = (min_shifts + max_shifts) / 2
-    for employee in employees:
+    for employee in employees_pt:
         obj += (
             quicksum(x[employee, shift] for shift in shifts) - num_s
         ) ** 2
@@ -66,7 +69,7 @@ def build_cqm(
             if schedule[i] == 0:
                 cqm.add_constraint(x[employee, shift] == 0, label=f"unavailable,{employee},{shift}")
 
-    for employee in employees:
+    for employee in employees_pt:
         # Schedule employees for at most max_shifts
         cqm.add_constraint(
             quicksum(x[employee, shift] for shift in shifts)
@@ -84,11 +87,11 @@ def build_cqm(
     # Every shift needs shift_min and shift_max employees working
     for shift in shifts:
         cqm.add_constraint(
-            sum(x[employee, shift] for employee in employees) >= shift_min,
+            sum(x[employee, shift] for employee in employees_pt) >= shift_min,
             label=f"understaffed,,{shift}",
         )
         cqm.add_constraint(
-            sum(x[employee, shift] for employee in employees) <= shift_max,
+            sum(x[employee, shift] for employee in employees_pt) <= shift_max,
             label=f"overstaffed,,{shift}",
         )
 
@@ -98,7 +101,7 @@ def build_cqm(
         for i, prev_shift in enumerate(shifts[:-2]):
             shift = shifts[i + 1]
             next_shift = shifts[i + 2]
-            for employee in employees:
+            for employee in employees_pt:
                 cqm.add_constraint(
                     -3 * x[employee, shift]
                     + x[employee, prev_shift] * x[employee, shift]
@@ -118,7 +121,7 @@ def build_cqm(
             )
 
     # Don't exceed max_consecutive_shifts
-    for employee in employees:
+    for employee in employees_pt:
         for s in range(len(shifts) - max_consecutive_shifts + 1):
             cqm.add_constraint(
                 quicksum(

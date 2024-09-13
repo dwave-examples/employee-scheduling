@@ -16,7 +16,7 @@ import datetime
 import random
 import string
 
-from demo_configs import REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
+from demo_configs import FULL_TIME_ICON, FULL_TIME_OFF_ICON, REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
 import numpy as np
 import pandas as pd
 from dash import dash_table
@@ -73,7 +73,7 @@ def build_random_sched(num_employees, num_full_time, rand_seed=None):
 
     full_time_schedule = np.array(
         [
-            [UNAVAILABLE_ICON, *(REQUESTED_SHIFT_ICON*5), *(UNAVAILABLE_ICON*2), *(REQUESTED_SHIFT_ICON*5), UNAVAILABLE_ICON]
+            [FULL_TIME_OFF_ICON, *(FULL_TIME_ICON*5), *(FULL_TIME_OFF_ICON*2), *(FULL_TIME_ICON*5), FULL_TIME_OFF_ICON]
         ]
     )
 
@@ -87,12 +87,11 @@ def build_random_sched(num_employees, num_full_time, rand_seed=None):
         columns=COL_IDS,
     )
 
-    num_managers = 2
 
     employees = get_random_names(num_employees-1)  # one less to account for trainee
 
-    for i in range(num_managers):
-        employees[i] += "-Mgr"
+    employees[0] += "-Mgr"
+    employees[num_full_time] += "-Mgr"
     employees.append(employees[-1] + "-Tr")
 
     data.insert(0, "Employee", employees)
@@ -169,6 +168,31 @@ def display_availability(df):
         + [
             {
                 "if": {
+                    "filter_query": f'{{{col_id}}} = {FULL_TIME_ICON}',
+                    "column_id": col_id,
+                },
+                "backgroundColor": "#008c82", # blue
+                "color": "transparent",
+            }
+            for col_id in COL_IDS
+        ]
+        + [
+            {
+                "if": {
+                    "filter_query": f'{{{col_id}}} = {FULL_TIME_OFF_ICON}',
+                    "column_id": col_id,
+                },
+                "backgroundImage": "linear-gradient(-45deg, #FF7006 10%, transparent 10%, transparent 20%,\
+                #FF7006 20%, #FF7006 30%, transparent 30%, transparent 40%, #FF7006 40%, #FF7006 50%,\
+                transparent 50%, transparent 60%, #FF7006 60%, #FF7006 70%, transparent 70%, transparent 80%,\
+                #FF7006 80%, #FF7006 90%, transparent 90%, #fff)", # orange
+                "color": "transparent",
+            }
+            for col_id in COL_IDS
+        ]
+        + [
+            {
+                "if": {
                     "filter_query": f'{{{col_id}}} = {UNAVAILABLE_ICON}',
                     "column_id": col_id,
                 },
@@ -177,6 +201,7 @@ def display_availability(df):
             }
             for col_id in COL_IDS
         ]
+
         + [
             {
                 "if": {
@@ -260,7 +285,9 @@ def availability_to_dict(availability_list):
 
     for row in availability_list:
         availability_dict[row["Employee"]] = [
-            0 if row[col_id] == UNAVAILABLE_ICON else 2 if row[col_id] == REQUESTED_SHIFT_ICON else 1 for col_id in COL_IDS
+            0 if row[col_id] == UNAVAILABLE_ICON or row[col_id] == FULL_TIME_OFF_ICON
+            else 2 if row[col_id] == REQUESTED_SHIFT_ICON or row[col_id] == FULL_TIME_ICON
+            else 1 for col_id in COL_IDS
         ]
 
     return availability_dict

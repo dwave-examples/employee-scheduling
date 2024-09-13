@@ -128,19 +128,12 @@ def generate_settings_form() -> html.Div:
                 "num-full-time-select",
                 NUM_FULL_TIME,
             ),
-            dcc.Checklist(
-                options=[
-                    {"label": "Exactly one manager per shift", "value": 1},
-                ],
-                value=[0],
-                id="checklist-input-2",
-            ),
             html.Div(
                 id={
                     "type": "to-collapse-class",
                     "index": 3,
                 },
-                className="details-collapse-wrapper",
+                className="details-collapse-wrapper collapsed",
                 children=[
                     html.Button(
                         id={
@@ -176,6 +169,7 @@ def generate_settings_form() -> html.Div:
                             dcc.Checklist(
                                 options=[
                                     {"label": "Allow isolated days off", "value": 0},
+                                    {"label": "Exactly one manager per shift", "value": 1},
                                 ],
                                 value=[],
                                 id="checklist-input",
@@ -273,6 +267,12 @@ def create_interface():
                                                     html.Div(
                                                         className="legend",
                                                         children=[
+                                                            html.Label("Full-Time:", className="legend-section"),
+                                                            html.Div(className="requested-shifts"),
+                                                            html.Label("Scheduled"),
+                                                            html.Div(className="full-time-off-shifts"),
+                                                            html.Label("Day Off"),
+                                                            html.Label("Part-Time:", className="legend-section"),
                                                             html.Div(className="requested-shifts", children=[REQUESTED_SHIFT_ICON]),
                                                             html.Label("Requested"),
                                                             html.Div(className="unavailable-shifts", children=[UNAVAILABLE_ICON]),
