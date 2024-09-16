@@ -50,14 +50,6 @@ MIN_MAX_SHIFTS = {
     "value": [5, 7],
 }
 
-# min/max number of employees per shift range slider (value means default)
-MIN_MAX_EMPLOYEES = {
-    "min": 1,
-    "max": 100,
-    "step": 1,
-    "value": [3, 6],
-}
-
 # number of employees slider (value means default)
 NUM_EMPLOYEES = {
     "min": 4,
@@ -91,7 +83,6 @@ SMALL_SCENARIO = {
     "num_full_time": 8,
     "consecutive_shifts": 5,
     "shifts_per_employee": [5, 7],
-    "employees_per_shift": [3, 6],
 }
 
 MEDIUM_SCENARIO = {
@@ -99,7 +90,6 @@ MEDIUM_SCENARIO = {
     "num_full_time": 14,
     "consecutive_shifts": 5,
     "shifts_per_employee": [5, 10],
-    "employees_per_shift": [5, 10],
 }
 
 LARGE_SCENARIO = {
@@ -107,5 +97,4 @@ LARGE_SCENARIO = {
     "num_full_time": 25,
     "consecutive_shifts": 5,
     "shifts_per_employee": [5, 10],
-    "employees_per_shift": [10, 20],
 }

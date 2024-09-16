@@ -29,8 +29,7 @@ def build_cqm(
     shifts,
     min_shifts,
     max_shifts,
-    shift_min,
-    shift_max,
+    shift_forecast,
     allow_isolated_days_off,
     max_consecutive_shifts,
     num_full_time,
@@ -91,18 +90,24 @@ def build_cqm(
         # Schedule employees for at most max_shifts
         cqm.add_constraint(
             quicksum(x[employee, shift] for shift in shifts)
-            == 10,
-            label=f"not_full_time,{employee},",
+            <= 10,
+            label=f"overtime,{employee},",
+        )
+
+        cqm.add_constraint(
+            quicksum(x[employee, shift] for shift in shifts)
+            >= 10,
+            label=f"insufficient,{employee},",
         )
 
     # Every shift needs shift_min and shift_max employees working
-    for shift in shifts:
+    for i, shift in enumerate(shifts):
         cqm.add_constraint(
-            sum(x[employee, shift] for employee in employees) >= shift_min,
+            sum(x[employee, shift] for employee in employees) >= shift_forecast[i],
             label=f"understaffed,,{shift}",
         )
         cqm.add_constraint(
-            sum(x[employee, shift] for employee in employees) <= shift_max,
+            sum(x[employee, shift] for employee in employees) <= shift_forecast[i],
             label=f"overstaffed,,{shift}",
         )
 
@@ -182,10 +187,6 @@ def run_cqm(cqm):
             ),
             "insufficient": (
                 "Employees with not enough scheduled time",
-                "{employee}"
-            ),
-            "not_full_time": (
-                "Employees that did not receive a full-time schedule",
                 "{employee}"
             ),
             "understaffed": (

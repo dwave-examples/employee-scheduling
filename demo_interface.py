@@ -15,14 +15,13 @@
 """This file stores the Dash HTML layout for the app."""
 from __future__ import annotations
 
-from dash import dcc, html
+from dash import dash_table, dcc, html
 
 from demo_configs import (
     DESCRIPTION,
     EXAMPLE_SCENARIO,
     MAIN_HEADER,
     MAX_CONSECUTIVE_SHIFTS,
-    MIN_MAX_EMPLOYEES,
     MIN_MAX_SHIFTS,
     NUM_EMPLOYEES,
     NUM_FULL_TIME,
@@ -30,6 +29,7 @@ from demo_configs import (
     THUMBNAIL,
     UNAVAILABLE_ICON
 )
+from utils import COL_IDS
 
 
 def slider(label: str, id: str, config: dict) -> html.Div:
@@ -151,11 +151,6 @@ def generate_settings_form() -> html.Div:
                                 MAX_CONSECUTIVE_SHIFTS,
                             ),
                             range_slider(
-                                "Employees Per Shift",
-                                "employees-per-shift-select",
-                                MIN_MAX_EMPLOYEES,
-                            ),
-                            range_slider(
                                 "Shifts Per Part-Time Employee",
                                 "shifts-per-employee-select",
                                 MIN_MAX_SHIFTS,
@@ -188,6 +183,37 @@ def generate_run_buttons() -> html.Div:
                 className="display-none",
             ),
         ],
+    )
+
+
+def generate_forecast_table(forecast: dict, scheduled: dict) -> html.Div:
+    """TODO"""
+    return html.Div(
+        className="schedule-forecast",
+        children=[
+            html.Div([html.Label("Forecasted"), html.Label("Scheduled"), html.Label("Difference")]),
+            dash_table.DataTable(
+                id="forecast-output",
+                columns=(
+                    [{'id': p, 'name': p} for p in forecast.keys()]
+                ),
+                data=[
+                    forecast,
+                    scheduled,
+                    {key: scheduled[key] - value for key, value in forecast.items()}
+                ],
+                style_data_conditional=[
+                    {
+                        'if': {
+                            'filter_query': f'{{{col_id}}} != 0',
+                            'column_id': col_id,
+                            'row_index': 2,
+                        },
+                        'backgroundColor': '#c7003860',
+                    } for col_id in forecast.keys()
+                ]
+            ),
+        ]
     )
 
 
@@ -250,7 +276,28 @@ def create_interface():
                                             html.Div(
                                                 className="schedule",
                                                 children=[
-                                                    html.Div(id="availability-content"),
+                                                    html.Div(
+                                                        className="schedule-inner",
+                                                        children=[
+                                                            html.Div(id="availability-content"),
+                                                            html.Div(
+                                                                className="schedule-forecast",
+                                                                children=[
+                                                                    html.Label("Forecast"),
+                                                                    dash_table.DataTable(
+                                                                        id="forecast-input",
+                                                                        columns=(
+                                                                            [{'id': p, 'name': p} for p in COL_IDS]
+                                                                        ),
+                                                                        data=[
+                                                                            dict({param: 0 for param in COL_IDS})
+                                                                        ],
+                                                                        editable=True
+                                                                    ),
+                                                                ]
+                                                            ),
+                                                        ]
+                                                    ),
                                                     html.Div(
                                                         className="legend",
                                                         children=[
@@ -278,7 +325,15 @@ def create_interface():
                                                         type="circle",
                                                         color="#2A7DE1",
                                                         parent_className="schedule-loading",
-                                                        children=html.Div(id="schedule-content"),
+                                                        children=html.Div(
+                                                            [
+                                                                html.Div(id="schedule-content"),
+                                                                html.Div(
+                                                                    className="schedule-forecast",
+                                                                    id="scheduled-forecast-output",
+                                                                ),
+                                                            ]
+                                                        ),
                                                     ),
                                                     html.Div(
                                                         className="legend",

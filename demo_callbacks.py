@@ -22,9 +22,9 @@ from dash.exceptions import PreventUpdate
 
 import employee_scheduling as employee_scheduling
 import utils as utils
-from demo_configs import (LARGE_SCENARIO, MEDIUM_SCENARIO, MIN_MAX_EMPLOYEES, NUM_FULL_TIME,
-                         SMALL_SCENARIO)
-from demo_interface import errors_list
+from demo_configs import (LARGE_SCENARIO, MEDIUM_SCENARIO, NUM_FULL_TIME, REQUESTED_SHIFT_ICON,
+                         SMALL_SCENARIO, UNAVAILABLE_ICON)
+from demo_interface import errors_list, generate_forecast_table
 import pandas as pd
 
 
@@ -58,12 +58,10 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
     Output("num-full-time-select", "value"),
     Output("consecutive-shifts-select", "value"),
     Output("shifts-per-employee-select", "value"),
-    Output("employees-per-shift-select", "value"),
     Output("num-employees-select", "disabled"),
     Output("num-full-time-select", "disabled"),
     Output("consecutive-shifts-select", "disabled"),
     Output("shifts-per-employee-select", "disabled"),
-    Output("employees-per-shift-select", "disabled"),
     inputs=[
         Input("example-scenario-select", "value"),
         State("custom-saved-data", "data"),
@@ -76,44 +74,34 @@ def set_scenario(
 ) -> tuple[int, int, list[int], list[int], int, bool, bool, bool, bool]:
     """Sets the correct scenario, reverting to the saved custom setting if chosen."""
     if scenario == 1:
-        return *tuple(SMALL_SCENARIO.values()), True, True, True, True, True
+        return *tuple(SMALL_SCENARIO.values()), True, True, True, True
     elif scenario == 2:
-        return *tuple(MEDIUM_SCENARIO.values()), True, True, True, True, True
+        return *tuple(MEDIUM_SCENARIO.values()), True, True, True, True
     elif scenario == 3:
-        return *tuple(LARGE_SCENARIO.values()), True, True, True, True, True
+        return *tuple(LARGE_SCENARIO.values()), True, True, True, True
 
     # else return custom stored selections
     return (
         *custom_saved_data.values(),
-        False, False, False, False, False
+        False, False, False, False
     )
 
 
 @dash.callback(
-    Output("employees-per-shift-select", "max"),
-    Output("employees-per-shift-select", "marks"),
-    # required to refresh tooltip
-    Output("employees-per-shift-select", "tooltip"),
     Output("num-full-time-select", "max"),
     Output("num-full-time-select", "marks"),
     inputs=[
         Input("num-employees-select", "value"),
-        # passthrough input; required to refresh tooltip
-        State("employees-per-shift-select", "tooltip"),
     ],
 )
-def update_employee_settings(num_employees: int, tooltip: dict[str, Any]) -> tuple[int, dict, dict]:
+def update_employee_settings(num_employees: int) -> tuple[int, dict, dict]:
     """Update the employees-per-shift slider max if num-employees is changed."""
-    per_shift_marks = {
-        MIN_MAX_EMPLOYEES["min"]: str(MIN_MAX_EMPLOYEES["min"]),
-        num_employees: str(num_employees),
-    }
     new_full_time_max = math.floor(num_employees* 3/4)
     full_time_marks = {
         NUM_FULL_TIME["min"]: str(NUM_FULL_TIME["min"]),
         new_full_time_max: str(new_full_time_max),
     }
-    return num_employees, per_shift_marks, tooltip, new_full_time_max, full_time_marks
+    return new_full_time_max, full_time_marks
 
 
 @dash.callback(
@@ -123,7 +111,6 @@ def update_employee_settings(num_employees: int, tooltip: dict[str, Any]) -> tup
         Input("num-full-time-select", "value"),
         Input("consecutive-shifts-select", "value"),
         Input("shifts-per-employee-select", "value"),
-        Input("employees-per-shift-select", "value"),
         State("example-scenario-select", "value"),
         State("custom-saved-data", "data"),
     ],
@@ -133,7 +120,6 @@ def custom_saved_data(
     num_full_time: int,
     consecutive_shifts: int,
     shifts_per_employees: list[int],
-    employees_per_shift: list[int],
     scenario: int,
     custom_saved_data: dict,
 ) -> int:
@@ -144,7 +130,6 @@ def custom_saved_data(
             "num-full-time-select": num_full_time,
             "consecutive-shifts-select": consecutive_shifts,
             "shifts-per-employee-select": shifts_per_employees,
-            "employees-per-shift-select": employees_per_shift,
         }
 
     if scenario == 0:
@@ -160,6 +145,7 @@ def custom_saved_data(
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output("tabs", "value"),
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
+    Output("forecast-input", 'data'),
     inputs=[
         Input("num-employees-select", "value"),
         Input("num-full-time-select", "value"),
@@ -177,12 +163,20 @@ def disp_initial_sched(
     df = utils.build_random_sched(num_employees, num_full_time)
 
     init_availability_table = utils.display_availability(df)
+
+    # Prepare forecast defaults
+    df_to_count = df.iloc[:num_full_time, :]
+    count = df_to_count.applymap(lambda cell: cell.count(REQUESTED_SHIFT_ICON)).sum()[1:].to_dict()
+    num_part_time = num_employees - num_full_time
+    count = {key: value + math.ceil(num_part_time/2) for key, value in count.items()}
+
     return (
         init_availability_table,
         init_availability_table,
         True,  # disable the shedule tab when changing parameters
         "input-tab",  # jump back to the availability tab
         {"display": "none"},
+        [count]
     )
 
 
@@ -216,14 +210,15 @@ def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
     Output("errors", "children"),
+    Output("scheduled-forecast-output", "children"),
     background=True,
     inputs=[
         Input("run-button", "n_clicks"),
         State("shifts-per-employee-select", "value"),
-        State("employees-per-shift-select", "value"),
         State("checklist-input", "value"),
         State("consecutive-shifts-select", "value"),
         State("num-full-time-select", "value"),
+        State("forecast-input", 'data'),
         State("availability-content", "children"),
     ],
     running=[
@@ -241,10 +236,10 @@ def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
 def run_optimization(
     run_click: int,
     shifts_per_employee: list[int],
-    employees_per_shift: list[int],
     checklist: list[int],
     consecutive_shifts: int,
     num_full_time: int,
+    forecast: list[dict],
     sched_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, bool, dict, list]:
     """Runs the optimization and updates UI accordingly.
@@ -278,12 +273,13 @@ def run_optimization(
     employees = list(availability.keys())
 
     isolated_days_allowed = True if 0 in checklist else False
+    forecast = {key: int(val) for key, val in forecast[0].items()}
 
     cqm = employee_scheduling.build_cqm(
         availability,
         shifts,
         *shifts_per_employee,
-        *employees_per_shift,
+        list(forecast.values()),
         isolated_days_allowed,
         consecutive_shifts + 1,
         num_full_time,
@@ -293,10 +289,12 @@ def run_optimization(
     sample = feasible_sampleset.first.sample
 
     sched = utils.build_schedule_from_sample(sample, employees)
+    scheduled_count = sched.applymap(lambda cell: UNAVAILABLE_ICON not in cell).sum()[1:].to_dict()
 
     return (
         utils.display_schedule(sched, availability),
         False,
         {"display": "flex"} if errors else {"display": "none"},
         errors_list(errors) if errors else no_update,
+        generate_forecast_table(forecast, scheduled_count)
     )

@@ -188,31 +188,6 @@ def display_availability(df):
         + [
             {
                 "if": {
-                    "filter_query": f'{{{col_id}}} = {REQUESTED_SHIFT_ICON}',
-                    "column_id": col_id,
-                },
-                "backgroundColor": "#008c82", # blue
-                "color": "transparent",
-            }
-            for col_id in COL_IDS
-        ]
-        + [
-            {
-                "if": {
-                    "filter_query": f'{{{col_id}}} = {UNAVAILABLE_ICON}',
-                    "column_id": col_id,
-                },
-                "backgroundImage": "linear-gradient(-45deg, #FF7006 10%, transparent 10%, transparent 20%,\
-                #FF7006 20%, #FF7006 30%, transparent 30%, transparent 40%, #FF7006 40%, #FF7006 50%,\
-                transparent 50%, transparent 60%, #FF7006 60%, #FF7006 70%, transparent 70%, transparent 80%,\
-                #FF7006 80%, #FF7006 90%, transparent 90%, #fff)", # orange
-                "color": "transparent",
-            }
-            for col_id in COL_IDS
-        ]
-        + [
-            {
-                "if": {
                     "filter_query": f'{{{col_id}}} = {UNAVAILABLE_ICON}',
                     "column_id": col_id,
                 },
