@@ -112,12 +112,6 @@ def generate_settings_form() -> html.Div:
                     ),
                 ]
             ),
-            html.Div(
-                children=[
-                    html.Label("Random seed (optional)"),
-                    dcc.Input(id="seed-select", type="number", min=0),
-                ]
-            ),
             slider(
                 "Employees",
                 "num-employees-select",
@@ -157,7 +151,7 @@ def generate_settings_form() -> html.Div:
                                 MAX_CONSECUTIVE_SHIFTS,
                             ),
                             range_slider(
-                                "Part-Time Employees Per Shift",
+                                "Employees Per Shift",
                                 "employees-per-shift-select",
                                 MIN_MAX_EMPLOYEES,
                             ),
@@ -169,7 +163,6 @@ def generate_settings_form() -> html.Div:
                             dcc.Checklist(
                                 options=[
                                     {"label": "Allow isolated days off", "value": 0},
-                                    {"label": "Exactly one manager per shift", "value": 1},
                                 ],
                                 value=[],
                                 id="checklist-input",
@@ -203,12 +196,6 @@ def create_interface():
     return html.Div(
         id="app-container",
         children=[
-            dcc.Store(id="custom-num-employees"),
-            dcc.Store(id="custom-num-full-time"),
-            dcc.Store(id="custom-consecutive-shifts"),
-            dcc.Store(id="custom-shifts-per-employees"),
-            dcc.Store(id="custom-employees-per-shift"),
-            dcc.Store(id="custom-random-seed"),
             dcc.Store(id="custom-saved-data"),
             dcc.Store(id="submission_indicator"),
             # Header brand banner
@@ -267,12 +254,6 @@ def create_interface():
                                                     html.Div(
                                                         className="legend",
                                                         children=[
-                                                            html.Label("Full-Time:", className="legend-section"),
-                                                            html.Div(className="requested-shifts"),
-                                                            html.Label("Scheduled"),
-                                                            html.Div(className="full-time-off-shifts"),
-                                                            html.Label("Day Off"),
-                                                            html.Label("Part-Time:", className="legend-section"),
                                                             html.Div(className="requested-shifts", children=[REQUESTED_SHIFT_ICON]),
                                                             html.Label("Requested"),
                                                             html.Div(className="unavailable-shifts", children=[UNAVAILABLE_ICON]),

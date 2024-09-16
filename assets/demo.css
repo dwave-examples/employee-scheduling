@@ -166,18 +166,9 @@ table {
   margin-bottom: 0.2rem;
 }
 
-.legend label:not(.legend-section) {
+.legend label {
   margin: 0;
   flex: 1 0 75%;
-}
-
-.legend label.legend-section {
-    margin-top: 0;
-    flex: 1 0 100%;
-}
-
-.legend label.legend-section:not(:first-child) {
-  margin-top: 1rem;
 }
 
 .scheduled-shifts {
@@ -194,13 +185,6 @@ table {
   #c7003860 20%, #c7003860 30%, transparent 30%, transparent 40%, #c7003860 40%, #c7003860 50%,
   transparent 50%, transparent 60%, #c7003860 60%, #c7003860 70%, transparent 70%, transparent 80%, #c7003860 80%,
   #c7003860 90%, transparent 90%, #fff);
-}
-
-.full-time-off-shifts {
-    background-image: linear-gradient(-45deg, #FF7006 10%, transparent 10%, transparent 20%,
-    #FF7006 20%, #FF7006 30%, transparent 30%, transparent 40%, #FF7006 40%, #FF7006 50%,
-    transparent 50%, transparent 60%, #FF7006 60%, #FF7006 70%, transparent 70%, transparent 80%,
-    #FF7006 80%, #FF7006 90%, transparent 90%, #fff)
 }
 
 .unavailable-shifts {

@@ -16,7 +16,7 @@ import datetime
 import random
 import string
 
-from demo_configs import FULL_TIME_ICON, FULL_TIME_OFF_ICON, REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
+from demo_configs import RANDOM_SEED, REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON, REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
 import numpy as np
 import pandas as pd
 from dash import dash_table
@@ -65,23 +65,42 @@ def get_random_names(num_employees):
     return names
 
 
-def build_random_sched(num_employees, num_full_time, rand_seed=None):
+def build_random_sched(num_employees, num_full_time):
     """Builds a random availability schedule for employees."""
 
-    if rand_seed:
-        np.random.seed(rand_seed)
+    if RANDOM_SEED:
+        np.random.seed(RANDOM_SEED)
 
     full_time_schedule = np.array(
-        [
-            [FULL_TIME_OFF_ICON, *(FULL_TIME_ICON*5), *(FULL_TIME_OFF_ICON*2), *(FULL_TIME_ICON*5), FULL_TIME_OFF_ICON]
-        ]
+        [UNAVAILABLE_ICON, *(REQUESTED_SHIFT_ICON*5), *(UNAVAILABLE_ICON*2), *(REQUESTED_SHIFT_ICON*5), UNAVAILABLE_ICON]
     )
+
+    num_managers = 2
+    options = [0, 2, 6]
+    q, r = divmod(num_full_time-num_managers, 3)
+    full_time_breakdown = [q] * 3
+
+    for i in range(r):
+        full_time_breakdown[i] += 1
+
+    # Build full-time schedules
+    full_time_schedules = np.empty((0, len(COL_IDS)))
+    for i in range(len(full_time_breakdown)):
+        for j in range(full_time_breakdown[i]):
+            full_time_schedules = np.vstack([full_time_schedules, np.roll(full_time_schedule, -options[i])])
 
     data = pd.DataFrame(
         np.concatenate(
             (
-                *(np.roll(full_time_schedule, -np.random.randint(0, num_full_time)) for i in range(num_full_time)),
-                np.random.choice([UNAVAILABLE_ICON, " ", REQUESTED_SHIFT_ICON], size=(num_employees-num_full_time, len(COL_IDS)), p=[0.1, 0.8, 0.1])
+                np.array(  # Managers
+                    [np.roll(full_time_schedule, -options[i]) for i in range(num_managers)]
+                ),
+                full_time_schedules,  # Remaining full-time
+                np.random.choice(  # Part-time
+                    [UNAVAILABLE_ICON, " ", REQUESTED_SHIFT_ICON],
+                    size=(num_employees-num_full_time, len(COL_IDS)),
+                    p=[0.1, 0.8, 0.1]
+                )
             )
         ),
         columns=COL_IDS,
@@ -90,8 +109,9 @@ def build_random_sched(num_employees, num_full_time, rand_seed=None):
 
     employees = get_random_names(num_employees-1)  # one less to account for trainee
 
-    employees[0] += "-Mgr"
-    employees[num_full_time] += "-Mgr"
+    for i in range(num_managers):
+        employees[i] += "-Mgr"
+
     employees.append(employees[-1] + "-Tr")
 
     data.insert(0, "Employee", employees)
@@ -168,7 +188,7 @@ def display_availability(df):
         + [
             {
                 "if": {
-                    "filter_query": f'{{{col_id}}} = {FULL_TIME_ICON}',
+                    "filter_query": f'{{{col_id}}} = {REQUESTED_SHIFT_ICON}',
                     "column_id": col_id,
                 },
                 "backgroundColor": "#008c82", # blue
@@ -179,7 +199,7 @@ def display_availability(df):
         + [
             {
                 "if": {
-                    "filter_query": f'{{{col_id}}} = {FULL_TIME_OFF_ICON}',
+                    "filter_query": f'{{{col_id}}} = {UNAVAILABLE_ICON}',
                     "column_id": col_id,
                 },
                 "backgroundImage": "linear-gradient(-45deg, #FF7006 10%, transparent 10%, transparent 20%,\
@@ -285,8 +305,8 @@ def availability_to_dict(availability_list):
 
     for row in availability_list:
         availability_dict[row["Employee"]] = [
-            0 if row[col_id] == UNAVAILABLE_ICON or row[col_id] == FULL_TIME_OFF_ICON
-            else 2 if row[col_id] == REQUESTED_SHIFT_ICON or row[col_id] == FULL_TIME_ICON
+            0 if row[col_id] == UNAVAILABLE_ICON
+            else 2 if row[col_id] == REQUESTED_SHIFT_ICON
             else 1 for col_id in COL_IDS
         ]
 

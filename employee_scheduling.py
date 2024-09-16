@@ -31,7 +31,6 @@ def build_cqm(
     max_shifts,
     shift_min,
     shift_max,
-    requires_manager,
     allow_isolated_days_off,
     max_consecutive_shifts,
     num_full_time,
@@ -53,11 +52,15 @@ def build_cqm(
             if schedule[i] == 2:
                 obj += -x[employee, shift]
 
-    # Objective: for infeasible solutions, focus on right number of shifts for part-time employees
+    # Objective: for infeasible solutions, focus on right number of shifts for employees
     num_s = (min_shifts + max_shifts) / 2
     for employee in employees_pt:
         obj += (
             quicksum(x[employee, shift] for shift in shifts) - num_s
+        ) ** 2
+    for employee in employees_ft:
+        obj += (
+            quicksum(x[employee, shift] for shift in shifts) - 10
         ) ** 2
     cqm.set_objective(obj)
 
@@ -84,14 +87,22 @@ def build_cqm(
             label=f"insufficient,{employee},",
         )
 
+    for employee in employees_ft:
+        # Schedule employees for at most max_shifts
+        cqm.add_constraint(
+            quicksum(x[employee, shift] for shift in shifts)
+            == 10,
+            label=f"not_full_time,{employee},",
+        )
+
     # Every shift needs shift_min and shift_max employees working
     for shift in shifts:
         cqm.add_constraint(
-            sum(x[employee, shift] for employee in employees_pt) >= shift_min,
+            sum(x[employee, shift] for employee in employees) >= shift_min,
             label=f"understaffed,,{shift}",
         )
         cqm.add_constraint(
-            sum(x[employee, shift] for employee in employees_pt) <= shift_max,
+            sum(x[employee, shift] for employee in employees) <= shift_max,
             label=f"overstaffed,,{shift}",
         )
 
@@ -112,13 +123,12 @@ def build_cqm(
                 )
 
     # Require a manager on every shift
-    if requires_manager:
-        managers = [employee for employee in employees if employee[-3:] == "Mgr"]
-        for shift in shifts:
-            cqm.add_constraint(
-                quicksum(x[manager, shift] for manager in managers) == 1,
-                label=f"manager_issue,,{shift}",
-            )
+    managers = [employee for employee in employees if employee[-3:] == "Mgr"]
+    for shift in shifts:
+        cqm.add_constraint(
+            quicksum(x[manager, shift] for manager in managers) >= 1,
+            label=f"manager_issue,,{shift}",
+        )
 
     # Don't exceed max_consecutive_shifts
     for employee in employees_pt:
@@ -172,6 +182,10 @@ def run_cqm(cqm):
             ),
             "insufficient": (
                 "Employees with not enough scheduled time",
+                "{employee}"
+            ),
+            "not_full_time": (
+                "Employees that did not receive a full-time schedule",
                 "{employee}"
             ),
             "understaffed": (

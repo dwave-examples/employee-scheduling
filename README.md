@@ -74,8 +74,6 @@ sizes. If 'Custom' is selected, the following settings become available:
   scheduled for at least two consecutive days off between work days.
 - Require a manager on every shift: If checked, every shift
   must have exactly one manager on duty to supervise.
-- Random seed (optional): If set with an integer, it will ensure consistency
-between subsequent runs of the same example.
 
 ### Outputs
 

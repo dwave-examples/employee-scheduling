@@ -59,7 +59,6 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
     Output("consecutive-shifts-select", "value"),
     Output("shifts-per-employee-select", "value"),
     Output("employees-per-shift-select", "value"),
-    Output("seed-select", "value"),
     Output("num-employees-select", "disabled"),
     Output("num-full-time-select", "disabled"),
     Output("consecutive-shifts-select", "disabled"),
@@ -109,7 +108,7 @@ def update_employee_settings(num_employees: int, tooltip: dict[str, Any]) -> tup
         MIN_MAX_EMPLOYEES["min"]: str(MIN_MAX_EMPLOYEES["min"]),
         num_employees: str(num_employees),
     }
-    new_full_time_max = math.floor(num_employees/2)
+    new_full_time_max = math.floor(num_employees* 3/4)
     full_time_marks = {
         NUM_FULL_TIME["min"]: str(NUM_FULL_TIME["min"]),
         new_full_time_max: str(new_full_time_max),
@@ -125,7 +124,6 @@ def update_employee_settings(num_employees: int, tooltip: dict[str, Any]) -> tup
         Input("consecutive-shifts-select", "value"),
         Input("shifts-per-employee-select", "value"),
         Input("employees-per-shift-select", "value"),
-        Input("seed-select", "value"),
         State("example-scenario-select", "value"),
         State("custom-saved-data", "data"),
     ],
@@ -136,7 +134,6 @@ def custom_saved_data(
     consecutive_shifts: int,
     shifts_per_employees: list[int],
     employees_per_shift: list[int],
-    random_seed: int,
     scenario: int,
     custom_saved_data: dict,
 ) -> int:
@@ -148,7 +145,6 @@ def custom_saved_data(
             "consecutive-shifts-select": consecutive_shifts,
             "shifts-per-employee-select": shifts_per_employees,
             "employees-per-shift-select": employees_per_shift,
-            "seed-select": random_seed,
         }
 
     if scenario == 0:
@@ -167,19 +163,18 @@ def custom_saved_data(
     inputs=[
         Input("num-employees-select", "value"),
         Input("num-full-time-select", "value"),
-        Input("seed-select", "value"),
     ],
     prevent_initial_call='initial_duplicate',
 )
 def disp_initial_sched(
-    num_employees: int, num_full_time: int, rand_seed: int
+    num_employees: int, num_full_time: int
 ) -> tuple[pd.DataFrame, pd.DataFrame, bool, str, dict]:
     """Display initial availability schedule.
 
     Display initial schedule in, and switch to, the availability
-    tab if number of employees or seed is changed.
+    tab if number of employees has changed.
     """
-    df = utils.build_random_sched(num_employees, num_full_time, rand_seed)
+    df = utils.build_random_sched(num_employees, num_full_time)
 
     init_availability_table = utils.display_availability(df)
     return (
@@ -283,14 +278,12 @@ def run_optimization(
     employees = list(availability.keys())
 
     isolated_days_allowed = True if 0 in checklist else False
-    manager_required = True if 1 in checklist else False
 
     cqm = employee_scheduling.build_cqm(
         availability,
         shifts,
         *shifts_per_employee,
         *employees_per_shift,
-        manager_required,
         isolated_days_allowed,
         consecutive_shifts + 1,
         num_full_time,

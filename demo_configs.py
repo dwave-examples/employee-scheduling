@@ -32,8 +32,10 @@ scenario with a variety of employees and rules.
 
 REQUESTED_SHIFT_ICON = "✓"
 UNAVAILABLE_ICON = "x"
-FULL_TIME_ICON = "S"
-FULL_TIME_OFF_ICON = "/"
+
+
+# Optional, None or an integer
+RANDOM_SEED = None
 
 
 #######################################
@@ -67,9 +69,9 @@ NUM_EMPLOYEES = {
 # number of full time employees slider (value means default)
 NUM_FULL_TIME = {
     "min": 0,
-    "max": 6,
+    "max": 9,
     "step": 1,
-    "value": 4,
+    "value": 8,
 }
 
 # max consecutive shifts slider (value means default)
@@ -86,27 +88,24 @@ EXAMPLE_SCENARIO = ["Custom", "Small", "Medium", "Large"]
 # default scenarios (don't change order of items)
 SMALL_SCENARIO = {
     "num_employees": 12,
-    "num_full_time": 4,
+    "num_full_time": 8,
     "consecutive_shifts": 5,
     "shifts_per_employee": [5, 7],
     "employees_per_shift": [3, 6],
-    "random_seed": "",
 }
 
 MEDIUM_SCENARIO = {
     "num_employees": 20,
-    "num_full_time": 6,
+    "num_full_time": 14,
     "consecutive_shifts": 5,
     "shifts_per_employee": [5, 10],
     "employees_per_shift": [5, 10],
-    "random_seed": "",
 }
 
 LARGE_SCENARIO = {
     "num_employees": 40,
-    "num_full_time": 10,
+    "num_full_time": 25,
     "consecutive_shifts": 5,
     "shifts_per_employee": [5, 10],
     "employees_per_shift": [10, 20],
-    "random_seed": "",
 }
