@@ -14,6 +14,7 @@
 import unittest
 
 from dash import dash_table
+from numpy import asarray
 
 import employee_scheduling
 import utils
@@ -21,30 +22,44 @@ from app import disp_initial_sched
 
 
 class TestDemo(unittest.TestCase):
+    # Initialize shared data for tests
+    def setUp(self):
+        self.num_employees = 12
+        self.sched_df = disp_initial_sched(self.num_employees, None)[0].data
+        self.shifts =list(self.sched_df[0].keys())
+        self.shifts.remove("Employee")
+        self.availability = utils.availability_to_dict(self.sched_df)
+        self.test_params = utils.ModelParams(
+            availability=self.availability,
+            shifts=self.shifts,
+            min_shifts=1,
+            max_shifts=6,
+            shift_min=5,
+            shift_max=16,
+            requires_manager=True,
+            allow_isolated_days_off=False,
+            max_consecutive_shifts=6
+        )
+        
     # Check that initial schedule created is the right size
     def test_initial_sched(self):
-        num_employees = 12
-
-        sched_df = disp_initial_sched(num_employees, None)[0].data
-
-        self.assertEqual(len(sched_df), num_employees)
+        self.assertEqual(len(self.sched_df), self.num_employees)
 
     # Check that CQM created has the right number of variables
     def test_cqm(self):
-        num_employees = 12
+        cqm = employee_scheduling.build_cqm(self.test_params)
 
-        sched_df = disp_initial_sched(num_employees, None)[0].data
-        shifts = list(sched_df[0].keys())
-        shifts.remove("Employee")
-        availability = utils.availability_to_dict(sched_df)
+        self.assertEqual(len(cqm.variables),
+                         self.num_employees * len(self.shifts))
 
-        cqm = employee_scheduling.build_cqm(
-            availability, shifts, 1, 6, 5, 16, True, False, 6
-        )
+    # Check that NL assignments variable is the correct shape
+    def test_nl(self):
+        _, assignments = employee_scheduling.build_nl(self.test_params)
 
-        self.assertEqual(len(cqm.variables), num_employees * len(shifts))
+        self.assertEqual(assignments.shape(),
+                        (self.num_employees, len(self.shifts)))
 
-    def test_samples(self):
+    def test_samples_cqm(self):
         shifts = [str(i + 1) for i in range(5)]
 
         # Make every employee available for every shift
@@ -57,9 +72,19 @@ class TestDemo(unittest.TestCase):
             "E-Tr": [1] * 5,
         }
 
-        cqm = employee_scheduling.build_cqm(
-            availability, shifts, 1, 6, 5, 16, True, False, 6
+        test_params = utils.ModelParams(
+            availability=availability,
+            shifts=shifts,
+            min_shifts=1,
+            max_shifts=6,
+            shift_min=5,
+            shift_max=16,
+            requires_manager=True,
+            allow_isolated_days_off=False,
+            max_consecutive_shifts=6
         )
+
+        cqm = employee_scheduling.build_cqm(test_params)
 
         feasible_sample = {
             "A-Mgr_1": 0.0,
@@ -130,6 +155,69 @@ class TestDemo(unittest.TestCase):
         self.assertTrue(cqm.check_feasible(feasible_sample))
         self.assertFalse(cqm.check_feasible(infeasible_sample))
 
+    def test_states_nl(self):
+        shifts = [str(i + 1) for i in range(5)]
+
+        # Make every employee available for every shift
+        availability = {
+            "A-Mgr": [1] * 5,
+            "B-Mgr": [1] * 5,
+            "C": [1] * 5,
+            "D": [1] * 5,
+            "E": [1] * 5,
+            "E-Tr": [1] * 5,
+        }
+
+        test_params = utils.ModelParams(
+            availability=availability,
+            shifts=shifts,
+            min_shifts=1,
+            max_shifts=6,
+            shift_min=5,
+            shift_max=16,
+            requires_manager=True,
+            allow_isolated_days_off=False,
+            max_consecutive_shifts=6
+        )
+
+        model, assignments = employee_scheduling.build_nl(test_params)
+
+        if not model.is_locked():
+            model.lock()
+
+        # Resize model states
+        model.states.resize(2)
+
+        feasible_state = [
+            [0, 0, 1, 1, 1], # A-Mgr
+            [1, 1, 0, 0, 0], # B-Mgr
+            [1, 1, 1, 1, 1], # C
+            [1, 1, 1, 1, 1], # D
+            [1, 1, 1, 1, 1], # E
+            [1, 1, 1, 1, 1]  # E-Tr
+        ]
+
+        # Infeasible: multiple managers scheduled for the same shift
+        infeasible_state = [
+            [1, 1, 1, 1, 1], # A-Mgr
+            [1, 1, 1, 1, 1], # B-Mgr
+            [1, 1, 1, 1, 1], # C
+            [1, 1, 1, 1, 1], # D
+            [1, 1, 1, 1, 1], # E
+            [1, 1, 1, 1, 1]  # E-Tr
+        ]
+
+        # Assign feasible state to index 0
+        assignments.set_state(0, feasible_state)
+        # Assign infeasible state to index 1
+        assignments.set_state(1, infeasible_state)
+
+        constraints_0 = [int(c.state(0)) for c in model.iter_constraints()]
+        constraints_1 = [int(c.state(1)) for c in model.iter_constraints()]
+
+        self.assertEqual(len(constraints_0), sum(constraints_0))
+        self.assertGreater(len(constraints_1), sum(constraints_1))
+
     def test_build_from_sample(self):
         employees = ["A-Mgr", "B-Mgr", "C", "D", "E", "E-Tr"]
 
@@ -183,3 +271,31 @@ class TestDemo(unittest.TestCase):
 
         # This should verify we don't have any issues in the object created for display from a sample
         self.assertEqual(type(disp_datatable), dash_table.DataTable)
+
+    def test_build_from_state(self):
+        employees = ["A-Mgr", "B-Mgr", "C", "D", "E", "E-Tr"]
+
+        # Make every employee available for every shift
+        availability = {
+            "A-Mgr": [1] * 14,
+            "B-Mgr": [1] * 14,
+            "C": [1] * 14,
+            "D": [1] * 14,
+            "E": [1] * 14,
+            "E-Tr": [1] * 14,
+        }
+
+        state = asarray([
+            [0, 0, 1, 1, 1],
+            [1, 1, 0, 0, 0],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1]
+        ])
+
+        disp_datatable = utils.display_schedule(
+            utils.build_schedule_from_state(state, employees),
+            availability
+        )
+
+        self.assertIsInstance(disp_datatable, dash_table.DataTable)
