@@ -148,6 +148,23 @@ def build_schedule_from_sample(sample, employees):
 
     return data
 
+
+def build_schedule_from_state(assignments, employees):
+    """Builds a schedule from the state of a BinaryVariable."""
+    state = assignments.state()
+    data = pd.DataFrame(columns=COL_IDS)
+    data.insert(0, "Employee", employees)
+
+    for row in range(state.shape[0]):
+        for col in range(state.shape[1]):
+            if state[row, col] == 1.0:
+                data.iloc[row, col] = " "
+            else:
+                data.iloc[row, col] = UNAVAILABLE_ICON
+
+    return data
+
+
 def get_cols():
     """Gets information for column headers, including months and days."""
     start_month = START_DATE.strftime("%B %Y") # Get month and year
