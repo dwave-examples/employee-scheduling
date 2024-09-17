@@ -149,9 +149,8 @@ def build_schedule_from_sample(sample, employees):
     return data
 
 
-def build_schedule_from_state(assignments, employees):
+def build_schedule_from_state(state: np.ndarray, employees: list[str]):
     """Builds a schedule from the state of a BinaryVariable."""
-    state = assignments.state()
     data = pd.DataFrame(columns=COL_IDS)
     data.insert(0, "Employee", employees)
 
