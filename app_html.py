@@ -18,7 +18,7 @@ from __future__ import annotations
 from dash import dcc, html
 
 from app_configs import (DESCRIPTION, EXAMPLE_SCENARIO, MAIN_HEADER, MAX_CONSECUTIVE_SHIFTS, MIN_MAX_EMPLOYEES,
-                         MIN_MAX_SHIFTS, NUM_EMPLOYEES, REQUESTED_SHIFT_ICON, THUMBNAIL, UNAVAILABLE_ICON)
+                         MIN_MAX_SHIFTS, NUM_EMPLOYEES, REQUESTED_SHIFT_ICON, THUMBNAIL, UNAVAILABLE_ICON, SOLVERS)
 
 
 def description_card():
@@ -85,6 +85,21 @@ def generate_control_card() -> html.Div:
     return html.Div(
         id="control-card",
         children=[
+            html.Div(
+                children=[
+                    html.Label("Solver"),
+                    dcc.Dropdown(
+                        id="solver-select",
+                        options=(
+                            solver_options := [{"label": k, "value": v}
+                                               for k, v in SOLVERS.items()]
+                        ),
+                        value=solver_options[0],
+                        clearable=False,
+                        searchable=False,
+                    )
+                ]
+            ),
             html.Div(
                 children=[
                     html.Label("Scenario preset (sets sliders below)"),
