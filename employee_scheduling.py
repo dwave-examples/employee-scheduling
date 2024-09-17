@@ -155,7 +155,7 @@ def build_cqm(params: ModelParams):
 
     # Don't exceed max_consecutive_shifts
     for employee in employees:
-        for s in range(len(params.shifts) - params.max_consecutive_shifts + 1):
+        for s in range(len(params.shifts) - params.max_consecutive_shifts):
             cqm.add_constraint(
                 quicksum(
                     [x[employee, params.shifts[s + i]] for i in range(params.max_consecutive_shifts + 1)]

@@ -94,7 +94,7 @@ def generate_control_card() -> html.Div:
                             solver_options := [{"label": k, "value": v}
                                                for k, v in SOLVERS.items()]
                         ),
-                        value=solver_options[0],
+                        value=solver_options[0]["value"],
                         clearable=False,
                         searchable=False,
                     )
