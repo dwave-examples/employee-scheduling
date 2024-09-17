@@ -187,7 +187,7 @@ def generate_run_buttons() -> html.Div:
 
 
 def generate_forecast_table(forecast: dict, scheduled: dict) -> html.Div:
-    """TODO"""
+    """Generate the forecasted vs scheduled table"""
     return html.Div(
         className="schedule-forecast",
         children=[

@@ -17,7 +17,7 @@ import math
 from typing import Any
 
 import dash
-from dash import Input, MATCH, Output, State, ctx, no_update
+from dash import Input, MATCH, Output, State, ctx
 from dash.exceptions import PreventUpdate
 
 import employee_scheduling as employee_scheduling
@@ -72,19 +72,28 @@ def set_scenario(
     scenario: int,
     custom_saved_data: dict,
 ) -> tuple[int, int, list[int], list[int], int, bool, bool, bool, bool]:
-    """Sets the correct scenario, reverting to the saved custom setting if chosen."""
-    if scenario == 1:
-        return *tuple(SMALL_SCENARIO.values()), True, True, True, True
-    elif scenario == 2:
-        return *tuple(MEDIUM_SCENARIO.values()), True, True, True, True
-    elif scenario == 3:
-        return *tuple(LARGE_SCENARIO.values()), True, True, True, True
+    """Sets the correct scenario, reverting to the saved custom setting if chosen.
 
-    # else return custom stored selections
-    return (
-        *custom_saved_data.values(),
-        False, False, False, False
-    )
+    Args:
+        scenario: The scenario preset that is selected.
+        custom_saved_data: The saved custom scenario data to update.
+
+    Returns:
+        num-employees-select: The number of employees.
+        num-full-time-select: The number of full-time employees.
+        consecutive-shifts-select: The max consecutive shifts to schedule for a part-time employee.
+        shifts-per-employee-select: The min/max shifts to schedule for each part-time employee.
+        num-employees-select-disabled: Whether to disable the number of employees setting.
+        num-full-time-select-disabled: Whether to disable the full-time employees setting.
+        consecutive-shifts-select-disabled: Whether to disable the max consecutive shifts setting.
+        shifts-per-employee-select-disabled: Whether to disable the min/max shifts setting.
+    """
+    if scenario == 0:
+        # return custom stored selections
+        return *custom_saved_data.values(), False, False, False, False
+
+    scenarios = [SMALL_SCENARIO, MEDIUM_SCENARIO, LARGE_SCENARIO]
+    return *tuple(scenarios[scenario-1].values()), True, True, True, True
 
 
 @dash.callback(
@@ -95,7 +104,15 @@ def set_scenario(
     ],
 )
 def update_employee_settings(num_employees: int) -> tuple[int, dict, dict]:
-    """Update the employees-per-shift slider max if num-employees is changed."""
+    """Update the num-full-time-select slider if num-employees is changed.
+
+    Args:
+        num_employees: The number of employees selected.
+
+    Returns:
+        num-full-time-select-max: The max to set the full-time select to.
+        num-full-time-select-marks: The marks to set for the full-time select.
+    """
     new_full_time_max = math.floor(num_employees* 3/4)
     full_time_marks = {
         NUM_FULL_TIME["min"]: str(NUM_FULL_TIME["min"]),
@@ -123,7 +140,19 @@ def custom_saved_data(
     scenario: int,
     custom_saved_data: dict,
 ) -> int:
-    """Save custom data if changed under custom scenario."""
+    """Save custom data if changed whilte custom scenario is selected.
+
+    Args:
+        num_employees: The number of employees.
+        num_full_time: The number of full-time employees.
+        consecutive_shifts: The max consecutive shifts a part-time employee should be scheduled for.
+        shifts_per_employees: The min and max shifts each part-time employee should be scheduled for.
+        scenario: The scenario preset that is selected.
+        custom_saved_data: The saved custom scenario data to update.
+
+    Returns:
+        custom-saved-data: The saved custom scenario data to update.
+    """
     if not ctx.triggered_id:
         return {
             "num-employees-select": num_employees,
@@ -159,6 +188,18 @@ def disp_initial_sched(
 
     Display initial schedule in, and switch to, the availability
     tab if number of employees has changed.
+
+    Args:
+        num_employees: The number of employees.
+        num_full_time: The number of full-time employees.
+
+    Returns:
+        availability-content: The availability tab content.
+        schedule-content: The schedule tab content.
+        schedule-tab-disabled: Whether the schedule tab should be disabled.
+        tabs-value: The tab that should be selected.
+        to-collapse-class-style: The style for the errors tab.
+        forecast-input: The forecasted employees per shift requirements.
     """
     df = utils.build_random_sched(num_employees, num_full_time)
 
@@ -183,34 +224,38 @@ def disp_initial_sched(
 @dash.callback(
     Output({"type": "to-collapse-class", "index": 1}, "style"),
     Output({"type": "to-collapse-class", "index": 1}, "className"),
+    Output("scheduled-forecast-output", "children"),
     inputs=[
         Input("run-button", "n_clicks"),
         State({"type": "to-collapse-class", "index": 1}, "className"),
     ],
     prevent_initial_call=True,
 )
-def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
-    """Hides and collapses error sidebar on button click."""
-    if run_click == 0 or ctx.triggered_id != "run-button":
-        raise PreventUpdate
+def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[dict, str]:
+    """Hides and collapses error sidebar on button click.
 
+    Args:
+        run_click: The number of times the run button was clicked.
+        prev_classes: A string containing all the previous classes of the error sidebar.
+
+    Returns:
+        to-collapse-class-style: The style for the errors sidebar.
+        to-collapse-class-className: The class names for the errors sidebar.
+        scheduled-forecast-output: The forecasted and scheduled difference per shift.
+    """
     classes = prev_classes.split(" ") if prev_classes else []
 
     if "collapsed" in classes:
-        return no_update, no_update
+        return dash.no_update, dash.no_update, []
 
-    return (
-        {"display": "none"},
-        prev_classes + " collapsed"
-    )
+    return {"display": "none"}, prev_classes + " collapsed", []
 
 
 @dash.callback(
     Output("schedule-content", "children", allow_duplicate=True),
-    Output("schedule-tab", "disabled", allow_duplicate=True),
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
     Output("errors", "children"),
-    Output("scheduled-forecast-output", "children"),
+    Output("scheduled-forecast-output", "children", allow_duplicate=True),
     background=True,
     inputs=[
         Input("run-button", "n_clicks"),
@@ -251,17 +296,21 @@ def run_optimization(
 
     Args:
         run_click: The (total) number of times the run button has been clicked.
-        shifts_per_employee: TODO
-        employees_per_shift: TODO
-        checklist: TODO
-        consecutive_shifts: TODO
-        sched_df: TODO
+        shifts_per_employee: The min and max shifts each part-time employee should be scheduled for.
+        checklist: Whether the checkbox ``Allow isolated days off`` is checked.
+        consecutive_shifts: The max consecutive shifts a part-time employee should be scheduled for.
+        num_full_time: The number of full-time employees.
+        forecast: The forecasted employees per shift requirements.
+        sched_df: The schedule dataframe.
 
     Returns:
         A tuple containing all outputs to be used when updating the HTML
         template (in ``demo_interface.py``). These are:
 
-            TODO
+            schedule-content: The completed schedule.
+            to-collapse-class-style: Whether to show the errors sidebar or not.
+            errors: The errors to include in the sidebar.
+            scheduled-forecast-output: The forecasted and scheduled difference per shift.
     """
     if run_click == 0 or ctx.triggered_id != "run-button":
         raise PreventUpdate
@@ -293,8 +342,7 @@ def run_optimization(
 
     return (
         utils.display_schedule(sched, availability),
-        False,
         {"display": "flex"} if errors else {"display": "none"},
-        errors_list(errors) if errors else no_update,
+        errors_list(errors) if errors else dash.no_update,
         generate_forecast_table(forecast, scheduled_count)
     )
