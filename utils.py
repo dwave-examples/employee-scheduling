@@ -126,8 +126,8 @@ def build_random_sched(num_employees, rand_seed=None):
 
     data.insert(0, "Employee", employees)
 
-    data[COL_IDS[0]].replace(UNAVAILABLE_ICON, " ", inplace=True)
-    data[COL_IDS[-1]].replace(UNAVAILABLE_ICON, " ", inplace=True)
+    data.replace({COL_IDS[0]: {UNAVAILABLE_ICON, " "}})
+    data.replace({COL_IDS[-1]: {UNAVAILABLE_ICON, " "}})
 
     data.loc[data.Employee == employees[-1], data.columns[1:]] = " "
 
