@@ -304,7 +304,7 @@ def build_nl(params: ModelParams) -> tuple[Model, BinaryVariable]:
 
     if params.requires_manager:
         for shift in range(len(params.shifts)):
-            model.add_constraint(assignments[managers_c][:, shift].sum() >= one_c)
+            model.add_constraint(assignments[managers_c][:, shift].sum() == one_c)
 
     # Don't exceed max_consecutive_shifts
     for e in range(num_employees):
