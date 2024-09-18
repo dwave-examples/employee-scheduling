@@ -327,11 +327,6 @@ def run_nl(
     if not model.is_locked():
         model.lock()
 
-    # If time limit is None, use heuristic of largest `assignments` dimension
-    # rounded up to 5
-    # if time_limit is None:
-    #     time_limit = (max_dim := max(assignments.shape())) + max_dim % 5
-
     sampler = LeapHybridNLSampler()
     sampler.sample(model, time_limit=time_limit)
     errors = validate_nl_schedule(assignments, params, msgs)
