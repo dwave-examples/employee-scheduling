@@ -29,54 +29,36 @@ from utils import DAYS, SHIFTS, ModelParams, validate_nl_schedule
 
 
 MSGS = {
-    "unavailable": (
-        "Employees scheduled when unavailable",
-        "{employee} on {day}"
-    ),
-    "overtime": (
-        "Employees with scheduled overtime",
-        "{employee}"
-    ),
-    "insufficient": (
-        "Employees with not enough scheduled time",
-        "{employee}"
-    ),
-    "understaffed": (
-        "Understaffed shifts",
-        "{day} is understaffed"
-    ),
-    "overstaffed": (
-        "Overstaffed shifts",
-        "{day} is overstaffed"
-    ),
-    "isolated": (
-        "Isolated shifts",
-        "{day} is an isolated day off for {employee}"
-    ),
-    "manager_issue": (
-        "Shifts with no manager",
-        "No manager scheduled on {day}"
-    ),
+    "unavailable": ("Employees scheduled when unavailable", "{employee} on {day}"),
+    "overtime": ("Employees with scheduled overtime", "{employee}"),
+    "insufficient": ("Employees with not enough scheduled time", "{employee}"),
+    "understaffed": ("Understaffed shifts", "{day} is understaffed"),
+    "overstaffed": ("Overstaffed shifts", "{day} is overstaffed"),
+    "isolated": ("Isolated shifts", "{day} is an isolated day off for {employee}"),
+    "manager_issue": ("Shifts with no manager", "No manager scheduled on {day}"),
     "too_many_consecutive": (
         "Employees with too many consecutive shifts",
-        "{employee} starting with {day}"
+        "{employee} starting with {day}",
     ),
     "trainee_issue": (
         "Shifts with trainee scheduling issues",
-        "Trainee scheduling issue on {day}"
+        "Trainee scheduling issue on {day}",
     ),
 }
 
 
 def build_cqm(params: ModelParams):
     """Builds the ConstrainedQuadraticModel for the given scenario."""
+    print(params.shifts)
     cqm = ConstrainedQuadraticModel()
     employees = list(params.availability.keys())
 
     # Create variables: one per employee per shift
-    x = {(employee, shift): Binary(employee + "_" + shift)
-         for shift in params.shifts
-         for employee in employees}
+    x = {
+        (employee, shift): Binary(employee + "_" + shift)
+        for shift in params.shifts
+        for employee in employees
+    }
 
     # OBJECTIVES:
     # Objective: give employees preferred schedules (val = 2)
@@ -89,18 +71,17 @@ def build_cqm(params: ModelParams):
     # Objective: for infeasible solutions, focus on right number of shifts for employees
     num_s = (params.min_shifts + params.max_shifts) / 2
     for employee in employees:
-        obj += (
-            quicksum(x[employee, shift] for shift in params.shifts) - num_s
-        ) ** 2
+        obj += (quicksum(x[employee, shift] for shift in params.shifts) - num_s) ** 2
     cqm.set_objective(obj)
-
 
     # CONSTRAINTS:
     # Only schedule employees when they're available
     for employee, schedule in params.availability.items():
         for i, shift in enumerate(params.shifts):
             if schedule[i] == 0:
-                cqm.add_constraint(x[employee, shift] == 0, label=f"unavailable,{employee},{shift}")
+                cqm.add_constraint(
+                    x[employee, shift] == 0, label=f"unavailable,{employee},{shift}"
+                )
 
     for employee in employees:
         # Schedule employees for at most max_shifts
@@ -158,8 +139,12 @@ def build_cqm(params: ModelParams):
         for s in range(len(params.shifts) - params.max_consecutive_shifts):
             cqm.add_constraint(
                 quicksum(
-                    [x[employee, params.shifts[s + i]] for i in range(params.max_consecutive_shifts + 1)]
-                ) <= params.max_consecutive_shifts,
+                    [
+                        x[employee, params.shifts[s + i]]
+                        for i in range(params.max_consecutive_shifts + 1)
+                    ]
+                )
+                <= params.max_consecutive_shifts,
                 label=f"too_many_consecutive,{employee},{params.shifts[s]}",
             )
 
@@ -167,8 +152,7 @@ def build_cqm(params: ModelParams):
     trainees = [employee for employee in employees if employee[-2:] == "Tr"]
     for shift in params.shifts:
         cqm.add_constraint(
-            x[trainees[0], shift]
-            - x[trainees[0], shift] * x[trainees[0][:-3], shift]
+            x[trainees[0], shift] - x[trainees[0], shift] * x[trainees[0][:-3], shift]
             == 0,
             label=f"trainee_issue,,{shift}",
         )
@@ -331,7 +315,7 @@ def run_nl(
     assignments: BinaryVariable,
     params: ModelParams,
     time_limit: int | None = None,
-    msgs: dict[str, tuple[str, str]] = MSGS
+    msgs: dict[str, tuple[str, str]] = MSGS,
 ) -> Optional[defaultdict[str, list[str]]]:
     """Solves the NL scheduling model and detects any errors.
 
@@ -343,10 +327,10 @@ def run_nl(
     if not model.is_locked():
         model.lock()
 
-    # If time limit is None, use heuristic of largest `assignments` dimension 
+    # If time limit is None, use heuristic of largest `assignments` dimension
     # rounded up to 5
-    if time_limit is None:
-        time_limit = (max_dim := max(assignments.shape())) + max_dim % 5
+    # if time_limit is None:
+    #     time_limit = (max_dim := max(assignments.shape())) + max_dim % 5
 
     sampler = LeapHybridNLSampler()
     sampler.sample(model, time_limit=time_limit)
@@ -358,7 +342,7 @@ def run_nl(
             return errors
 
     return None
-    
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     ...

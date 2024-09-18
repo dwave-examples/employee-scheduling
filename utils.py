@@ -16,7 +16,7 @@ import datetime
 import random
 import string
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app_configs import REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
 import numpy as np
@@ -42,7 +42,7 @@ WEEKEND_IDS = ["1", "7", "8", "14"]
 class ModelParams:
     """Convenience class for defining and passing model parameters.
 
-    Args:
+    Attributes:
         availability (dict[str, list[int]]): Employee availability for each shift,
             structured as follows:
             ```
@@ -64,6 +64,7 @@ class ModelParams:
         allow_isolated_days_off (bool): Whether isolated shifts off are allowed
             (pattern of on-off-on).
         max_consecutive_shifts (int): Max consecutive shifts for each employee.
+        shift_labels (list[str]): Day/date labels for shifts.
     """
     availability: dict[str, list[int]]
     shifts: list[str]
@@ -74,6 +75,10 @@ class ModelParams:
     requires_manager: bool
     allow_isolated_days_off: bool
     max_consecutive_shifts: int
+    shift_labels: list[str] = field(init=False)
+
+    def __post_init__(self):
+        self.shift_labels = [f"{DAYS[i%7]} {SHIFTS[i]}" for i in range(len(self.shifts))]
 
 
 def get_random_string(length):
@@ -176,6 +181,7 @@ def get_cols():
             month_display[0 if i < 7 else 1], DAYS[i%7], c
         ]} for i, c in enumerate(SHIFTS)]
     )
+
 
 def get_cell_styling(cols):
     """Sets conditional cell styling."""
@@ -388,10 +394,10 @@ def _validate_availability(
     key `'unavailable'`."""
     msg_key, msg_template = msgs["unavailable"]
     for e, employee in enumerate(employees):
-        for s, shift in enumerate(params.shifts):
+        for s, day in enumerate(params.shift_labels):
             if results[e, s] > params.availability[employee][s]:
                 errors[msg_key].append(
-                    msg_template.format(employee=employee, day=shift)
+                    msg_template.format(employee=employee, day=day)
                 )
     return errors
 
@@ -428,14 +434,14 @@ def _validate_employees_per_shift(
     """Validates the number of employees per shift for the solution and updates
     the `errors` dictionary with any errors found. Requires the `msgs` dict
     to have the keys `'understaffed'` and `'overstaffed'`."""
-    for s, shift in enumerate(params.shifts):
+    for s, day in enumerate(params.shift_labels):
         understaffed_key, understaffed_template = msgs["understaffed"]
         overstaffed_key, overstaffed_template = msgs["overstaffed"]
         num_employees = results[:, s].sum()
         if num_employees < params.shift_min:
-            errors[understaffed_key].append(understaffed_template.format(day=shift))
+            errors[understaffed_key].append(understaffed_template.format(day=day))
         elif num_employees > params.shift_max:
-            errors[overstaffed_key].append(overstaffed_template.format(day=shift))
+            errors[overstaffed_key].append(overstaffed_template.format(day=day))
     return errors
 
 
@@ -456,7 +462,7 @@ def _validate_requires_manager(
     managers_per_shift = results[employee_arr].sum(axis=0)
     for shift, num_managers in enumerate(managers_per_shift):
         if num_managers == 0:
-            errors[key].append(template.format(day=params.shifts[shift]))
+            errors[key].append(template.format(day=params.shift_labels[shift]))
     return errors
 
 
@@ -476,8 +482,8 @@ def _validate_isolated_days_off(
         shift_triples = [results[e, i : i + 3] for i in range(results.shape[1] - 2)]
         for s, shift_set in enumerate(shift_triples):
             if np.equal(shift_set, isolated_pattern).all():
-                shift = params.shifts[s + 1]
-                errors[key].append(template.format(employee=employee, day=shift))
+                day = params.shift_labels[s + 1]
+                errors[key].append(template.format(employee=employee, day=day))
     return errors
 
 
@@ -501,7 +507,7 @@ def _validate_max_consecutive_shifts(
         ):
             if shift_arr.sum() > params.max_consecutive_shifts:
                 errors[key].append(
-                    template.format(employee=employee, day=params.shifts[shift])
+                    template.format(employee=employee, day=params.shift_labels[shift])
                 )
                 break
     return errors
@@ -522,11 +528,9 @@ def _validate_trainee_shifts(
     trainers = {
         employees.index(e): e for e in employees if e + "-Tr" in trainees.values()
     }
-    for (trainee_i, trainee), (trainer_i, trainer) in zip(
-        trainees.items(), trainers.items()
-    ):
+    for (trainee_i), (trainer_i) in zip(trainees.keys(), trainers.keys()):
         same_shifts = np.less_equal(results[trainee_i], results[trainer_i])
         for i, s in enumerate(same_shifts):
             if not s:
-                errors[key].append(template.format(day=params.shifts[i]))
+                errors[key].append(template.format(day=params.shift_labels[i]))
     return errors
