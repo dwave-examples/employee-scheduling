@@ -36,11 +36,6 @@ UNAVAILABLE_ICON = "x"
 # Sliders, buttons and option entries #
 #######################################
 
-SOLVERS = {
-    "CQM": "cqm",
-    "Nonlinear": "nl",
-}
-
 # min/max number of shifts per employee range slider (value means default)
 MIN_MAX_SHIFTS = {
     "min": 1,
