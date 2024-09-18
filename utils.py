@@ -49,7 +49,7 @@ class ModelParams:
             availability = {
                 'Employee Name': [
                     0, # 0 if unavailable for shift at index i
-                    1, # 1 if availabile for shift at index i
+                    1, # 1 if available for shift at index i
                     2, # 2 if shift at index i is preferred
                     ...
                 ]
