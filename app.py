@@ -31,6 +31,7 @@ from app_configs import (
     SMALL_SCENARIO,
 )
 from app_html import errors_list, set_html
+from src.demo_enums import SolverType
 
 if TYPE_CHECKING:
     from pandas import DataFrame
@@ -324,7 +325,7 @@ def run_optimization(
     checklist: list[int],
     consecutive_shifts: int,
     sched_df: DataFrame,
-    solver: str,
+    solver: SolverType,
 ) -> tuple[DataFrame, bool, dict, list]:
     """Run a job on the hybrid solver when the run button is clicked."""
     if run_click == 0 or ctx.triggered_id != "run-button":
@@ -351,7 +352,7 @@ def run_optimization(
         max_consecutive_shifts=consecutive_shifts
     )
 
-    if solver == "cqm":
+    if solver == SolverType.CQM:
         cqm = employee_scheduling.build_cqm(params)
 
         feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
@@ -359,13 +360,13 @@ def run_optimization(
 
         sched = utils.build_schedule_from_sample(sample, employees)
 
-    elif solver == "nl":
+    elif solver == SolverType.NL:
         model, assignments = employee_scheduling.build_nl(params)
         errors = employee_scheduling.run_nl(model, assignments, params)
         sched = utils.build_schedule_from_state(assignments.state(), employees, shifts)
 
     else:
-        raise ValueError(f"Solver value `{solver}` is unhandled.")
+        raise ValueError(f"Solver value `{solver.label}` is unhandled.")
 
     return (
         utils.display_schedule(sched, availability),
