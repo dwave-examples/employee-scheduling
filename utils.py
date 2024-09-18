@@ -434,9 +434,10 @@ def _validate_employees_per_shift(
     """Validates the number of employees per shift for the solution and updates
     the `errors` dictionary with any errors found. Requires the `msgs` dict
     to have the keys `'understaffed'` and `'overstaffed'`."""
+    understaffed_key, understaffed_template = msgs["understaffed"]
+    overstaffed_key, overstaffed_template = msgs["overstaffed"]
+
     for s, day in enumerate(params.shift_labels):
-        understaffed_key, understaffed_template = msgs["understaffed"]
-        overstaffed_key, overstaffed_template = msgs["overstaffed"]
         num_employees = results[:, s].sum()
         if num_employees < params.shift_min:
             errors[understaffed_key].append(understaffed_template.format(day=day))
