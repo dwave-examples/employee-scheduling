@@ -295,6 +295,7 @@ def update_error_sidebar(run_click: int, prev_classes) -> tuple[dict, str]:
         State("checklist-input", "value"),
         State("consecutive-shifts-select", "value"),
         State("availability-content", "children"),
+        State("solver-select", "value"),
     ],
     running=[
         # show cancel button and hide run button, and disable and animate results tab
@@ -323,6 +324,7 @@ def run_optimization(
     checklist: list[int],
     consecutive_shifts: int,
     sched_df: DataFrame,
+    solver: str,
 ) -> tuple[DataFrame, bool, dict, list]:
     """Run a job on the hybrid solver when the run button is clicked."""
     if run_click == 0 or ctx.triggered_id != "run-button":
@@ -337,20 +339,33 @@ def run_optimization(
     isolated_days_allowed = True if 0 in checklist else False
     manager_required = True if 1 in checklist else False
 
-    cqm = employee_scheduling.build_cqm(
-        availability,
-        shifts,
-        *shifts_per_employee,
-        *employees_per_shift,
-        manager_required,
-        isolated_days_allowed,
-        consecutive_shifts + 1,
+    params = utils.ModelParams(
+        availability=availability,
+        shifts=shifts,
+        min_shifts=min(shifts_per_employee),
+        max_shifts=max(shifts_per_employee),
+        shift_min=min(employees_per_shift),
+        shift_max=max(employees_per_shift),
+        requires_manager=manager_required,
+        allow_isolated_days_off=isolated_days_allowed,
+        max_consecutive_shifts=consecutive_shifts
     )
 
-    feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
-    sample = feasible_sampleset.first.sample
+    if solver == "cqm":
+        cqm = employee_scheduling.build_cqm(params)
 
-    sched = utils.build_schedule_from_sample(sample, employees)
+        feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
+        sample = feasible_sampleset.first.sample
+
+        sched = utils.build_schedule_from_sample(sample, employees)
+
+    elif solver == "nl":
+        model, assignments = employee_scheduling.build_nl(params)
+        errors = employee_scheduling.run_nl(model, assignments, params)
+        sched = utils.build_schedule_from_state(assignments.state(), employees, shifts)
+
+    else:
+        raise ValueError(f"Solver value `{solver} is unhandled.")
 
     return (
         utils.display_schedule(sched, availability),

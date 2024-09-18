@@ -149,17 +149,17 @@ def build_schedule_from_sample(sample, employees):
     return data
 
 
-def build_schedule_from_state(state: np.ndarray, employees: list[str]):
+def build_schedule_from_state(state: np.ndarray, employees: list[str], shifts: list[str]):
     """Builds a schedule from the state of a BinaryVariable."""
     data = pd.DataFrame(columns=COL_IDS)
     data.insert(0, "Employee", employees)
 
-    for row in range(state.shape[0]):
-        for col in range(state.shape[1]):
-            if state[row, col] == 1.0:
-                data.iloc[row, col] = " "
+    for e, employee in enumerate(employees):
+        for s, shift in enumerate(shifts):
+            if state[e, s] == 1.0:
+                data.loc[data["Employee"] == employee, shift] = " "
             else:
-                data.iloc[row, col] = UNAVAILABLE_ICON
+                data.loc[data["Employee"] == employee, shift] = UNAVAILABLE_ICON
 
     return data
 
