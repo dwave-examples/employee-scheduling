@@ -18,7 +18,7 @@ from enum import Enum
 class SolverType(Enum):
     """Enum class representing the solver types used in the demo."""
 
-    CQM = 0
+    CQM = 0 # Default value for application dropdown
     NL  = 1
 
     @property

@@ -18,7 +18,8 @@ from __future__ import annotations
 from dash import dcc, html
 
 from app_configs import (DESCRIPTION, EXAMPLE_SCENARIO, MAIN_HEADER, MAX_CONSECUTIVE_SHIFTS, MIN_MAX_EMPLOYEES,
-                         MIN_MAX_SHIFTS, NUM_EMPLOYEES, REQUESTED_SHIFT_ICON, THUMBNAIL, UNAVAILABLE_ICON, SOLVERS)
+                         MIN_MAX_SHIFTS, NUM_EMPLOYEES, REQUESTED_SHIFT_ICON, THUMBNAIL, UNAVAILABLE_ICON)
+from src.demo_enums import SolverType
 
 
 def description_card():
@@ -104,24 +105,15 @@ def generate_control_card() -> html.Div:
         model, and solver.
     """
     example_scenario = [{"label": size, "value": i} for i, size in enumerate(EXAMPLE_SCENARIO)]
+    solver_options = [{"label": s.label, "value": s.value} for s in SolverType]
 
     return html.Div(
         id="control-card",
         children=[
-            html.Div(
-                children=[
-                    html.Label("Solver"),
-                    dcc.Dropdown(
-                        id="solver-select",
-                        options=(
-                            solver_options := [{"label": k, "value": v}
-                                               for k, v in SOLVERS.items()]
-                        ),
-                        value=solver_options[0]["value"],
-                        clearable=False,
-                        searchable=False,
-                    )
-                ]
+            dropdown(
+                "Solver",
+                "solver-select",
+                solver_options
             ),
             html.Div(
                 children=[
