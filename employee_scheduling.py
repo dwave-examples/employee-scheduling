@@ -159,7 +159,7 @@ def build_cqm(params: ModelParams):
     return cqm
 
 
-def run_cqm(cqm, msgs=MSGS):
+def run_cqm(cqm):
     """Run the provided CQM on the Leap Hybrid CQM Sampler."""
     sampler = LeapHybridCQMSampler()
 
@@ -181,7 +181,7 @@ def run_cqm(cqm, msgs=MSGS):
             if not sat_array[i]:
                 key, *data = sampleset.info["constraint_labels"][i].split(",")
                 try:
-                    heading, error_msg = msgs[key]
+                    heading, error_msg = MSGS[key]
                 except KeyError:
                     # ignore any unknown constraint labels
                     continue
