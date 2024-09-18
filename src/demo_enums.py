@@ -25,5 +25,5 @@ class SolverType(Enum):
     def label(self):
         return {
             SolverType.CQM: "CQM",
-            SolverType.NL:  "NL",
+            SolverType.NL:  "Nonlinear",
         }[self]
