@@ -73,6 +73,29 @@ def range_slider(name: str, id: str, config: dict) -> html.Div:
     )
 
 
+def dropdown(label: str, id: str, options: list) -> html.Div:
+    """Dropdown element for option selection.
+
+    Args:
+        label: The title that goes above the dropdown.
+        id: A unique selector for this element.
+        options: A list of dictionaries of labels and values.
+    """
+    return html.Div(
+        className="dropdown-wrapper",
+        children=[
+            html.Label(label),
+            dcc.Dropdown(
+                id=id,
+                options=options,
+                value=options[0]["value"],
+                clearable=False,
+                searchable=False,
+            ),
+        ],
+    )
+
+
 def generate_control_card() -> html.Div:
     """Generates the control card for the dashboard.
 
