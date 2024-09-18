@@ -49,7 +49,6 @@ MSGS = {
 
 def build_cqm(params: ModelParams):
     """Builds the ConstrainedQuadraticModel for the given scenario."""
-    print(params.shifts)
     cqm = ConstrainedQuadraticModel()
     employees = list(params.availability.keys())
 
