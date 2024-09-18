@@ -113,19 +113,12 @@ def generate_control_card() -> html.Div:
             dropdown(
                 "Solver",
                 "solver-select",
-                solver_options
+                solver_options,
             ),
-            html.Div(
-                children=[
-                    html.Label("Scenario preset (sets sliders below)"),
-                    dcc.Dropdown(
-                        id="example-scenario-select",
-                        options=example_scenario,
-                        value=example_scenario[0]["value"],
-                        clearable=False,
-                        searchable=False,
-                    ),
-                ]
+            dropdown(
+                "Scenario preset (sets sliders below)",
+                "example-scenario-select",
+                example_scenario
             ),
             # add sliders for employees and shifts
             slider(
