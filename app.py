@@ -365,7 +365,7 @@ def run_optimization(
         sched = utils.build_schedule_from_state(assignments.state(), employees, shifts)
 
     else:
-        raise ValueError(f"Solver value `{solver} is unhandled.")
+        raise ValueError(f"Solver value `{solver}` is unhandled.")
 
     return (
         utils.display_schedule(sched, availability),
