@@ -500,12 +500,11 @@ def _validate_max_consecutive_shifts(
     to have the key `'too_many_consecutive'`."""
     key, template = msgs["too_many_consecutive"]
     for e, employee in enumerate(employees):
-        for shift, shift_arr in enumerate(
-            [
-                results[e, i : i + params.max_consecutive_shifts]
-                for i in range(results.shape[1] - params.max_consecutive_shifts)
-            ]
-        ):
+        consecutive_shift_arrays = (
+            [results[e, i : i + params.max_consecutive_shifts]
+             for i in range(results.shape[1] - params.max_consecutive_shifts)]
+        )
+        for shift, shift_arr in enumerate(consecutive_shift_arrays):
             if shift_arr.sum() > params.max_consecutive_shifts:
                 errors[key].append(
                     template.format(employee=employee, day=params.shift_labels[shift])
