@@ -25,27 +25,29 @@ class TestDemo(unittest.TestCase):
     def test_initial_sched(self):
         num_employees = 12
 
-        sched_df = disp_initial_sched(num_employees, None)[0].data
+        sched_df = disp_initial_sched(num_employees,6)[0].data
 
         self.assertEqual(len(sched_df), num_employees)
 
     # Check that CQM created has the right number of variables
     def test_cqm(self):
         num_employees = 12
+        shift_forecast = [9, 8, 8, 8, 8, 8, 9, 9, 8, 8, 8, 8, 8, 9]
 
-        sched_df = disp_initial_sched(num_employees, None)[0].data
+        sched_df = disp_initial_sched(num_employees, 6)[0].data
         shifts = list(sched_df[0].keys())
         shifts.remove("Employee")
         availability = utils.availability_to_dict(sched_df)
 
         cqm = employee_scheduling.build_cqm(
-            availability, shifts, 1, 6, 5, 16, True, False, 6
+            availability, shifts, 5, 10, shift_forecast, False, 6, 6
         )
 
         self.assertEqual(len(cqm.variables), num_employees * len(shifts))
 
     def test_samples(self):
         shifts = [str(i + 1) for i in range(5)]
+        shift_forecast = [5]*14
 
         # Make every employee available for every shift
         availability = {
@@ -58,7 +60,7 @@ class TestDemo(unittest.TestCase):
         }
 
         cqm = employee_scheduling.build_cqm(
-            availability, shifts, 1, 6, 5, 16, True, False, 6
+            availability, shifts, 1, 6, shift_forecast, False, 6, 0
         )
 
         feasible_sample = {
