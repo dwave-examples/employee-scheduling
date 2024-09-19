@@ -25,7 +25,7 @@ class TestDemo(unittest.TestCase):
     def test_initial_sched(self):
         num_employees = 12
 
-        sched_df = disp_initial_sched(num_employees,6)[0].data
+        sched_df = disp_initial_sched(num_employees, 6)[0].data
 
         self.assertEqual(len(sched_df), num_employees)
 
@@ -47,7 +47,7 @@ class TestDemo(unittest.TestCase):
 
     def test_samples(self):
         shifts = [str(i + 1) for i in range(5)]
-        shift_forecast = [5]*14
+        shift_forecast = [5] * 14
 
         # Make every employee available for every shift
         availability = {
@@ -59,9 +59,7 @@ class TestDemo(unittest.TestCase):
             "E-Tr": [1] * 5,
         }
 
-        cqm = employee_scheduling.build_cqm(
-            availability, shifts, 1, 6, shift_forecast, False, 6, 0
-        )
+        cqm = employee_scheduling.build_cqm(availability, shifts, 1, 6, shift_forecast, False, 6, 0)
 
         feasible_sample = {
             "A-Mgr_1": 0.0,

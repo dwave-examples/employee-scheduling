@@ -16,21 +16,21 @@ import datetime
 import random
 import string
 
-from demo_configs import RANDOM_SEED, REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON, REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
 import numpy as np
 import pandas as pd
 from dash import dash_table
 from faker import Faker
 
+from demo_configs import RANDOM_SEED, REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
+
 NOW = datetime.datetime.now()
 SCHEDULE_LENGTH = 14
 # Determine how many days away Sunday is then get two Sundays from that Sunday
 START_DATE = NOW + datetime.timedelta(6 - NOW.weekday() + 14)
-COL_IDS = [str(i+1) for i in range(SCHEDULE_LENGTH)] # The ids for each column
+COL_IDS = [str(i + 1) for i in range(SCHEDULE_LENGTH)]  # The ids for each column
 # The shift dates
 SHIFTS = [
-    (START_DATE + datetime.timedelta(i)).strftime("%e").strip()
-    for i in range(SCHEDULE_LENGTH)
+    (START_DATE + datetime.timedelta(i)).strftime("%e").strip() for i in range(SCHEDULE_LENGTH)
 ]
 DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 WEEKEND_IDS = ["1", "7", "8", "14"]
@@ -73,12 +73,18 @@ def build_random_sched(num_employees, num_full_time):
         np.random.seed(RANDOM_SEED)
 
     full_time_schedule = np.array(
-        [UNAVAILABLE_ICON, *(REQUESTED_SHIFT_ICON*5), *(UNAVAILABLE_ICON*2), *(REQUESTED_SHIFT_ICON*5), UNAVAILABLE_ICON]
+        [
+            UNAVAILABLE_ICON,
+            *(REQUESTED_SHIFT_ICON * 5),
+            *(UNAVAILABLE_ICON * 2),
+            *(REQUESTED_SHIFT_ICON * 5),
+            UNAVAILABLE_ICON,
+        ]
     )
 
     num_managers = 2
     options = [0, 2, 6]
-    q, r = divmod(num_full_time-num_managers, 3)
+    q, r = divmod(num_full_time - num_managers, 3)
     full_time_breakdown = [q] * 3
 
     for i in range(r):
@@ -88,7 +94,9 @@ def build_random_sched(num_employees, num_full_time):
     full_time_schedules = np.empty((0, len(COL_IDS)))
     for i in range(len(full_time_breakdown)):
         for j in range(full_time_breakdown[i]):
-            full_time_schedules = np.vstack([full_time_schedules, np.roll(full_time_schedule, -options[i])])
+            full_time_schedules = np.vstack(
+                [full_time_schedules, np.roll(full_time_schedule, -options[i])]
+            )
 
     data = pd.DataFrame(
         np.concatenate(
@@ -99,16 +107,15 @@ def build_random_sched(num_employees, num_full_time):
                 full_time_schedules,  # Remaining full-time
                 np.random.choice(  # Part-time
                     [UNAVAILABLE_ICON, " ", REQUESTED_SHIFT_ICON],
-                    size=(num_employees-num_full_time, len(COL_IDS)),
-                    p=[0.1, 0.8, 0.1]
-                )
+                    size=(num_employees - num_full_time, len(COL_IDS)),
+                    p=[0.1, 0.8, 0.1],
+                ),
             )
         ),
         columns=COL_IDS,
     )
 
-
-    employees = get_random_names(num_employees-1)  # one less to account for trainee
+    employees = get_random_names(num_employees - 1)  # one less to account for trainee
 
     for i in range(num_managers):
         employees[i] += "-Mgr"
@@ -136,29 +143,30 @@ def build_schedule_from_sample(sample, employees):
 
     return data
 
+
 def get_cols():
     """Gets information for column headers, including months and days."""
-    start_month = START_DATE.strftime("%B %Y") # Get month and year
-    end_month = (START_DATE + datetime.timedelta(SCHEDULE_LENGTH-1)).strftime("%B %Y") # Get month and year
+    start_month = START_DATE.strftime("%B %Y")  # Get month and year
+    # Get month and year
+    end_month = (START_DATE + datetime.timedelta(SCHEDULE_LENGTH - 1)).strftime("%B %Y")
     month_display = [start_month, end_month]
 
-    return (
-        [{"id": "Employee", "name": ["", "", "Employee"]}]
-        + [{"id": str(i+1), "name": [
-            month_display[0 if i < 7 else 1], DAYS[i%7], c
-        ]} for i, c in enumerate(SHIFTS)]
-    )
+    return [{"id": "Employee", "name": ["", "", "Employee"]}] + [
+        {"id": str(i + 1), "name": [month_display[0 if i < 7 else 1], DAYS[i % 7], c]}
+        for i, c in enumerate(SHIFTS)
+    ]
+
 
 def get_cell_styling(cols):
     """Sets conditional cell styling."""
     return [
-            {
-                "if": {"column_id": cols[1:]},
-                "minWidth": "45px",
-                "width": "45px",
-                "maxWidth": "45px",
-            },
-        ]
+        {
+            "if": {"column_id": cols[1:]},
+            "minWidth": "45px",
+            "width": "45px",
+            "maxWidth": "45px",
+        },
+    ]
 
 
 def display_availability(df):
@@ -181,15 +189,16 @@ def display_availability(df):
             {
                 "if": {"column_id": weekend_id},
                 "backgroundColor": "#E5E5E5",
-            } for weekend_id in WEEKEND_IDS
+            }
+            for weekend_id in WEEKEND_IDS
         ]
         + [
             {
                 "if": {
-                    "filter_query": f'{{{col_id}}} = {UNAVAILABLE_ICON}',
+                    "filter_query": f"{{{col_id}}} = {UNAVAILABLE_ICON}",
                     "column_id": col_id,
                 },
-                "backgroundColor": "#FF7006", # orange
+                "backgroundColor": "#FF7006",  # orange
                 "color": "white",
             }
             for col_id in COL_IDS
@@ -197,10 +206,10 @@ def display_availability(df):
         + [
             {
                 "if": {
-                    "filter_query": f'{{{col_id}}} = {REQUESTED_SHIFT_ICON}',
+                    "filter_query": f"{{{col_id}}} = {REQUESTED_SHIFT_ICON}",
                     "column_id": col_id,
                 },
-                "backgroundColor": "#008c82", # teal
+                "backgroundColor": "#008c82",  # teal
                 "color": "white",
             }
             for col_id in COL_IDS
@@ -213,13 +222,13 @@ def display_availability(df):
 
 def display_schedule(df, availability):
     """Builds the visual schedule for display."""
-
-    df[df.iloc[:, 1:] == UNAVAILABLE_ICON] = "\r" # mark all unscheduled days with an invisible character
+    # mark all unscheduled days with an invisible character
+    df[df.iloc[:, 1:] == UNAVAILABLE_ICON] = "\r"
     for employee_name, employee_availability in availability.items():
         for i, col_id in enumerate(COL_IDS):
-            if employee_availability[i] == 0: # not available
+            if employee_availability[i] == 0:  # not available
                 df.loc[df["Employee"] == employee_name, col_id] = UNAVAILABLE_ICON
-            elif employee_availability[i] == 2: # available
+            elif employee_availability[i] == 2:  # available
                 df.loc[df["Employee"] == employee_name, col_id] += REQUESTED_SHIFT_ICON
 
     datatable = dash_table.DataTable(
@@ -239,7 +248,8 @@ def display_schedule(df, availability):
             {
                 "if": {"column_id": weekend_id},
                 "backgroundColor": "#E5E5E5",
-            } for weekend_id in WEEKEND_IDS
+            }
+            for weekend_id in WEEKEND_IDS
         ]
         + [
             {
@@ -247,7 +257,7 @@ def display_schedule(df, availability):
                     "filter_query": f'{{{col_id}}} contains " "',
                     "column_id": col_id,
                 },
-                "backgroundColor": "#2a7de1", # blue
+                "backgroundColor": "#2a7de1",  # blue
                 "color": "white",
             }
             for col_id in COL_IDS
@@ -261,7 +271,7 @@ def display_schedule(df, availability):
                 "backgroundImage": "linear-gradient(-45deg, #c7003860 10%, transparent 10%, transparent 20%,\
                 #c7003860 20%, #c7003860 30%, transparent 30%, transparent 40%, #c7003860 40%, #c7003860 50%,\
                 transparent 50%, transparent 60%, #c7003860 60%, #c7003860 70%, transparent 70%, transparent 80%,\
-                #c7003860 80%, #c7003860 90%, transparent 90%, #fff)", # light red
+                #c7003860 80%, #c7003860 90%, transparent 90%, #fff)",  # light red
             }
             for col_id in COL_IDS
         ],

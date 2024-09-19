@@ -27,7 +27,7 @@ from demo_configs import (
     NUM_FULL_TIME,
     REQUESTED_SHIFT_ICON,
     THUMBNAIL,
-    UNAVAILABLE_ICON
+    UNAVAILABLE_ICON,
 )
 from src.utils import COL_IDS
 
@@ -137,9 +137,7 @@ def generate_settings_form() -> html.Div:
                         className="details-collapse part-time-settings",
                         children=[
                             html.Label("Advanced settings"),
-                            html.Div(
-                                className="collapse-arrow"
-                            ),
+                            html.Div(className="collapse-arrow"),
                         ],
                     ),
                     html.Div(
@@ -162,9 +160,9 @@ def generate_settings_form() -> html.Div:
                                 value=[],
                                 id="checklist-input",
                             ),
-                        ]
-                    )
-                ]
+                        ],
+                    ),
+                ],
             ),
         ],
     )
@@ -194,26 +192,25 @@ def generate_forecast_table(forecast: dict, scheduled: dict) -> html.Div:
             html.Div([html.Label("Forecasted"), html.Label("Scheduled"), html.Label("Difference")]),
             dash_table.DataTable(
                 id="forecast-output",
-                columns=(
-                    [{'id': p, 'name': p} for p in forecast.keys()]
-                ),
+                columns=([{"id": p, "name": p} for p in forecast.keys()]),
                 data=[
                     forecast,
                     scheduled,
-                    {key: scheduled[key] - value for key, value in forecast.items()}
+                    {key: scheduled[key] - value for key, value in forecast.items()},
                 ],
                 style_data_conditional=[
                     {
-                        'if': {
-                            'filter_query': f'{{{col_id}}} != 0',
-                            'column_id': col_id,
-                            'row_index': 2,
+                        "if": {
+                            "filter_query": f"{{{col_id}}} != 0",
+                            "column_id": col_id,
+                            "row_index": 2,
                         },
-                        'backgroundColor': '#c7003860',
-                    } for col_id in forecast.keys()
-                ]
+                        "backgroundColor": "#c7003860",
+                    }
+                    for col_id in forecast.keys()
+                ],
             ),
-        ]
+        ],
     )
 
 
@@ -287,27 +284,41 @@ def create_interface():
                                                                     dash_table.DataTable(
                                                                         id="forecast-input",
                                                                         columns=(
-                                                                            [{'id': p, 'name': p} for p in COL_IDS]
+                                                                            [
+                                                                                {"id": p, "name": p}
+                                                                                for p in COL_IDS
+                                                                            ]
                                                                         ),
                                                                         data=[
-                                                                            dict({param: 0 for param in COL_IDS})
+                                                                            dict(
+                                                                                {
+                                                                                    param: 0
+                                                                                    for param in COL_IDS
+                                                                                }
+                                                                            )
                                                                         ],
-                                                                        editable=True
+                                                                        editable=True,
                                                                     ),
-                                                                ]
+                                                                ],
                                                             ),
-                                                        ]
+                                                        ],
                                                     ),
                                                     html.Div(
                                                         className="legend",
                                                         children=[
-                                                            html.Div(className="requested-shifts", children=[REQUESTED_SHIFT_ICON]),
+                                                            html.Div(
+                                                                className="requested-shifts",
+                                                                children=[REQUESTED_SHIFT_ICON],
+                                                            ),
                                                             html.Label("Requested"),
-                                                            html.Div(className="unavailable-shifts", children=[UNAVAILABLE_ICON]),
+                                                            html.Div(
+                                                                className="unavailable-shifts",
+                                                                children=[UNAVAILABLE_ICON],
+                                                            ),
                                                             html.Label("Unavailable"),
-                                                        ]
-                                                    )
-                                                ]
+                                                        ],
+                                                    ),
+                                                ],
                                             ),
                                         ],
                                     ),
@@ -340,13 +351,16 @@ def create_interface():
                                                         children=[
                                                             html.Div(className="scheduled-shifts"),
                                                             html.Label("Scheduled"),
-                                                            html.Div(className="unscheduled-requested-shifts", children=[REQUESTED_SHIFT_ICON]),
+                                                            html.Div(
+                                                                className="unscheduled-requested-shifts",
+                                                                children=[REQUESTED_SHIFT_ICON],
+                                                            ),
                                                             html.Label("Unscheduled requested"),
                                                             html.Div(UNAVAILABLE_ICON),
                                                             html.Label("Unavailable"),
-                                                        ]
-                                                    )
-                                                ]
+                                                        ],
+                                                    ),
+                                                ],
                                             )
                                         ],
                                         disabled=True,
@@ -363,13 +377,9 @@ def create_interface():
                             html.Button(
                                 id={"type": "collapse-trigger", "index": 1},
                                 className="log-column-collapse",
-                                children=[html.Div(className="collapse-arrow")]
+                                children=[html.Div(className="collapse-arrow")],
                             ),
-                            html.Div(
-                                [
-                                    html.Div(id="errors")
-                                ]
-                            ),
+                            html.Div([html.Div(id="errors")]),
                         ],
                     ),
                 ],
@@ -399,22 +409,14 @@ def errors_list(errors: dict) -> html.Div:
                         className="details-collapse",
                         children=[
                             html.H6(error_key),
-                            html.Div(
-                                className="collapse-arrow"
-                            ),
+                            html.Div(className="collapse-arrow"),
                         ],
                     ),
                     html.Div(
                         className="details-to-collapse",
-                        children=[
-                            html.Ul(
-                                [
-                                    html.Li(error) for error in error_list
-                                ]
-                            )
-                        ]
-                    )
-                ]
+                        children=[html.Ul([html.Li(error) for error in error_list])],
+                    ),
+                ],
             )
         )
         error_counter += 1

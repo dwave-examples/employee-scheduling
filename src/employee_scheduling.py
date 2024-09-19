@@ -13,12 +13,7 @@
 #    limitations under the License.
 from collections import defaultdict
 
-from dimod import (
-    Binary,
-    BinaryQuadraticModel,
-    ConstrainedQuadraticModel,
-    quicksum,
-)
+from dimod import Binary, BinaryQuadraticModel, ConstrainedQuadraticModel, quicksum
 from dwave.system import LeapHybridCQMSampler
 
 from src.utils import DAYS, FULL_TIME_SHIFTS, SHIFTS
@@ -41,7 +36,11 @@ def build_cqm(
     employees_pt = employees[num_full_time:]
 
     # Create variables: one per employee per shift
-    x = {(employee, shift): Binary(employee + "_" + shift) for shift in shifts for employee in employees}
+    x = {
+        (employee, shift): Binary(employee + "_" + shift)
+        for shift in shifts
+        for employee in employees
+    }
 
     # OBJECTIVES:
     # Objective: give employees preferred schedules (val = 2)
@@ -54,15 +53,10 @@ def build_cqm(
     # Objective: for infeasible solutions, focus on right number of shifts for employees
     num_s = (min_shifts + max_shifts) / 2
     for employee in employees_pt:
-        obj += (
-            quicksum(x[employee, shift] for shift in shifts) - num_s
-        ) ** 2
+        obj += (quicksum(x[employee, shift] for shift in shifts) - num_s) ** 2
     for employee in employees_ft:
-        obj += (
-            quicksum(x[employee, shift] for shift in shifts) - FULL_TIME_SHIFTS
-        ) ** 2
+        obj += (quicksum(x[employee, shift] for shift in shifts) - FULL_TIME_SHIFTS) ** 2
     cqm.set_objective(obj)
-
 
     # CONSTRAINTS:
     # Only schedule employees when they're available
@@ -74,29 +68,25 @@ def build_cqm(
     for employee in employees_pt:
         # Schedule employees for at most max_shifts
         cqm.add_constraint(
-            quicksum(x[employee, shift] for shift in shifts)
-            <= max_shifts,
+            quicksum(x[employee, shift] for shift in shifts) <= max_shifts,
             label=f"overtime,{employee},",
         )
 
         # Schedule employees for at least min_shifts
         cqm.add_constraint(
-            quicksum(x[employee, shift] for shift in shifts)
-            >= min_shifts,
+            quicksum(x[employee, shift] for shift in shifts) >= min_shifts,
             label=f"insufficient,{employee},",
         )
 
     for employee in employees_ft:
         # Schedule employees for at most max_shifts
         cqm.add_constraint(
-            quicksum(x[employee, shift] for shift in shifts)
-            <= FULL_TIME_SHIFTS,
+            quicksum(x[employee, shift] for shift in shifts) <= FULL_TIME_SHIFTS,
             label=f"overtime,{employee},",
         )
 
         cqm.add_constraint(
-            quicksum(x[employee, shift] for shift in shifts)
-            >= FULL_TIME_SHIFTS,
+            quicksum(x[employee, shift] for shift in shifts) >= FULL_TIME_SHIFTS,
             label=f"insufficient,{employee},",
         )
 
@@ -139,9 +129,8 @@ def build_cqm(
     for employee in employees_pt:
         for s in range(len(shifts) - max_consecutive_shifts + 1):
             cqm.add_constraint(
-                quicksum(
-                    [x[employee, shifts[s + i]] for i in range(max_consecutive_shifts)]
-                ) <= max_consecutive_shifts - 1,
+                quicksum([x[employee, shifts[s + i]] for i in range(max_consecutive_shifts)])
+                <= max_consecutive_shifts - 1,
                 label=f"too_many_consecutive,{employee},{shifts[s]}",
             )
 
@@ -149,9 +138,7 @@ def build_cqm(
     trainees = [employee for employee in employees if employee[-2:] == "Tr"]
     for shift in shifts:
         cqm.add_constraint(
-            x[trainees[0], shift]
-            - x[trainees[0], shift] * x[trainees[0][:-3], shift]
-            == 0,
+            x[trainees[0], shift] - x[trainees[0], shift] * x[trainees[0][:-3], shift] == 0,
             label=f"trainee_issue,,{shift}",
         )
 
@@ -177,41 +164,20 @@ def run_cqm(cqm):
             sampleset.first.sample[list(cqm.variables)[0]] = 1.0
 
         msgs = {
-            "unavailable": (
-                "Employees scheduled when unavailable",
-                "{employee} on {day}"
-            ),
-            "overtime": (
-                "Employees with scheduled overtime",
-                "{employee}"
-            ),
-            "insufficient": (
-                "Employees with not enough scheduled time",
-                "{employee}"
-            ),
-            "understaffed": (
-                "Understaffed shifts",
-                "{day} is understaffed"
-            ),
-            "overstaffed": (
-                "Overstaffed shifts",
-                "{day} is overstaffed"
-            ),
-            "isolated": (
-                "Isolated shifts",
-                "{day} is an isolated day off for {employee}"
-            ),
-            "manager_issue": (
-                "Shifts with no manager",
-                "No manager scheduled on {day}"
-            ),
+            "unavailable": ("Employees scheduled when unavailable", "{employee} on {day}"),
+            "overtime": ("Employees with scheduled overtime", "{employee}"),
+            "insufficient": ("Employees with not enough scheduled time", "{employee}"),
+            "understaffed": ("Understaffed shifts", "{day} is understaffed"),
+            "overstaffed": ("Overstaffed shifts", "{day} is overstaffed"),
+            "isolated": ("Isolated shifts", "{day} is an isolated day off for {employee}"),
+            "manager_issue": ("Shifts with no manager", "No manager scheduled on {day}"),
             "too_many_consecutive": (
                 "Employees with too many consecutive shifts",
-                "{employee} starting with {day}"
+                "{employee} starting with {day}",
             ),
             "trainee_issue": (
                 "Shifts with trainee scheduling issues",
-                "Trainee scheduling issue on {day}"
+                "Trainee scheduling issue on {day}",
             ),
         }
         for i, _ in enumerate(sat_array):

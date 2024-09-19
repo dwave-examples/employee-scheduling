@@ -16,15 +16,21 @@ from __future__ import annotations
 import math
 
 import dash
-from dash import Input, MATCH, Output, State, ctx
+import pandas as pd
+from dash import MATCH, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 
 import src.employee_scheduling as employee_scheduling
 import src.utils as utils
-from demo_configs import (LARGE_SCENARIO, MEDIUM_SCENARIO, NUM_FULL_TIME, REQUESTED_SHIFT_ICON,
-                         SMALL_SCENARIO, UNAVAILABLE_ICON)
+from demo_configs import (
+    LARGE_SCENARIO,
+    MEDIUM_SCENARIO,
+    NUM_FULL_TIME,
+    REQUESTED_SHIFT_ICON,
+    SMALL_SCENARIO,
+    UNAVAILABLE_ICON,
+)
 from demo_interface import errors_list, generate_forecast_table
-import pandas as pd
 
 
 @dash.callback(
@@ -92,7 +98,7 @@ def set_scenario(
         return *custom_saved_data.values(), False, False, False, False
 
     scenarios = [SMALL_SCENARIO, MEDIUM_SCENARIO, LARGE_SCENARIO]
-    return *tuple(scenarios[scenario-1].values()), True, True, True, True
+    return *tuple(scenarios[scenario - 1].values()), True, True, True, True
 
 
 @dash.callback(
@@ -112,7 +118,7 @@ def update_employee_settings(num_employees: int) -> tuple[int, dict]:
         num-full-time-select-max: The max to set the full-time select to.
         num-full-time-select-marks: The marks to set for the full-time select.
     """
-    new_full_time_max = math.floor(num_employees* 3/4)
+    new_full_time_max = math.floor(num_employees * 3 / 4)
     full_time_marks = {
         NUM_FULL_TIME["min"]: str(NUM_FULL_TIME["min"]),
         new_full_time_max: str(new_full_time_max),
@@ -173,12 +179,12 @@ def custom_saved_data(
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output("tabs", "value"),
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
-    Output("forecast-input", 'data'),
+    Output("forecast-input", "data"),
     inputs=[
         Input("num-employees-select", "value"),
         Input("num-full-time-select", "value"),
     ],
-    prevent_initial_call='initial_duplicate',
+    prevent_initial_call="initial_duplicate",
 )
 def disp_initial_sched(
     num_employees: int, num_full_time: int
@@ -208,7 +214,7 @@ def disp_initial_sched(
     df_to_count = df.iloc[:num_full_time, :]
     count = df_to_count.applymap(lambda cell: cell.count(REQUESTED_SHIFT_ICON)).sum()[1:].to_dict()
     num_part_time = num_employees - num_full_time
-    count = {key: value + math.ceil(num_part_time/2) for key, value in count.items()}
+    count = {key: value + math.ceil(num_part_time / 2) for key, value in count.items()}
 
     return (
         init_availability_table,
@@ -216,7 +222,7 @@ def disp_initial_sched(
         True,  # disable the shedule tab when changing parameters
         "input-tab",  # jump back to the availability tab
         {"display": "none"},
-        [count]
+        [count],
     )
 
 
@@ -262,7 +268,7 @@ def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[dict, str, list
         State("checklist-input", "value"),
         State("consecutive-shifts-select", "value"),
         State("num-full-time-select", "value"),
-        State("forecast-input", 'data'),
+        State("forecast-input", "data"),
         State("availability-content", "children"),
     ],
     running=[
@@ -343,5 +349,5 @@ def run_optimization(
         utils.display_schedule(sched, availability),
         {"display": "flex"} if errors else {"display": "none"},
         errors_list(errors) if errors else dash.no_update,
-        generate_forecast_table(forecast, scheduled_count)
+        generate_forecast_table(forecast, scheduled_count),
     )
