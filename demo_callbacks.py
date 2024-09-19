@@ -19,8 +19,8 @@ import dash
 from dash import Input, MATCH, Output, State, ctx
 from dash.exceptions import PreventUpdate
 
-import employee_scheduling as employee_scheduling
-import utils as utils
+import src.employee_scheduling as employee_scheduling
+import src.utils as utils
 from demo_configs import (LARGE_SCENARIO, MEDIUM_SCENARIO, NUM_FULL_TIME, REQUESTED_SHIFT_ICON,
                          SMALL_SCENARIO, UNAVAILABLE_ICON)
 from demo_interface import errors_list, generate_forecast_table

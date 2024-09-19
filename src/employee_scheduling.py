@@ -21,7 +21,7 @@ from dimod import (
 )
 from dwave.system import LeapHybridCQMSampler
 
-from utils import DAYS, FULL_TIME_SHIFTS, SHIFTS
+from src.utils import DAYS, FULL_TIME_SHIFTS, SHIFTS
 
 
 def build_cqm(

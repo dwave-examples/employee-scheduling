@@ -29,7 +29,7 @@ from demo_configs import (
     THUMBNAIL,
     UNAVAILABLE_ICON
 )
-from utils import COL_IDS
+from src.utils import COL_IDS
 
 
 def slider(label: str, id: str, config: dict) -> html.Div:
