@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import math
-from typing import Any
 
 import dash
 from dash import Input, MATCH, Output, State, ctx
@@ -71,7 +70,7 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
 def set_scenario(
     scenario: int,
     custom_saved_data: dict,
-) -> tuple[int, int, list[int], list[int], int, bool, bool, bool, bool]:
+) -> tuple[int, int, int, list[int], bool, bool, bool, bool]:
     """Sets the correct scenario, reverting to the saved custom setting if chosen.
 
     Args:
@@ -103,7 +102,7 @@ def set_scenario(
         Input("num-employees-select", "value"),
     ],
 )
-def update_employee_settings(num_employees: int) -> tuple[int, dict, dict]:
+def update_employee_settings(num_employees: int) -> tuple[int, dict]:
     """Update the num-full-time-select slider if num-employees is changed.
 
     Args:
@@ -139,7 +138,7 @@ def custom_saved_data(
     shifts_per_employees: list[int],
     scenario: int,
     custom_saved_data: dict,
-) -> int:
+) -> dict:
     """Save custom data if changed whilte custom scenario is selected.
 
     Args:
@@ -183,7 +182,7 @@ def custom_saved_data(
 )
 def disp_initial_sched(
     num_employees: int, num_full_time: int
-) -> tuple[pd.DataFrame, pd.DataFrame, bool, str, dict]:
+) -> tuple[pd.DataFrame, pd.DataFrame, bool, str, dict, list[dict]]:
     """Display initial availability schedule.
 
     Display initial schedule in, and switch to, the availability
@@ -231,7 +230,7 @@ def disp_initial_sched(
     ],
     prevent_initial_call=True,
 )
-def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[dict, str]:
+def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[dict, str, list]:
     """Hides and collapses error sidebar on button click.
 
     Args:
@@ -286,7 +285,7 @@ def run_optimization(
     num_full_time: int,
     forecast: list[dict],
     sched_df: pd.DataFrame,
-) -> tuple[pd.DataFrame, bool, dict, list]:
+) -> tuple[pd.DataFrame, dict, list, list]:
     """Runs the optimization and updates UI accordingly.
 
     This is the main function which is called when the ``Run Optimization`` button is clicked.

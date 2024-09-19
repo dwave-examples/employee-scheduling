@@ -11,37 +11,49 @@ Workforce scheduling is a common industry problem that often becomes complex
 due to real-world constraints. This example demonstrates
 a scheduling scenario with a variety of employees and rules.
 
-![Screen Image](demo.png)
+![Screen Image](static/demo.png)
 
 ## Installation
 
-You can run this example without installation in cloud-based IDEs that support
-the [Development Containers specification](https://containers.dev/supporting)
-(aka "devcontainers").
+You can run this example without installation in cloud-based IDEs that support the
+[Development Containers specification](https://containers.dev/supporting) (aka "devcontainers")
+such as GitHub Codespaces.
 
-For development environments that do not support ``devcontainers``, install
-requirements:
+For development environments that do not support `devcontainers`, install requirements:
 
-    pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
+```
 
 If you are cloning the repo to your local system, working in a
-[virtual environment](https://docs.python.org/3/library/venv.html) is
-recommended.
+[virtual environment](https://docs.python.org/3/library/venv.html) is recommended.
 
 ## Usage
 
-Your development environment should be configured to
-[access Leap’s Solvers](https://docs.ocean.dwavesys.com/en/stable/overview/sapi.html).
-You can see information about supported IDEs and authorizing access to your
-Leap account [here](https://docs.dwavesys.com/docs/latest/doc_leap_dev_env.html).
+Your development environment should be configured to access the
+[Leap&trade; Quantum Cloud Service](https://docs.ocean.dwavesys.com/en/stable/overview/sapi.html).
+You can see information about supported IDEs and authorizing access to your Leap account
+[here](https://docs.dwavesys.com/docs/latest/doc_leap_dev_env.html).
 
-To run the demo, type the ``python app.py`` command into your terminal and then open a web browser
-to the URL printed to the terminal.
+Run the following terminal command to start the Dash app:
 
-Set any of the input options to configure the problem and then click the "Solve"
-button.
+```bash
+python app.py
+```
 
-### Introducing the Demo
+Access the user interface with your browser at http://127.0.0.1:8050/.
+
+The demo program opens an interface where you can configure problems and submit these problems to
+a solver.
+
+Configuration options can be found in the [demo_configs.py](demo_configs.py) file.
+
+> [!NOTE]\
+> If you plan on editing any files while the app is running,
+please run the app with the `--debug` command-line argument for live reloads and easier debugging:
+`python app.py --debug`
+
+## Problem Description
 
 The employee availability chart shows employee shift preferences and unavailable
 days (PTO). Requested shifts are in teal and marked with a '✓', while
@@ -58,22 +70,24 @@ In the chart, there are three different types of employees.
 The chart displays employee preferences and availability over two weeks. It will
 always display two weeks starting two Sundays from now, with one column for each day of the two week period.
 
+A subset of the employees have requested full-time schedules which consists of 5 days on,
+2 days off, and is one of three options: Monday-Friday, Tuesday-Saturday, Sunday-Wednesday.
+
 ### Inputs
 
 The scenario preset auto-populates all settings with scenarios of varying
 sizes. If 'Custom' is selected, the following settings become available:
 
 - Number of employees: Schedules always include 2 managers and 1 trainee.
+- Number of full-time employees: The subset of the employees that have requested a 5 days on,
+2 days off schedule.
 - Max consecutive shifts: The maximum number of consecutive shifts an employee
   can be scheduled before a day off must be scheduled.
-- Min/max shifts per employee: This range determines the number of shifts an
+- Min/max shifts per part-time employee: This range determines the number of shifts an
   employee can work.
-- Min/max employees per shift: This range determines how many employees need
-  to be assigned to each shift.
+- Forecast: This determines how many employees are needed per day.
 - Allow isolated days off: If unchecked, employees must be
   scheduled for at least two consecutive days off between work days.
-- Require a manager on every shift: If checked, every shift
-  must have exactly one manager on duty to supervise.
 
 ### Outputs
 

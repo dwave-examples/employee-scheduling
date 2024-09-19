@@ -103,10 +103,7 @@ table {
   transition: filter 0.1s linear, opacity 0.1s linear;
 }
 
-#availability-content {
-    padding-bottom: 2rem;
-}
-
+#availability-content,
 #schedule-content {
     padding-bottom: 2rem;
 }

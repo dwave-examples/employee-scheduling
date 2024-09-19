@@ -1,4 +1,4 @@
-# Copyright 2024 D-Wave Systems Inc.
+# Copyright 2024 D-Wave
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ SHIFTS = [
 ]
 DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 WEEKEND_IDS = ["1", "7", "8", "14"]
+FULL_TIME_SHIFTS = 10
 
 
 def get_random_string(length):
@@ -116,9 +117,6 @@ def build_random_sched(num_employees, num_full_time):
 
     data.insert(0, "Employee", employees)
 
-    # data[COL_IDS[0]].replace(UNAVAILABLE_ICON, " ", inplace=True)
-    # data[COL_IDS[-1]].replace(UNAVAILABLE_ICON, " ", inplace=True)
-
     data.loc[data.Employee == employees[-1], data.columns[1:]] = " "
 
     return data
@@ -196,7 +194,6 @@ def display_availability(df):
             }
             for col_id in COL_IDS
         ]
-
         + [
             {
                 "if": {

@@ -34,7 +34,7 @@ REQUESTED_SHIFT_ICON = "✓"
 UNAVAILABLE_ICON = "x"
 
 
-# Optional, None or an integer
+# Optional: None or an integer
 RANDOM_SEED = None
 
 

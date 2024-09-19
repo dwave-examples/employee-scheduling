@@ -1,4 +1,4 @@
-# Copyright 2024 D-Wave Systems Inc.
+# Copyright 2024 D-Wave
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from dimod import (
 )
 from dwave.system import LeapHybridCQMSampler
 
-from utils import DAYS, SHIFTS
+from utils import DAYS, FULL_TIME_SHIFTS, SHIFTS
 
 
 def build_cqm(
@@ -59,7 +59,7 @@ def build_cqm(
         ) ** 2
     for employee in employees_ft:
         obj += (
-            quicksum(x[employee, shift] for shift in shifts) - 10
+            quicksum(x[employee, shift] for shift in shifts) - FULL_TIME_SHIFTS
         ) ** 2
     cqm.set_objective(obj)
 
@@ -90,13 +90,13 @@ def build_cqm(
         # Schedule employees for at most max_shifts
         cqm.add_constraint(
             quicksum(x[employee, shift] for shift in shifts)
-            <= 10,
+            <= FULL_TIME_SHIFTS,
             label=f"overtime,{employee},",
         )
 
         cqm.add_constraint(
             quicksum(x[employee, shift] for shift in shifts)
-            >= 10,
+            >= FULL_TIME_SHIFTS,
             label=f"insufficient,{employee},",
         )
 
