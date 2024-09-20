@@ -250,6 +250,7 @@ def build_nl(
 
     # Create availability constant
     availability_list = [availability[employee] for employee in employees]
+    # Boost objective value of preferred shifts from 2 to 100
     for i, sublist in enumerate(availability_list):
         availability_list[i] = [a if a != 2 else 100 for a in sublist]
     availability_const = model.constant(availability_list)
