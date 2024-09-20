@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import multiprocess
+from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 import diskcache
@@ -355,7 +356,7 @@ def run_optimization(
     solver_type = SolverType(solver)
 
     if solver_type is SolverType.CQM:
-        cqm = employee_scheduling.build_cqm(params)
+        cqm = employee_scheduling.build_cqm(**asdict(params))
 
         feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
         sample = feasible_sampleset.first.sample
@@ -363,8 +364,8 @@ def run_optimization(
         sched = utils.build_schedule_from_sample(sample, employees)
 
     elif solver_type is SolverType.NL:
-        model, assignments = employee_scheduling.build_nl(params)
-        errors = employee_scheduling.run_nl(model, assignments, params)
+        model, assignments = employee_scheduling.build_nl(**asdict(params))
+        errors = employee_scheduling.run_nl(model, assignments, **asdict(params))
         sched = utils.build_schedule_from_state(assignments.state(), employees, shifts)
 
     else:
