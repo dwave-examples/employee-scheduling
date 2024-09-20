@@ -12,6 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 import unittest
+from dataclasses import asdict
 
 from dash import dash_table
 from numpy import asarray
@@ -47,14 +48,14 @@ class TestDemo(unittest.TestCase):
 
     # Check that CQM created has the right number of variables
     def test_cqm(self):
-        cqm = employee_scheduling.build_cqm(self.test_params)
+        cqm = employee_scheduling.build_cqm(**asdict(self.test_params))
 
         self.assertEqual(len(cqm.variables),
                          self.num_employees * len(self.shifts))
 
     # Check that NL assignments variable is the correct shape
     def test_nl(self):
-        _, assignments = employee_scheduling.build_nl(self.test_params)
+        _, assignments = employee_scheduling.build_nl(**asdict(self.test_params))
 
         self.assertEqual(assignments.shape(),
                         (self.num_employees, len(self.shifts)))
@@ -84,7 +85,7 @@ class TestDemo(unittest.TestCase):
             max_consecutive_shifts=6
         )
 
-        cqm = employee_scheduling.build_cqm(test_params)
+        cqm = employee_scheduling.build_cqm(**asdict(test_params))
 
         feasible_sample = {
             "A-Mgr_1": 0.0,
@@ -180,7 +181,7 @@ class TestDemo(unittest.TestCase):
             max_consecutive_shifts=6
         )
 
-        model, assignments = employee_scheduling.build_nl(test_params)
+        model, assignments = employee_scheduling.build_nl(**asdict(test_params))
 
         if not model.is_locked():
             model.lock()
@@ -274,6 +275,7 @@ class TestDemo(unittest.TestCase):
 
     def test_build_from_state(self):
         employees = ["A-Mgr", "B-Mgr", "C", "D", "E", "E-Tr"]
+        shifts = [str(i+1) for i in range(14)]
 
         # Make every employee available for every shift
         availability = {
@@ -286,15 +288,17 @@ class TestDemo(unittest.TestCase):
         }
 
         state = asarray([
-            [0, 0, 1, 1, 1],
-            [1, 1, 0, 0, 0],
-            [1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1]
+            # Give managers alternating shifts
+            [i % 2 for i in range(14)],
+            [(i+1) % 2 for i in range(14)],
+            [1 for _ in range(14)],
+            [1 for _ in range(14)],
+            [1 for _ in range(14)],
+            [1 for _ in range(14)],
         ])
 
         disp_datatable = utils.display_schedule(
-            utils.build_schedule_from_state(state, employees),
+            utils.build_schedule_from_state(state, employees, shifts),
             availability
         )
 
