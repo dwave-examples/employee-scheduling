@@ -354,7 +354,7 @@ def run_optimization(
 
     solver_type = SolverType(solver)
 
-    if solver_type == SolverType.CQM:
+    if solver_type is SolverType.CQM:
         cqm = employee_scheduling.build_cqm(params)
 
         feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
@@ -362,7 +362,7 @@ def run_optimization(
 
         sched = utils.build_schedule_from_sample(sample, employees)
 
-    elif solver_type == SolverType.NL:
+    elif solver_type is SolverType.NL:
         model, assignments = employee_scheduling.build_nl(params)
         errors = employee_scheduling.run_nl(model, assignments, params)
         sched = utils.build_schedule_from_state(assignments.state(), employees, shifts)
