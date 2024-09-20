@@ -211,7 +211,7 @@ def build_nl(params: ModelParams) -> tuple[Model, BinaryVariable]:
         tuple[Model, BinaryVariable]: the NL model and assignments decision variable
     """
     # Create list of employees
-    employees = list(params.availability.keys())
+    employees = list(params.availability)
     model = Model()
 
     # Create a binary symbol representing the assignment of employees to shifts
