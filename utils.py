@@ -16,7 +16,7 @@ import datetime
 import random
 import string
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from app_configs import REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
 import numpy as np
@@ -64,8 +64,8 @@ class ModelParams:
         allow_isolated_days_off (bool): Whether isolated shifts off are allowed
             (pattern of on-off-on).
         max_consecutive_shifts (int): Max consecutive shifts for each employee.
-        shift_labels (list[str]): Day/date labels for shifts.
     """
+
     availability: dict[str, list[int]]
     shifts: list[str]
     min_shifts: int
@@ -75,10 +75,6 @@ class ModelParams:
     requires_manager: bool
     allow_isolated_days_off: bool
     max_consecutive_shifts: int
-    shift_labels: list[str] = field(init=False)
-
-    def __post_init__(self):
-        self.shift_labels = [f"{DAYS[i%7]} {SHIFTS[i]}" for i in range(len(self.shifts))]
 
 
 def get_random_string(length):
@@ -319,8 +315,16 @@ def availability_to_dict(availability_list):
 
 def validate_nl_schedule(
     assignments: BinaryVariable,
-    params: ModelParams,
     msgs: dict[str, tuple[str, str]],
+    availability: dict[str, list[int]],
+    shifts: list[str],
+    min_shifts: int,
+    max_shifts: int,
+    shift_min: int,
+    shift_max: int,
+    requires_manager: bool,
+    allow_isolated_days_off: bool,
+    max_consecutive_shifts: int,
 ) -> defaultdict[str, list[str]]:
     """Detect any errors in a solved NL scheduling model.
 
@@ -365,27 +369,31 @@ def validate_nl_schedule(
 
     # Pull solution state as ndarray, employees as list
     result = assignments.state()
-    employees = list(params.availability.keys())
+    employees = list(availability.keys())
+
+    # Convert shifts to day/date labels
+    shift_labels = [f"{DAYS[i%7]} {SHIFTS[i]}" for i in range(len(shifts))]
 
     errors = defaultdict(list)
 
-    _validate_availability(params, result, employees, errors, msgs)
-    _validate_shifts_per_employee(params, result, employees, errors, msgs)
-    _validate_employees_per_shift(params, result, errors, msgs)
-    _validate_max_consecutive_shifts(params, result, employees, errors, msgs)
-    _validate_trainee_shifts(params, result, employees, errors, msgs)
-    if params.requires_manager:
-        _validate_requires_manager(params, result, employees, errors, msgs)
-    if not params.allow_isolated_days_off:
-        _validate_isolated_days_off(params, result, employees, errors, msgs)
+    _validate_availability(result, availability, employees, shift_labels, errors, msgs)
+    _validate_shifts_per_employee(result, employees, min_shifts, max_shifts, errors, msgs)
+    _validate_employees_per_shift(result, shift_min, shift_max, shift_labels, errors, msgs)
+    _validate_max_consecutive_shifts(result, max_consecutive_shifts, employees, shift_labels, errors, msgs)
+    _validate_trainee_shifts(result, employees, shift_labels, errors, msgs)
+    if requires_manager:
+        _validate_requires_manager(result, employees, shift_labels, errors, msgs)
+    if not allow_isolated_days_off:
+        _validate_isolated_days_off(result, employees, shift_labels, errors, msgs)
 
     return errors
 
 
 def _validate_availability(
-    params: ModelParams,
     results: np.ndarray,
+    availability: dict[str, list[int]],
     employees: list[str],
+    shift_labels: list[int],
     errors: defaultdict[str, list[str]],
     msgs: dict[str, tuple[str, str]],
 ) -> defaultdict[str, list[str]]:
@@ -394,8 +402,8 @@ def _validate_availability(
     key `'unavailable'`."""
     msg_key, msg_template = msgs["unavailable"]
     for e, employee in enumerate(employees):
-        for s, day in enumerate(params.shift_labels):
-            if results[e, s] > params.availability[employee][s]:
+        for s, day in enumerate(shift_labels):
+            if results[e, s] > availability[employee][s]:
                 errors[msg_key].append(
                     msg_template.format(employee=employee, day=day)
                 )
@@ -403,9 +411,10 @@ def _validate_availability(
 
 
 def _validate_shifts_per_employee(
-    params: ModelParams,
     results: np.ndarray,
     employees: list[str],
+    min_shifts: int,
+    max_shifts: int,
     errors: defaultdict[str, list[str]],
     msgs: dict[str, tuple[str, str]],
 ) -> defaultdict[str, list[str]]:
@@ -416,18 +425,20 @@ def _validate_shifts_per_employee(
     overtime_key, overtime_template = msgs["overtime"]
     for e, employee in enumerate(employees):
         num_shifts = results[e, :].sum()
-        if num_shifts < params.min_shifts:
+        if num_shifts < min_shifts:
             errors[insufficient_key].append(
                 insufficient_template.format(employee=employee)
             )
-        elif num_shifts > params.max_shifts:
+        elif num_shifts > max_shifts:
             errors[overtime_key].append(overtime_template.format(employee=employee))
     return errors
 
 
 def _validate_employees_per_shift(
-    params: ModelParams,
     results: np.ndarray,
+    shift_min: int,
+    shift_max: int,
+    shift_labels: list[int],
     errors: defaultdict[str, list[str]],
     msgs: dict[str, tuple[str, str]],
 ) -> defaultdict[str, list[str]]:
@@ -437,19 +448,19 @@ def _validate_employees_per_shift(
     understaffed_key, understaffed_template = msgs["understaffed"]
     overstaffed_key, overstaffed_template = msgs["overstaffed"]
 
-    for s, day in enumerate(params.shift_labels):
+    for s, day in enumerate(shift_labels):
         num_employees = results[:, s].sum()
-        if num_employees < params.shift_min:
+        if num_employees < shift_min:
             errors[understaffed_key].append(understaffed_template.format(day=day))
-        elif num_employees > params.shift_max:
+        elif num_employees > shift_max:
             errors[overstaffed_key].append(overstaffed_template.format(day=day))
     return errors
 
 
 def _validate_requires_manager(
-    params: ModelParams,
     results: np.ndarray,
     employees: list[str],
+    shift_labels: list[str],
     errors: defaultdict[str, list[str]],
     msgs: dict[str, tuple[str, str]],
 ) -> defaultdict[str, list[str]]:
@@ -463,14 +474,14 @@ def _validate_requires_manager(
     managers_per_shift = results[employee_arr].sum(axis=0)
     for shift, num_managers in enumerate(managers_per_shift):
         if num_managers == 0:
-            errors[key].append(template.format(day=params.shift_labels[shift]))
+            errors[key].append(template.format(day=shift_labels[shift]))
     return errors
 
 
 def _validate_isolated_days_off(
-    params: ModelParams,
     results: np.ndarray,
     employees: list[str],
+    shift_labels: list[str],
     errors: defaultdict[str, list[str]],
     msgs: dict[str, tuple[str, str]],
 ) -> defaultdict[str, list[str]]:
@@ -483,15 +494,16 @@ def _validate_isolated_days_off(
         shift_triples = [results[e, i : i + 3] for i in range(results.shape[1] - 2)]
         for s, shift_set in enumerate(shift_triples):
             if np.equal(shift_set, isolated_pattern).all():
-                day = params.shift_labels[s + 1]
+                day = shift_labels[s + 1]
                 errors[key].append(template.format(employee=employee, day=day))
     return errors
 
 
 def _validate_max_consecutive_shifts(
-    params: ModelParams,
     results: np.ndarray,
+    max_consecutive_shifts: int,
     employees: list[str],
+    shift_labels: list[str],
     errors: defaultdict[str, list[str]],
     msgs: dict[str, tuple[str, str]],
 ) -> defaultdict[str, list[str]]:
@@ -501,22 +513,22 @@ def _validate_max_consecutive_shifts(
     key, template = msgs["too_many_consecutive"]
     for e, employee in enumerate(employees):
         consecutive_shift_arrays = (
-            [results[e, i : i + params.max_consecutive_shifts]
-             for i in range(results.shape[1] - params.max_consecutive_shifts)]
+            [results[e, i : i + max_consecutive_shifts]
+             for i in range(results.shape[1] - max_consecutive_shifts)]
         )
         for shift, shift_arr in enumerate(consecutive_shift_arrays):
-            if shift_arr.sum() > params.max_consecutive_shifts:
+            if shift_arr.sum() > max_consecutive_shifts:
                 errors[key].append(
-                    template.format(employee=employee, day=params.shift_labels[shift])
+                    template.format(employee=employee, day=shift_labels[shift])
                 )
                 break
     return errors
 
 
 def _validate_trainee_shifts(
-    params: ModelParams,
     results: np.ndarray,
     employees: list[str],
+    shift_labels: list[str],
     errors: defaultdict[str, list[str]],
     msgs: dict[str, tuple[str, str]],
 ) -> defaultdict[str, list[str]]:
@@ -532,5 +544,5 @@ def _validate_trainee_shifts(
         same_shifts = np.less_equal(results[trainee_i], results[trainer_i])
         for i, s in enumerate(same_shifts):
             if not s:
-                errors[key].append(template.format(day=params.shift_labels[i]))
+                errors[key].append(template.format(day=shift_labels[i]))
     return errors
