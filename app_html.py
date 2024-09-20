@@ -19,6 +19,7 @@ from dash import dcc, html
 
 from app_configs import (DESCRIPTION, EXAMPLE_SCENARIO, MAIN_HEADER, MAX_CONSECUTIVE_SHIFTS, MIN_MAX_EMPLOYEES,
                          MIN_MAX_SHIFTS, NUM_EMPLOYEES, REQUESTED_SHIFT_ICON, THUMBNAIL, UNAVAILABLE_ICON)
+from src.demo_enums import SolverType
 
 
 def description_card():
@@ -73,6 +74,29 @@ def range_slider(name: str, id: str, config: dict) -> html.Div:
     )
 
 
+def dropdown(label: str, id: str, options: list) -> html.Div:
+    """Dropdown element for option selection.
+
+    Args:
+        label: The title that goes above the dropdown.
+        id: A unique selector for this element.
+        options: A list of dictionaries of labels and values.
+    """
+    return html.Div(
+        className="dropdown-wrapper",
+        children=[
+            html.Label(label),
+            dcc.Dropdown(
+                id=id,
+                options=options,
+                value=options[0]["value"],
+                clearable=False,
+                searchable=False,
+            ),
+        ],
+    )
+
+
 def generate_control_card() -> html.Div:
     """Generates the control card for the dashboard.
 
@@ -81,21 +105,20 @@ def generate_control_card() -> html.Div:
         model, and solver.
     """
     example_scenario = [{"label": size, "value": i} for i, size in enumerate(EXAMPLE_SCENARIO)]
+    solver_options = [{"label": s.label, "value": s.value} for s in SolverType]
 
     return html.Div(
         id="control-card",
         children=[
-            html.Div(
-                children=[
-                    html.Label("Scenario preset (sets sliders below)"),
-                    dcc.Dropdown(
-                        id="example-scenario-select",
-                        options=example_scenario,
-                        value=example_scenario[0]["value"],
-                        clearable=False,
-                        searchable=False,
-                    ),
-                ]
+            dropdown(
+                "Solver",
+                "solver-select",
+                solver_options,
+            ),
+            dropdown(
+                "Scenario preset (sets sliders below)",
+                "example-scenario-select",
+                example_scenario
             ),
             # add sliders for employees and shifts
             slider(
