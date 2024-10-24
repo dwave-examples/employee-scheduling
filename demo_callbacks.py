@@ -60,7 +60,7 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
 
 @dash.callback(
     Output("num-employees-select", "value"),
-    Output("num-full-time-select", "value"),
+    Output("num-full-time-select", "value", allow_duplicate=True),
     Output("consecutive-shifts-select", "value"),
     Output("shifts-per-employee-select", "value"),
     Output("num-employees-select", "disabled"),
@@ -102,31 +102,6 @@ def set_scenario(
 
 
 @dash.callback(
-    Output("num-full-time-select", "max"),
-    Output("num-full-time-select", "marks"),
-    inputs=[
-        Input("num-employees-select", "value"),
-    ],
-)
-def update_employee_settings(num_employees: int) -> tuple[int, dict]:
-    """Update the num-full-time-select slider if num-employees is changed.
-
-    Args:
-        num_employees: The number of employees selected.
-
-    Returns:
-        num-full-time-select-max: The max to set the full-time select to.
-        num-full-time-select-marks: The marks to set for the full-time select.
-    """
-    new_full_time_max = math.floor(num_employees * 3 / 4)
-    full_time_marks = {
-        NUM_FULL_TIME["min"]: str(NUM_FULL_TIME["min"]),
-        new_full_time_max: str(new_full_time_max),
-    }
-    return new_full_time_max, full_time_marks
-
-
-@dash.callback(
     Output("custom-saved-data", "data"),
     inputs=[
         Input("num-employees-select", "value"),
@@ -136,6 +111,7 @@ def update_employee_settings(num_employees: int) -> tuple[int, dict]:
         State("example-scenario-select", "value"),
         State("custom-saved-data", "data"),
     ],
+    prevent_initial_call=True,
 )
 def custom_saved_data(
     num_employees: int,
@@ -158,14 +134,6 @@ def custom_saved_data(
     Returns:
         custom-saved-data: The saved custom scenario data to update.
     """
-    if not ctx.triggered_id:
-        return {
-            "num-employees-select": num_employees,
-            "num-full-time-select": num_full_time,
-            "consecutive-shifts-select": consecutive_shifts,
-            "shifts-per-employee-select": shifts_per_employees,
-        }
-
     if scenario == 0:
         custom_saved_data.update({ctx.triggered_id: ctx.triggered[0]["value"]})
         return custom_saved_data
@@ -175,20 +143,22 @@ def custom_saved_data(
 
 @dash.callback(
     Output("availability-content", "children"),
-    Output("schedule-content", "children", allow_duplicate=True),
-    Output("schedule-tab", "disabled", allow_duplicate=True),
+    Output("schedule-content", "children"),
+    Output("schedule-tab", "disabled"),
     Output("tabs", "value"),
-    Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
+    Output({"type": "to-collapse-class", "index": 1}, "style"),
     Output({"type": "forecast", "index": ALL}, "value"),
     Output({"type": "forecast", "index": ALL}, "placeholder"),
     Output({"type": "forecast", "index": ALL}, "max"),
+    Output("num-full-time-select", "max"),
+    Output("num-full-time-select", "marks"),
+    Output("num-full-time-select", "value"),
     inputs=[
         Input("num-employees-select", "value"),
         Input("num-full-time-select", "value"),
     ],
-    prevent_initial_call="initial_duplicate",
 )
-def disp_initial_sched(
+def display_initial_schedule(
     num_employees: int, num_full_time: int
 ) -> tuple[pd.DataFrame, pd.DataFrame, bool, str, dict, list[dict]]:
     """Display initial availability schedule.
@@ -209,7 +179,17 @@ def disp_initial_sched(
         forecast: The forecasted employees per shift requirements value.
         forecast: The forecasted employees per shift requirements placeholder.
         forecast: The forecasted employees per shift requirements max.
+        num-full-time-select-max: The max to set the full-time select to.
+        num-full-time-select-marks: The marks to set for the full-time select.
+        num-full-time-select-value: The value to set for the full-time select.
     """
+    new_full_time_max = math.floor(num_employees * 3 / 4)
+    full_time_marks = {
+        NUM_FULL_TIME["min"]: str(NUM_FULL_TIME["min"]),
+        new_full_time_max: str(new_full_time_max),
+    }
+    num_full_time = min(num_full_time, new_full_time_max)
+
     df = utils.build_random_sched(num_employees, num_full_time)
 
     init_availability_table = utils.display_availability(df)
@@ -229,11 +209,13 @@ def disp_initial_sched(
         count,
         count,
         [num_employees]*len(count),
+        new_full_time_max,
+        full_time_marks,
+        num_full_time
     )
 
 
 @dash.callback(
-    Output({"type": "to-collapse-class", "index": 1}, "style"),
     Output({"type": "to-collapse-class", "index": 1}, "className"),
     Output("scheduled-forecast-output", "children"),
     inputs=[
@@ -242,7 +224,7 @@ def disp_initial_sched(
     ],
     prevent_initial_call=True,
 )
-def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[dict, str, list]:
+def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[str, list]:
     """Hides and collapses error sidebar on button click.
 
     Args:
@@ -250,16 +232,15 @@ def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[dict, str, list
         prev_classes: A string containing all the previous classes of the error sidebar.
 
     Returns:
-        to-collapse-class-style: The style for the errors sidebar.
         to-collapse-class-className: The class names for the errors sidebar.
         scheduled-forecast-output: The forecasted and scheduled difference per shift.
     """
     classes = prev_classes.split(" ") if prev_classes else []
 
     if "collapsed" in classes:
-        return dash.no_update, dash.no_update, []
+        return dash.no_update, []
 
-    return {"display": "none"}, prev_classes + " collapsed", []
+    return prev_classes + " collapsed", []
 
 
 @dash.callback(
