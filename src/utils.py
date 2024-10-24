@@ -83,35 +83,52 @@ def build_random_sched(num_employees, num_full_time):
     )
 
     num_managers = 2
-    options = [0, 2, 6]
-    q, r = divmod(num_full_time - num_managers, 3)
-    full_time_breakdown = [q] * 3
+    all_full_time = None
 
-    for i in range(r):
-        full_time_breakdown[i] += 1
+    if num_full_time:
+        options = [0, 2, 6]
+        q, r = divmod(num_full_time - num_managers, 3)
+        full_time_breakdown = [q] * 3
 
-    # Build full-time schedules
-    full_time_schedules = np.empty((0, len(COL_IDS)))
-    for i in range(len(full_time_breakdown)):
-        for j in range(full_time_breakdown[i]):
-            full_time_schedules = np.vstack(
-                [full_time_schedules, np.roll(full_time_schedule, -options[i])]
+        for i in range(r):
+            full_time_breakdown[i] += 1
+
+        # Build full-time schedules
+        full_time_schedules = np.empty((0, len(COL_IDS)))
+        for i in range(len(full_time_breakdown)):
+            for j in range(full_time_breakdown[i]):
+                full_time_schedules = np.vstack(
+                    [full_time_schedules, np.roll(full_time_schedule, -options[i])]
+                )
+
+        if num_full_time < num_managers:
+            all_full_time = (
+                np.array(  # Managers
+                    [np.roll(full_time_schedule, -options[i]) for i in range(num_full_time)]
+                ),
             )
-
-    data = pd.DataFrame(
-        np.concatenate(
-            (
+        else:
+            all_full_time = (
                 np.array(  # Managers
                     [np.roll(full_time_schedule, -options[i]) for i in range(num_managers)]
                 ),
                 full_time_schedules,  # Remaining full-time
-                np.random.choice(  # Part-time
-                    [UNAVAILABLE_ICON, " ", REQUESTED_SHIFT_ICON],
-                    size=(num_employees - num_full_time, len(COL_IDS)),
-                    p=[0.1, 0.8, 0.1],
-                ),
             )
-        ),
+
+    all_part_time = np.random.choice(  # Part-time
+        [UNAVAILABLE_ICON, " ", REQUESTED_SHIFT_ICON],
+        size=(num_employees - num_full_time, len(COL_IDS)),
+        p=[0.1, 0.8, 0.1],
+    )
+
+    data = pd.DataFrame(
+        np.concatenate(
+            (
+                *all_full_time,
+                all_part_time
+            )
+        ) if all_full_time
+        else all_part_time,
         columns=COL_IDS,
     )
 

@@ -63,7 +63,7 @@ NUM_FULL_TIME = {
     "min": 0,
     "max": 9,
     "step": 1,
-    "value": 8,
+    "value": 0,
 }
 
 # max consecutive shifts slider (value means default)
