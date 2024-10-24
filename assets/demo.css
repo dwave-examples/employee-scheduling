@@ -153,16 +153,17 @@ table {
 }
 
 .legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: start;
-  align-items: center;
-  width: 22rem;
   margin: 4.3rem 0 0 1rem;
-  flex-shrink: 0;
 }
 
-.legend div {
+.legend > div {
+  display: flex;
+  align-content: start;
+  align-items: center;
+  min-width: 18rem;
+}
+
+.legend > div div {
   width: 4.5rem;
   height: 3rem;
   margin-right: 0.6rem;
@@ -171,13 +172,12 @@ table {
   border: 1px solid var(--grey-light);
 }
 
-.legend > * {
+.legend > div > * {
   margin-bottom: 0.2rem;
 }
 
 .legend label {
   margin: 0;
-  flex: 1 0 75%;
 }
 
 .scheduled-shifts {
@@ -193,7 +193,7 @@ table {
   background-image: linear-gradient(-45deg, #c7003860 10%, transparent 10%, transparent 20%,
   #c7003860 20%, #c7003860 30%, transparent 30%, transparent 40%, #c7003860 40%, #c7003860 50%,
   transparent 50%, transparent 60%, #c7003860 60%, #c7003860 70%, transparent 70%, transparent 80%, #c7003860 80%,
-  #c7003860 90%, transparent 90%, #fff);
+  #c7003860 90%, transparent 90%);
 }
 
 .unavailable-shifts {
@@ -311,12 +311,25 @@ tr:not(:first-child) .dash-header.column-14 {
     bottom: 0;
     background-color: white;
     width: 100%;
+
+    /* The following hides the left & right table borders when this covers the table */
+    border-left: 1px solid white;
+    border-right: 1px solid white;
+    margin-left: -1px;
+}
+
+.schedule-forecast-input {
+    border-top: 2px solid var(--grey-dark);
 }
 
 .schedule-forecast label {
-    margin: 0.4rem 0 0.8rem 1rem;
-    font-weight: bold;
+    margin: 0.4rem 0.3rem 0.8rem;
+    font-weight: 500;
     font-size: 1.5rem;
+}
+
+.schedule-forecast-input label {
+    margin-top: 1.8rem;
 }
 
 .schedule-forecast tr:last-child,
@@ -326,15 +339,35 @@ tr:not(:first-child) .dash-header.column-14 {
 
 #forecast-input, #forecast-output {
     width: 63rem;
+    flex-shrink: 0;
 }
 
-#forecast-input td, #forecast-output td {
+#forecast-output td {
     width: 4.5rem;
 }
 
 #forecast-input .dash-header,
-#forecast-input tr:first-child,
 #forecast-output .dash-header,
 #forecast-output tr:first-child {
     display: none;
+}
+
+.dash-input {
+    width: 3.9rem;
+    margin: 1rem 0.3rem;
+}
+
+/* This and the following rule hide the up/down arrows for the text box */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield; /* Firefox */
+}
+
+input[type="number"]:focus {
+    display: inline-block !important;
 }

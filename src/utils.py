@@ -161,6 +161,10 @@ def get_cell_styling(cols):
     """Sets conditional cell styling."""
     return [
         {
+            "if": {"column_id": cols[0]},
+            "minWidth": "170px",
+        },
+        {
             "if": {"column_id": cols[1:]},
             "minWidth": "45px",
             "width": "45px",
@@ -271,7 +275,7 @@ def display_schedule(df, availability):
                 "backgroundImage": "linear-gradient(-45deg, #c7003860 10%, transparent 10%, transparent 20%,\
                 #c7003860 20%, #c7003860 30%, transparent 30%, transparent 40%, #c7003860 40%, #c7003860 50%,\
                 transparent 50%, transparent 60%, #c7003860 60%, #c7003860 70%, transparent 70%, transparent 80%,\
-                #c7003860 80%, #c7003860 90%, transparent 90%, #fff)",  # light red
+                #c7003860 80%, #c7003860 90%, transparent 90%)",  # light red
             }
             for col_id in COL_IDS
         ],

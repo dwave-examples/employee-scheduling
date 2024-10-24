@@ -17,7 +17,7 @@ import math
 
 import dash
 import pandas as pd
-from dash import MATCH, Input, Output, State, ctx
+from dash import ALL, MATCH, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 
 import src.employee_scheduling as employee_scheduling
@@ -179,7 +179,9 @@ def custom_saved_data(
     Output("schedule-tab", "disabled", allow_duplicate=True),
     Output("tabs", "value"),
     Output({"type": "to-collapse-class", "index": 1}, "style", allow_duplicate=True),
-    Output("forecast-input", "data"),
+    Output({"type": "forecast", "index": ALL}, "value"),
+    Output({"type": "forecast", "index": ALL}, "placeholder"),
+    Output({"type": "forecast", "index": ALL}, "max"),
     inputs=[
         Input("num-employees-select", "value"),
         Input("num-full-time-select", "value"),
@@ -204,7 +206,9 @@ def disp_initial_sched(
         schedule-tab-disabled: Whether the schedule tab should be disabled.
         tabs-value: The tab that should be selected.
         to-collapse-class-style: The style for the errors tab.
-        forecast-input: The forecasted employees per shift requirements.
+        forecast: The forecasted employees per shift requirements value.
+        forecast: The forecasted employees per shift requirements placeholder.
+        forecast: The forecasted employees per shift requirements max.
     """
     df = utils.build_random_sched(num_employees, num_full_time)
 
@@ -214,7 +218,7 @@ def disp_initial_sched(
     df_to_count = df.iloc[:num_full_time, :]
     count = df_to_count.applymap(lambda cell: cell.count(REQUESTED_SHIFT_ICON)).sum()[1:].to_dict()
     num_part_time = num_employees - num_full_time
-    count = {key: value + math.ceil(num_part_time / 2) for key, value in count.items()}
+    count = [value + math.ceil(num_part_time / 2) for value in count.values()]
 
     return (
         init_availability_table,
@@ -222,7 +226,9 @@ def disp_initial_sched(
         True,  # disable the shedule tab when changing parameters
         "input-tab",  # jump back to the availability tab
         {"display": "none"},
-        [count],
+        count,
+        count,
+        [num_employees]*len(count),
     )
 
 
@@ -268,7 +274,8 @@ def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[dict, str, list
         State("checklist-input", "value"),
         State("consecutive-shifts-select", "value"),
         State("num-full-time-select", "value"),
-        State("forecast-input", "data"),
+        State({"type": "forecast", "index": ALL}, "value"),
+        State({"type": "forecast", "index": ALL}, "placeholder"),
         State("availability-content", "children"),
     ],
     running=[
@@ -289,7 +296,8 @@ def run_optimization(
     checklist: list[int],
     consecutive_shifts: int,
     num_full_time: int,
-    forecast: list[dict],
+    forecast: list[int],
+    forecast_placeholder: list[int],
     sched_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, dict, list, list]:
     """Runs the optimization and updates UI accordingly.
@@ -327,13 +335,18 @@ def run_optimization(
     employees = list(availability.keys())
 
     isolated_days_allowed = True if 0 in checklist else False
-    forecast = {key: int(val) for key, val in forecast[0].items()}
+
+    forecast = [
+        val if isinstance(val, int)
+        else forecast_placeholder[i]
+        for i, val in enumerate(forecast)
+    ]
 
     cqm = employee_scheduling.build_cqm(
         availability,
         shifts,
         *shifts_per_employee,
-        list(forecast.values()),
+        forecast,
         isolated_days_allowed,
         consecutive_shifts + 1,
         num_full_time,
