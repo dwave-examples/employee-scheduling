@@ -333,8 +333,8 @@ def run_optimization(
         num_full_time,
     )
 
-    feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
-    sample = feasible_sampleset.first.sample
+    sampleset, errors = employee_scheduling.run_cqm(cqm)
+    sample = sampleset.first.sample
 
     sched = utils.build_schedule_from_sample(sample, employees)
     scheduled_count = sched.map(lambda cell: UNAVAILABLE_ICON not in cell).sum()[1:].to_dict()

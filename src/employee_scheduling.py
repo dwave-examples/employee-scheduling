@@ -20,16 +20,30 @@ from src.utils import DAYS, FULL_TIME_SHIFTS, SHIFTS
 
 
 def build_cqm(
-    availability,
-    shifts,
-    min_shifts,
-    max_shifts,
-    shift_forecast,
-    allow_isolated_days_off,
-    max_consecutive_shifts,
-    num_full_time,
-):
-    """Builds the ConstrainedQuadraticModel for the given scenario."""
+    availability: dict,
+    shifts: list,
+    min_shifts: int,
+    max_shifts: int,
+    shift_forecast: list,
+    allow_isolated_days_off: bool,
+    max_consecutive_shifts: int,
+    num_full_time: int,
+) -> ConstrainedQuadraticModel:
+    """Builds the ConstrainedQuadraticModel for the given scenario.
+
+     Args:
+        availability: A dictionary of employees and their availabilities.
+        shifts: A list of shift keys.
+        min_shifts: The minimum shifts each employee needs to work per schedule.
+        max_shifts: The maximum shifts any employee can work per schedule.
+        shift_forecast: A list of the number of expected employees needed per shift.
+        allow_isolated_days_off: Whether on-off-on should be allowed in the schedule.
+        max_consecutive_shifts: The maximum consectutive shifts to schedule a part-time employee for.
+        num_full_time: The number of full time employees.
+
+    Returns:
+        cqm: A Constrained Quadratic Model representing the problem.
+    """
     cqm = ConstrainedQuadraticModel()
     employees = list(availability.keys())
     employees_ft = employees[:num_full_time]
@@ -145,8 +159,16 @@ def build_cqm(
     return cqm
 
 
-def run_cqm(cqm):
-    """Run the provided CQM on the Leap Hybrid CQM Sampler."""
+def run_cqm(cqm: ConstrainedQuadraticModel):
+    """Run the provided CQM on the Leap Hybrid CQM Sampler.
+
+    Args:
+        cqm: A Constrained Quadratic Model representing the problem.
+
+    Returns:
+        sampleset: A set of feasible or infeasible solutions.
+        errors: A dictionary of error types and the errors that occurred.
+    """
     sampler = LeapHybridCQMSampler()
 
     sampleset = sampler.sample_cqm(cqm)

@@ -220,12 +220,15 @@ def create_interface():
     return html.Div(
         id="app-container",
         children=[
-            dcc.Store(id="custom-saved-data", data={
-                "num-employees-select": NUM_EMPLOYEES["value"],
-                "num-full-time-select": NUM_FULL_TIME["value"],
-                "consecutive-shifts-select": MAX_CONSECUTIVE_SHIFTS["value"],
-                "shifts-per-employee-select": MIN_MAX_SHIFTS["value"],
-            }),
+            dcc.Store(
+                id="custom-saved-data",
+                data={
+                    "num-employees-select": NUM_EMPLOYEES["value"],
+                    "num-full-time-select": NUM_FULL_TIME["value"],
+                    "consecutive-shifts-select": MAX_CONSECUTIVE_SHIFTS["value"],
+                    "shifts-per-employee-select": MIN_MAX_SHIFTS["value"],
+                }
+            ),
             dcc.Store(id="submission_indicator"),
             # Header brand banner
             html.Div(className="banner", children=[html.Img(src=THUMBNAIL)]),
