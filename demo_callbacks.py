@@ -121,7 +121,7 @@ def custom_saved_data(
     scenario: int,
     custom_saved_data: dict,
 ) -> dict:
-    """Save custom data if changed whilte custom scenario is selected.
+    """Save custom data if changed while custom scenario is selected.
 
     Args:
         num_employees: The number of employees.
@@ -196,7 +196,7 @@ def display_initial_schedule(
 
     # Prepare forecast defaults
     df_to_count = df.iloc[:num_full_time, :]
-    count = df_to_count.applymap(lambda cell: cell.count(REQUESTED_SHIFT_ICON)).sum()[1:].to_dict()
+    count = df_to_count.map(lambda cell: cell.count(REQUESTED_SHIFT_ICON)).sum()[1:].to_dict()
     num_part_time = num_employees - num_full_time
     count = [value + math.ceil(num_part_time / 2) for value in count.values()]
 
@@ -337,7 +337,7 @@ def run_optimization(
     sample = feasible_sampleset.first.sample
 
     sched = utils.build_schedule_from_sample(sample, employees)
-    scheduled_count = sched.applymap(lambda cell: UNAVAILABLE_ICON not in cell).sum()[1:].to_dict()
+    scheduled_count = sched.map(lambda cell: UNAVAILABLE_ICON not in cell).sum()[1:].to_dict()
 
     return (
         utils.display_schedule(sched, availability),
