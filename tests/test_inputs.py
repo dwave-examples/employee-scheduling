@@ -1,4 +1,4 @@
-# Copyright 2024 D-Wave Systems Inc.
+# Copyright 2024 D-Wave
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@ import unittest
 
 from dash import dash_table
 
-import employee_scheduling
-import utils
-from app import disp_initial_sched
+import src.employee_scheduling as employee_scheduling
+import src.utils as utils
+from demo_callbacks import disp_initial_sched
 
 
 class TestDemo(unittest.TestCase):
@@ -25,27 +25,29 @@ class TestDemo(unittest.TestCase):
     def test_initial_sched(self):
         num_employees = 12
 
-        sched_df = disp_initial_sched(num_employees, None)[0].data
+        sched_df = disp_initial_sched(num_employees, 6)[0].data
 
         self.assertEqual(len(sched_df), num_employees)
 
     # Check that CQM created has the right number of variables
     def test_cqm(self):
         num_employees = 12
+        shift_forecast = [9, 8, 8, 8, 8, 8, 9, 9, 8, 8, 8, 8, 8, 9]
 
-        sched_df = disp_initial_sched(num_employees, None)[0].data
+        sched_df = disp_initial_sched(num_employees, 6)[0].data
         shifts = list(sched_df[0].keys())
         shifts.remove("Employee")
         availability = utils.availability_to_dict(sched_df)
 
         cqm = employee_scheduling.build_cqm(
-            availability, shifts, 1, 6, 5, 16, True, False, 6
+            availability, shifts, 5, 10, shift_forecast, False, 6, 6
         )
 
         self.assertEqual(len(cqm.variables), num_employees * len(shifts))
 
     def test_samples(self):
         shifts = [str(i + 1) for i in range(5)]
+        shift_forecast = [5] * 14
 
         # Make every employee available for every shift
         availability = {
@@ -57,9 +59,7 @@ class TestDemo(unittest.TestCase):
             "E-Tr": [1] * 5,
         }
 
-        cqm = employee_scheduling.build_cqm(
-            availability, shifts, 1, 6, 5, 16, True, False, 6
-        )
+        cqm = employee_scheduling.build_cqm(availability, shifts, 1, 6, shift_forecast, False, 6, 0)
 
         feasible_sample = {
             "A-Mgr_1": 0.0,

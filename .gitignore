@@ -2,3 +2,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 cache.db*
+*.DS_Store
+assets/__generated_theme.css
