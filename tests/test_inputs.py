@@ -17,7 +17,7 @@ from dash import dash_table
 
 import src.employee_scheduling as employee_scheduling
 import src.utils as utils
-from demo_callbacks import disp_initial_sched
+from demo_callbacks import display_initial_schedule
 
 
 class TestDemo(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestDemo(unittest.TestCase):
     def test_initial_sched(self):
         num_employees = 12
 
-        sched_df = disp_initial_sched(num_employees, 6)[0].data
+        sched_df = display_initial_schedule(num_employees, 6)[0].data
 
         self.assertEqual(len(sched_df), num_employees)
 
@@ -34,7 +34,7 @@ class TestDemo(unittest.TestCase):
         num_employees = 12
         shift_forecast = [9, 8, 8, 8, 8, 8, 9, 9, 8, 8, 8, 8, 8, 9]
 
-        sched_df = disp_initial_sched(num_employees, 6)[0].data
+        sched_df = display_initial_schedule(num_employees, 6)[0].data
         shifts = list(sched_df[0].keys())
         shifts.remove("Employee")
         availability = utils.availability_to_dict(sched_df)
