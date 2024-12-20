@@ -1,0 +1,373 @@
+/*
+This file is forked from apps/dash-clinical-analytics/assets/clinical-analytics.css
+under the following license
+
+MIT License
+
+Copyright (c) 2019 Plotly
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Modifications are licensed under
+
+Apache License, Version 2.0
+(see ./LICENSE for details)
+
+*/
+
+h6 {
+    font-size: 1.7rem;
+    font-weight: 400;
+}
+
+.details-collapse-wrapper {
+    margin-bottom: 0;
+}
+
+.details-collapse-wrapper:not(.collapsed) .details-to-collapse {
+    height: auto !important;
+}
+
+.details-collapse .collapse-arrow {
+    border-width: 2px;
+}
+
+.columns-main {
+    height: calc(100vh - var(--banner-height));
+}
+
+.right-column {
+    flex-grow: 1;
+    min-width: 40rem;
+}
+
+.collapsed.log-column > div {
+    width: 0;
+}
+
+table {
+    border: none;
+}
+
+.tab-content {
+    padding: 2rem 2rem 0;
+    overflow-x: auto;
+}
+
+.log-column {
+  display: none;
+  background-color: white;
+  z-index: 10;
+}
+
+.log-column > div > div {
+  padding: 2rem;
+  width: calc(var(--error-col-width) - 4rem);
+}
+
+.log-column > div {
+  height: calc(100vh - 5.5rem);
+  transition: width 0.6s ease-in-out;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.log-column > div {
+  width: var(--error-col-width);
+}
+
+.range-slider > div {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+}
+
+#schedule-content[data-dash-is-loading="true"] {
+  filter: grayscale(1);
+  opacity: 0.3;
+  transition: filter 0.1s linear, opacity 0.1s linear;
+}
+
+#availability-content,
+#schedule-content {
+    padding-bottom: 2rem;
+}
+
+/* Specific targeting for the loading circle */
+.schedule-loading > div:last-child {
+  top: 30vh !important;
+  height: auto !important;
+}
+
+.log-column-collapse,
+.log-column-collapse:hover,
+.log-column-collapse:focus {
+  background: #dd7e8e;
+  border: none;
+  height: 100%;
+  border-radius: 0;
+  padding: 0 0.5rem 0 0;
+  transition: background-color 0.25s ease-in-out;
+  overflow: hidden;
+  display: block;
+}
+
+.log-column-collapse .collapse-arrow {
+  border-color: white;
+  transform: rotate(315deg) skew(160deg, 160deg);
+}
+
+.log-column-collapse:hover {
+  background-color: #c14e61;
+}
+
+.collapsed .log-column-collapse {
+  padding: 0 0 0 0.5rem;
+}
+
+.collapsed .log-column-collapse .collapse-arrow {
+  transform: rotate(135deg) skew(165deg, 165deg);
+}
+
+.schedule {
+  display: flex;
+}
+
+.schedule-inner {
+  position: relative;
+}
+
+.legend {
+  margin: 4.3rem 0 0 1rem;
+}
+
+.legend > div {
+  display: flex;
+  align-content: start;
+  align-items: center;
+  min-width: 18rem;
+}
+
+.legend > div div {
+  width: 4.5rem;
+  height: 3rem;
+  margin-right: 0.6rem;
+  text-align: center;
+  font-size: 1.8rem;
+  border: 1px solid var(--grey-light);
+}
+
+.legend > div > * {
+  margin-bottom: 0.2rem;
+}
+
+.legend label {
+  margin: 0;
+}
+
+.scheduled-shifts {
+  background-color: var(--blue-light);
+}
+
+.requested-shifts {
+  background-color: var(--teal-darker);
+  color: white;
+}
+
+.unscheduled-requested-shifts {
+  background-image: linear-gradient(-45deg, #c7003860 10%, transparent 10%, transparent 20%,
+  #c7003860 20%, #c7003860 30%, transparent 30%, transparent 40%, #c7003860 40%, #c7003860 50%,
+  transparent 50%, transparent 60%, #c7003860 60%, #c7003860 70%, transparent 70%, transparent 80%, #c7003860 80%,
+  #c7003860 90%, transparent 90%);
+}
+
+.unavailable-shifts {
+  background-color: var(--orange);
+  color: white;
+}
+
+td[data-dash-column="Employee"] {
+  padding-left: 1.2rem !important;
+  padding-right: 1.2rem !important;
+  border-right: 2px solid var(--grey-medium) !important;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td:not([data-dash-column="Employee"]) div {
+  font-size: 1.8rem;
+  vertical-align: baseline;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th.dash-header {
+  background-color: white;
+  color: var(--grey-dark);
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(1) th:nth-child(2) {
+  text-align: left !important;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(1) th:nth-child(3) {
+  text-align: right !important;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(1) th {
+  border: none !important;
+  padding-top: 1.5rem;
+  padding-bottom: 0.6rem;
+  font-size: 1.8rem;
+  font-weight: 400;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(2) th {
+  font-weight: 400;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  text-align: left !important;
+  border-bottom: none !important;
+  padding-bottom: 0;
+  vertical-align: bottom;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(3) th:not(:first-child) {
+  text-align: left !important;
+  font-size: 1.8rem;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(3) th {
+  border-bottom: 2px solid var(--grey-medium) !important;
+  border-top: none !important;
+  padding-top: 0;
+}
+
+/* Highlight weekend headers */
+tr:not(:first-child) .dash-header.column-1,
+tr:not(:first-child) .dash-header.column-7,
+tr:not(:first-child) .dash-header.column-8,
+tr:not(:first-child) .dash-header.column-14 {
+  background-color: #E5E5E5 !important;
+}
+
+.tab-content .schedule-loading {
+  visibility: visible !important;
+}
+
+.part-time-settings label {
+    color: var(--theme);
+    letter-spacing: normal;
+    text-transform: uppercase;
+    font-size: 1.3rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.details-collapse.part-time-settings .collapse-arrow {
+    margin-top: 2rem;
+    border-width: 3px;
+    height: 1rem;
+    width: 1rem;
+}
+
+.collapsed .details-collapse.part-time-settings .collapse-arrow {
+    margin-top: 1.8rem;
+}
+
+.part-time-collapse {
+    background: white;
+    padding: 0 1rem 1rem;
+    border: 1px solid var(--grey-light);
+}
+
+.details-collapse-wrapper.collapsed .part-time-collapse {
+    padding-bottom: 0;
+    border-top: none;
+    border-bottom: none;
+}
+
+.details-collapse-wrapper:not(.collapsed) .details-to-collapse.part-time-collapse {
+    height: var(--part-time-settings-height) !important;
+}
+
+.schedule-forecast {
+    display: flex;
+    justify-content: space-between;
+    position: sticky;
+    bottom: 0;
+    background-color: white;
+    width: 100%;
+
+    /* The following hides the left & right table borders when this covers the table */
+    border-left: 1px solid white;
+    border-right: 1px solid white;
+    margin-left: -1px;
+}
+
+.schedule-forecast-input {
+    border-top: 2px solid var(--grey-dark);
+}
+
+.schedule-forecast label {
+    margin: 0.4rem 0.3rem 0.8rem;
+    font-weight: 500;
+    font-size: 1.5rem;
+}
+
+.schedule-forecast-input label {
+    margin-top: 1.6rem;
+}
+
+.schedule-forecast tr:last-child,
+.schedule-forecast tr:nth-child(2) {
+    border-top: 2px solid black;
+}
+
+#forecast-input, #forecast-output {
+    width: 63rem;
+    flex-shrink: 0;
+}
+
+#forecast-output td {
+    width: 4.5rem;
+}
+
+#forecast-input .dash-header,
+#forecast-output .dash-header,
+#forecast-output tr:first-child {
+    display: none;
+}
+
+.dash-input {
+    width: 3.9rem;
+    margin: 1rem 0.3rem;
+}
+
+/* This and the following rule hide the up/down arrows for the text box */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield; /* Firefox */
+}
+
+input[type="number"]:focus {
+    display: inline-block !important;
+}

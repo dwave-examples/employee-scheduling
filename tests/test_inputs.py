@@ -1,4 +1,4 @@
-# Copyright 2024 D-Wave Systems Inc.
+# Copyright 2024 D-Wave
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -17,16 +17,16 @@ from dataclasses import asdict
 from dash import dash_table
 from numpy import asarray
 
-import employee_scheduling
-import utils
-from app import disp_initial_sched
+import src.employee_scheduling as employee_scheduling
+import src.utils as utils
+from demo_callbacks import display_initial_schedule
 
 
 class TestDemo(unittest.TestCase):
     # Initialize shared data for tests
     def setUp(self):
         self.num_employees = 12
-        self.sched_df = disp_initial_sched(self.num_employees, None)[0].data
+        self.sched_df = display_initial_schedule(self.num_employees, None)[0].data
         self.shifts =list(self.sched_df[0].keys())
         self.shifts.remove("Employee")
         self.availability = utils.availability_to_dict(self.sched_df)
@@ -62,6 +62,7 @@ class TestDemo(unittest.TestCase):
 
     def test_samples_cqm(self):
         shifts = [str(i + 1) for i in range(5)]
+        shift_forecast = [5] * 14
 
         # Make every employee available for every shift
         availability = {

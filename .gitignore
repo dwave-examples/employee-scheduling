@@ -2,4 +2,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 cache.db*
-.venv
+*.DS_Store
+assets/__generated_theme.css

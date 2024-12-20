@@ -1,37 +1,35 @@
-/* Table of contents
-––––––––––––––––––––––––––––––––––––––––––––––––––
-- Plotly.js
-- Grid
-- Base Styles
-- Typography
-- Links
-- Buttons
-- Forms
-- Lists
-- Code
-- Tables
-- Spacing
-- Utilities
-- Clearing
-- Media Queries
+/*
+This file is forked from apps/dash-clinical-analytics/assets/base.css
+under the following license
+
+MIT License
+
+Copyright (c) 2019 Plotly
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Modifications are licensed under
+
+Apache License, Version 2.0
+(see ./LICENSE for details)
+
 */
-
-/* PLotly.js 
-–––––––––––––––––––––––––––––––––––––––––––––––––– */
-/* plotly.js's modebar's z-index is 1001 by default
- * https://github.com/plotly/plotly.js/blob/7e4d8ab164258f6bd48be56589dacd9bdd7fded2/src/css/_modebar.scss#L5
- * In case a dropdown is above the graph, the dropdown's options
- * will be rendered below the modebar
- * Increase the select option's z-index
- */
-
-/* This was actually not quite right -
-   dropdowns were overlapping each other (edited October 26)
-
-.Select {
-    z-index: 1002;
-}*/
-
 
 /* Grid
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -47,25 +45,25 @@
     width: 100%;
     float: left;
     box-sizing: border-box; }
-  
+
   /* For devices larger than 400px */
   @media (min-width: 400px) {
     .container {
       width: 85%;
       padding: 0; }
   }
-  
+
   /* For devices larger than 550px */
   @media (min-width: 550px) {
     .container {
       width: 80%; }
     .column,
     .columns {
-      margin-left: 4%; }
+      margin-left: 2%; }
     .column:first-child,
     .columns:first-child {
-      margin-left: 0; }
-  
+      margin-left: 1%; }
+
     .one.column,
     .one.columns                    { width: 4.66666666667%; }
     .two.columns                    { width: 13.3333333333%; }
@@ -79,12 +77,12 @@
     .ten.columns                    { width: 82.6666666667%; }
     .eleven.columns                 { width: 91.3333333333%; }
     .twelve.columns                 { width: 100%; margin-left: 0; }
-  
+
     .one-third.column               { width: 30.6666666667%; }
     .two-thirds.column              { width: 65.3333333333%; }
-  
+
     .one-half.column                { width: 48%; }
-  
+
     /* Offsets */
     .offset-by-one.column,
     .offset-by-one.columns          { margin-left: 8.66666666667%; }
@@ -108,18 +106,18 @@
     .offset-by-ten.columns          { margin-left: 86.6666666667%; }
     .offset-by-eleven.column,
     .offset-by-eleven.columns       { margin-left: 95.3333333333%; }
-  
+
     .offset-by-one-third.column,
     .offset-by-one-third.columns    { margin-left: 34.6666666667%; }
     .offset-by-two-thirds.column,
     .offset-by-two-thirds.columns   { margin-left: 69.3333333333%; }
-  
+
     .offset-by-one-half.column,
     .offset-by-one-half.columns     { margin-left: 52%; }
-  
+
   }
-  
-  
+
+
   /* Base Styles
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   /* NOTE
@@ -133,8 +131,8 @@
     font-weight: 400;
     font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: rgb(50, 50, 50); }
-  
-  
+
+
   /* Typography
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   h1, h2, h3, h4, h5, h6 {
@@ -147,11 +145,11 @@
   h4 { font-size: 2.6rem; line-height: 1.35; letter-spacing: -.08rem; margin-bottom: 1.2rem; margin-top: 1.2rem;}
   h5 { font-size: 2.2rem; line-height: 1.5;  letter-spacing: -.05rem; margin-bottom: 0.6rem; margin-top: 0.6rem;}
   h6 { font-size: 2.0rem; line-height: 1.6;  letter-spacing: 0; margin-bottom: 0.75rem; margin-top: 0.75rem;}
-  
+
   p {
     margin-top: 0; }
-  
-  
+
+
   /* Blockquotes
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   blockquote {
@@ -161,29 +159,27 @@
     margin-bottom: 2rem;
     margin-left: 0rem;
   }
-  
-  
+
+
   /* Links
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   a {
-    color: #1EAEDB; 
+    color: #1EAEDB;
     text-decoration: underline;
     cursor: pointer;}
   a:hover {
     color: #0FA0CE; }
-  
-  
+
+
   /* Buttons
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   .button,
   button,
-  input[type="submit"],
-  input[type="reset"],
   input[type="button"] {
     display: inline-block;
     height: 38px;
     padding: 0 30px;
-    color: #555;
+    color: white;
     text-align: center;
     font-size: 11px;
     font-weight: 600;
@@ -196,28 +192,32 @@
     border-radius: 4px;
     border: 1px solid #bbb;
     cursor: pointer;
-    box-sizing: border-box; }
+    box-sizing: border-box;
+    background-color: #2a7de1 ;
+  }
   .button:hover,
   button:hover,
-  input[type="submit"]:hover,
-  input[type="reset"]:hover,
+
   input[type="button"]:hover,
   .button:focus,
   button:focus,
   input[type="submit"]:focus,
   input[type="reset"]:focus,
   input[type="button"]:focus {
-    color: #333;
+    color: white;
     border-color: #888;
-    outline: 0; }
+    outline: 0;
+    background-color: #074c91;
+
+  }
   .button.button-primary,
   button.button-primary,
   input[type="submit"].button-primary,
   input[type="reset"].button-primary,
   input[type="button"].button-primary {
-    color: #FFF;
+    color: #EEEEEE;
     background-color: #33C3F0;
-    border-color: #33C3F0; }
+  }
   .button.button-primary:hover,
   button.button-primary:hover,
   input[type="submit"].button-primary:hover,
@@ -231,8 +231,8 @@
     color: #FFF;
     background-color: #1EAEDB;
     border-color: #1EAEDB; }
-  
-  
+
+
   /* Forms
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   input[type="email"],
@@ -250,7 +250,7 @@
     border: 1px solid #D1D1D1;
     border-radius: 4px;
     box-shadow: none;
-    box-sizing: border-box; 
+    box-sizing: border-box;
     font-family: inherit;
     font-size: inherit; /*https://stackoverflow.com/questions/6080413/why-doesnt-input-inherit-the-font-from-body*/}
   /* Removes awkward default styles on some inputs for iOS */
@@ -277,9 +277,9 @@
   input[type="url"]:focus,
   input[type="password"]:focus,
   textarea:focus,
-  select:focus {
-    border: 1px solid #33C3F0;
-    outline: 0; }
+  /*select:focus {*/
+  /*  border: 1px solid #33C3F0;*/
+  /*  outline: 0; }*/
   label,
   legend {
     display: block;
@@ -294,17 +294,8 @@
     display: inline-block;
     margin-left: .5rem;
     font-weight: normal; }
-    input[type="number"]:invalid {
-      border-color: #dc3545;
-      padding-right: calc(1.5em + 0.75rem);
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right calc(0.375em + 0.1875rem) center;
-      background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-      outline: none;
-    }
-  
-  
+
+
   /* Lists
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   ul {
@@ -322,26 +313,26 @@
     font-size: 90%; }
   li {
     margin-bottom: 1rem; }
-  
-  
+
+
   /* Tables
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   table {
     border-collapse: collapse;
   }
-  th:not(.CalendarDay),
-  td:not(.CalendarDay) {
+  th,
+  td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #E1E1E1; }
-  th:first-child:not(.CalendarDay),
-  td:first-child:not(.CalendarDay) {
+  th:first-child,
+  td:first-child {
     padding-left: 0; }
-  th:last-child:not(.CalendarDay),
-  td:last-child:not(.CalendarDay) {
+  th:last-child,
+  td:last-child {
     padding-right: 0; }
-  
-  
+
+
   /* Spacing
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   button,
@@ -362,7 +353,7 @@
   ul,
   ol {
     margin-bottom: 0.75rem; }
-  
+
   /* Utilities
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   .u-full-width {
@@ -375,8 +366,8 @@
     float: right; }
   .u-pull-left {
     float: left; }
-  
-  
+
+
   /* Misc
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   hr {
@@ -384,11 +375,11 @@
     margin-bottom: 3.5rem;
     border-width: 0;
     border-top: 1px solid #E1E1E1; }
-  
-  
+
+
   /* Clearing
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
-  
+
   /* Self Clearing Goodness */
   .container:after,
   .row:after,
@@ -396,8 +387,8 @@
     content: "";
     display: table;
     clear: both; }
-  
-  
+
+
   /* Media Queries
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   /*
@@ -406,19 +397,19 @@
   on small devices, paste the mobile query code up in the buttons section and style it
   there.
   */
-  
-  
+
+
   /* Larger than mobile */
   @media (min-width: 400px) {}
-  
+
   /* Larger than phablet (also point when grid becomes active) */
   @media (min-width: 550px) {}
-  
+
   /* Larger than tablet */
   @media (min-width: 750px) {}
-  
+
   /* Larger than desktop */
   @media (min-width: 1000px) {}
-  
+
   /* Larger than Desktop HD */
   @media (min-width: 1200px) {}
