@@ -22,7 +22,7 @@ import pandas as pd
 from dash import ALL, MATCH, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 
-from demo_enums import SolverType
+from src.demo_enums import SolverType
 import src.employee_scheduling as employee_scheduling
 import src.utils as utils
 from demo_configs import (
@@ -322,8 +322,6 @@ def run_optimization(
     availability = utils.availability_to_dict(sched_df["props"]["data"])
     employees = list(availability.keys())
 
-    isolated_days_allowed = True if 0 in checklist else False
-
     forecast = [
         val if isinstance(val, int)
         else forecast_placeholder[i]
@@ -335,10 +333,10 @@ def run_optimization(
         shifts=shifts,
         min_shifts=min(shifts_per_employee),
         max_shifts=max(shifts_per_employee),
-        forecast,
-        allow_isolated_days_off=isolated_days_allowed,
+        shift_forecast=forecast,
+        allow_isolated_days_off=0 in checklist,
         max_consecutive_shifts=consecutive_shifts,
-        num_full_time,
+        num_full_time=num_full_time,
     )
 
     if solver_type is SolverType.NL:

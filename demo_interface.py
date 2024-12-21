@@ -29,7 +29,7 @@ from demo_configs import (
     THUMBNAIL,
     UNAVAILABLE_ICON,
 )
-from demo_enums import SolverType
+from src.demo_enums import SolverType
 from src.utils import COL_IDS
 
 
