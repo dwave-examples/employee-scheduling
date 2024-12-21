@@ -29,6 +29,7 @@ from demo_configs import (
     THUMBNAIL,
     UNAVAILABLE_ICON,
 )
+from src.demo_enums import SolverType
 from src.utils import COL_IDS
 
 
@@ -83,6 +84,28 @@ def range_slider(label: str, id: str, config: dict) -> html.Div:
     )
 
 
+def dropdown(label: str, id: str, options: list) -> html.Div:
+    """Dropdown element for option selection.
+    Args:
+        label: The title that goes above the dropdown.
+        id: A unique selector for this element.
+        options: A list of dictionaries of labels and values.
+    """
+    return html.Div(
+        className="dropdown-wrapper",
+        children=[
+            html.Label(label),
+            dcc.Dropdown(
+                id=id,
+                options=options,
+                value=options[0]["value"],
+                clearable=False,
+                searchable=False,
+            ),
+        ],
+    )
+
+
 def generate_options(options_list: list) -> list[dict]:
     """Generates options for dropdowns, checklists, radios, etc."""
     return [{"label": label, "value": i} for i, label in enumerate(options_list)]
@@ -95,22 +118,23 @@ def generate_settings_form() -> html.Div:
         html.Div: A Div containing the settings for selecting the scenario, model, and solver.
     """
     example_scenario = generate_options(EXAMPLE_SCENARIO)
+    solver_options = [
+        {"label": solver_type.label, "value": solver_type.value} for solver_type in SolverType
+    ]
 
     return html.Div(
         className="settings",
         id="control-card",
         children=[
-            html.Div(
-                children=[
-                    html.Label("Presets (sets sliders below)"),
-                    dcc.Dropdown(
-                        id="example-scenario-select",
-                        options=example_scenario,
-                        value=example_scenario[0]["value"],
-                        clearable=False,
-                        searchable=False,
-                    ),
-                ]
+            dropdown(
+                "Solver",
+                "solver-select",
+                solver_options,
+            ),
+            dropdown(
+                "Presets (sets sliders below)",
+                "example-scenario-select",
+                example_scenario,
             ),
             slider(
                 "Employees",

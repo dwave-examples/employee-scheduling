@@ -13,13 +13,16 @@
 # limitations under the License.
 from __future__ import annotations
 
+from dataclasses import asdict
 import math
+from typing import Union
 
 import dash
 import pandas as pd
 from dash import ALL, MATCH, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 
+from src.demo_enums import SolverType
 import src.employee_scheduling as employee_scheduling
 import src.utils as utils
 from demo_configs import (
@@ -258,6 +261,7 @@ def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[str, list]:
         State({"type": "forecast", "index": ALL}, "value"),
         State({"type": "forecast", "index": ALL}, "placeholder"),
         State("availability-content", "children"),
+        State("solver-select", "value"),
     ],
     running=[
         # show cancel button and hide run button, and disable and animate results tab
@@ -280,6 +284,7 @@ def run_optimization(
     forecast: list[int],
     forecast_placeholder: list[int],
     sched_df: pd.DataFrame,
+    solver_type: Union[SolverType, int],
 ) -> tuple[pd.DataFrame, dict, list, list]:
     """Runs the optimization and updates UI accordingly.
 
@@ -296,6 +301,7 @@ def run_optimization(
         num_full_time: The number of full-time employees.
         forecast: The forecasted employees per shift requirements.
         sched_df: The schedule dataframe.
+        solver_type: The selected solver type.
 
     Returns:
         A tuple containing all outputs to be used when updating the HTML
@@ -309,13 +315,12 @@ def run_optimization(
     if run_click == 0 or ctx.triggered_id != "run-button":
         raise PreventUpdate
 
+    solver_type = SolverType(solver_type)
     shifts = list(sched_df["props"]["data"][0].keys())
     shifts.remove("Employee")
 
     availability = utils.availability_to_dict(sched_df["props"]["data"])
     employees = list(availability.keys())
-
-    isolated_days_allowed = True if 0 in checklist else False
 
     forecast = [
         val if isinstance(val, int)
@@ -323,20 +328,30 @@ def run_optimization(
         for i, val in enumerate(forecast)
     ]
 
-    cqm = employee_scheduling.build_cqm(
-        availability,
-        shifts,
-        *shifts_per_employee,
-        forecast,
-        isolated_days_allowed,
-        consecutive_shifts + 1,
-        num_full_time,
+    params = utils.ModelParams(
+        availability=availability,
+        shifts=shifts,
+        min_shifts=min(shifts_per_employee),
+        max_shifts=max(shifts_per_employee),
+        shift_forecast=forecast,
+        allow_isolated_days_off=0 in checklist,
+        max_consecutive_shifts=consecutive_shifts,
+        num_full_time=num_full_time,
     )
 
-    sampleset, errors = employee_scheduling.run_cqm(cqm)
-    sample = sampleset.first.sample
+    if solver_type is SolverType.NL:
+        model, assignments = employee_scheduling.build_nl(**asdict(params))
+        errors = employee_scheduling.run_nl(model, assignments, **asdict(params))
+        sched = utils.build_schedule_from_state(assignments.state(), employees, shifts)
 
-    sched = utils.build_schedule_from_sample(sample, employees)
+    else: # CQM
+        cqm = employee_scheduling.build_cqm(**asdict(params))
+
+        feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
+        sample = feasible_sampleset.first.sample
+
+        sched = utils.build_schedule_from_sample(sample, employees)
+
     scheduled_count = sched.map(lambda cell: UNAVAILABLE_ICON not in cell).sum()[1:].to_dict()
 
     return (

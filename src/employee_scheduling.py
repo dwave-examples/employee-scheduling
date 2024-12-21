@@ -12,16 +12,39 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 from collections import defaultdict
+from typing import Optional
 
 from dimod import Binary, BinaryQuadraticModel, ConstrainedQuadraticModel, quicksum
-from dwave.system import LeapHybridCQMSampler
+from dwave.optimization.model import Model
+from dwave.optimization.mathematical import add
+from dwave.optimization.symbols import BinaryVariable
+from dwave.system import LeapHybridCQMSampler, LeapHybridNLSampler
 
-from src.utils import DAYS, FULL_TIME_SHIFTS, SHIFTS
+from src.utils import DAYS, FULL_TIME_SHIFTS, SHIFTS, validate_nl_schedule
 
 
-def build_cqm(
-    availability: dict,
-    shifts: list,
+MSGS = {
+    "unavailable": ("Employees scheduled when unavailable", "{employee} on {day}"),
+    "overtime": ("Employees with scheduled overtime", "{employee}"),
+    "insufficient": ("Employees with not enough scheduled time", "{employee}"),
+    "understaffed": ("Understaffed shifts", "{day} is understaffed"),
+    "overstaffed": ("Overstaffed shifts", "{day} is overstaffed"),
+    "isolated": ("Isolated shifts", "{day} is an isolated day off for {employee}"),
+    "manager_issue": ("Shifts with no manager", "No manager scheduled on {day}"),
+    "too_many_consecutive": (
+        "Employees with too many consecutive shifts",
+        "{employee} starting with {day}",
+    ),
+    "trainee_issue": (
+        "Shifts with trainee scheduling issues",
+        "Trainee scheduling issue on {day}",
+    ),
+}
+
+
+def build_cqm(  # params: ModelParams
+    availability: dict[str, list[int]],
+    shifts: list[str],
     min_shifts: int,
     max_shifts: int,
     shift_forecast: list,
@@ -77,7 +100,9 @@ def build_cqm(
     for employee, schedule in availability.items():
         for i, shift in enumerate(shifts):
             if schedule[i] == 0:
-                cqm.add_constraint(x[employee, shift] == 0, label=f"unavailable,{employee},{shift}")
+                cqm.add_constraint(
+                    x[employee, shift] == 0, label=f"unavailable,{employee},{shift}"
+                )
 
     for employee in employees_pt:
         # Schedule employees for at most max_shifts
@@ -93,7 +118,7 @@ def build_cqm(
         )
 
     for employee in employees_ft:
-        # Schedule employees for at most max_shifts
+        # Schedule full time employees for all their shifts
         cqm.add_constraint(
             quicksum(x[employee, shift] for shift in shifts) <= FULL_TIME_SHIFTS,
             label=f"overtime,{employee},",
@@ -104,7 +129,7 @@ def build_cqm(
             label=f"insufficient,{employee},",
         )
 
-    # Every shift needs shift_min and shift_max employees working
+    # Every shift needs shift_forecast employees working
     for i, shift in enumerate(shifts):
         cqm.add_constraint(
             sum(x[employee, shift] for employee in employees) >= shift_forecast[i],
@@ -141,10 +166,10 @@ def build_cqm(
 
     # Don't exceed max_consecutive_shifts
     for employee in employees_pt:
-        for s in range(len(shifts) - max_consecutive_shifts + 1):
+        for s in range(len(shifts) - max_consecutive_shifts):
             cqm.add_constraint(
-                quicksum([x[employee, shifts[s + i]] for i in range(max_consecutive_shifts)])
-                <= max_consecutive_shifts - 1,
+                quicksum([x[employee, shifts[s + i]] for i in range(max_consecutive_shifts + 1)])
+                <= max_consecutive_shifts,
                 label=f"too_many_consecutive,{employee},{shifts[s]}",
             )
 
@@ -185,28 +210,11 @@ def run_cqm(cqm: ConstrainedQuadraticModel):
         if s_vals == {0.0}:
             sampleset.first.sample[list(cqm.variables)[0]] = 1.0
 
-        msgs = {
-            "unavailable": ("Employees scheduled when unavailable", "{employee} on {day}"),
-            "overtime": ("Employees with scheduled overtime", "{employee}"),
-            "insufficient": ("Employees with not enough scheduled time", "{employee}"),
-            "understaffed": ("Understaffed shifts", "{day} is understaffed"),
-            "overstaffed": ("Overstaffed shifts", "{day} is overstaffed"),
-            "isolated": ("Isolated shifts", "{day} is an isolated day off for {employee}"),
-            "manager_issue": ("Shifts with no manager", "No manager scheduled on {day}"),
-            "too_many_consecutive": (
-                "Employees with too many consecutive shifts",
-                "{employee} starting with {day}",
-            ),
-            "trainee_issue": (
-                "Shifts with trainee scheduling issues",
-                "Trainee scheduling issue on {day}",
-            ),
-        }
         for i, _ in enumerate(sat_array):
             if not sat_array[i]:
                 key, *data = sampleset.info["constraint_labels"][i].split(",")
                 try:
-                    heading, error_msg = msgs[key]
+                    heading, error_msg = MSGS[key]
                 except KeyError:
                     # ignore any unknown constraint labels
                     continue
@@ -224,3 +232,187 @@ def run_cqm(cqm: ConstrainedQuadraticModel):
         return sampleset, errors
 
     return feasible_sampleset, None
+
+
+def build_nl(  # params: ModelParams
+    availability: dict[str, list[int]],
+    shifts: list[str],
+    min_shifts: int,
+    max_shifts: int,
+    shift_forecast: list,
+    allow_isolated_days_off: bool,
+    max_consecutive_shifts: int,
+    num_full_time: int,
+) -> tuple[Model, BinaryVariable]:
+    """Builds an employee scheduling nonlinear model.
+
+    Args:
+        availability (dict[str, list[int]]): Employee availability.
+        shifts (list[str]): Shift labels.
+        min_shifts (int): Minimum shifts per employee.
+        max_shifts (int): Maximum shifts per employee.
+        shift_forecast (list[int]): A list of the number of expected employees needed per shift.
+        allow_isolated_days_off (bool): Whether to allow isolated days off.
+        max_consecutive_shifts (int): Maximum consecutive shifts per employee.
+        num_full_time (int): The number of full time employees.
+
+    Returns:
+        tuple[Model, BinaryVariable]: the NL model and assignments decision variable
+    """
+    # Create list of employees
+    employees = list(availability)
+    model = Model()
+
+    # Create a binary symbol representing the assignment of employees to shifts
+    # i.e. assignments[employee][shift] = 1 if assigned, else 0
+    num_employees = len(employees)
+    num_part_time = num_employees - num_full_time
+    num_shifts = len(shifts)
+    assignments = model.binary((num_employees, num_shifts))
+
+    # Create availability constant
+    availability_list = [availability[employee] for employee in employees]
+    # Boost objective value of preferred shifts from 2 to 100
+    for i, sublist in enumerate(availability_list):
+        availability_list[i] = [a if a != 2 else 100 for a in sublist]
+    availability_const = model.constant(availability_list)
+
+    # Initialize model constants
+    min_shifts_constant = model.constant(min_shifts)
+    max_shifts_constant = model.constant(max_shifts)
+    full_time_shifts_constant = model.constant(FULL_TIME_SHIFTS)
+    shift_forecast_constant = model.constant(shift_forecast)
+    max_consecutive_shifts_c = model.constant(max_consecutive_shifts)
+    one_c = model.constant(1)
+
+    # OBJECTIVES:
+    # Objective: give employees preferred schedules (val = 2)
+    obj = (assignments * availability_const).sum()
+
+    # Objective: for infeasible solutions, focus on right number of shifts for employees
+    target_shifts = model.constant((min_shifts + max_shifts) / 2)
+    shift_difference_list_pt = [
+        (assignments[e, :].sum() - target_shifts) ** 2 for e in range(num_part_time)
+    ]
+    shift_difference_list_ft = [
+        (assignments[e, :].sum() - full_time_shifts_constant) ** 2 for e in range(num_full_time)
+    ]
+    obj += add(*shift_difference_list_pt, *shift_difference_list_ft)
+
+    model.minimize(-obj)
+
+    # CONSTRAINTS:
+    # Only schedule employees when they're available
+    model.add_constraint((availability_const >= assignments).all())
+
+    for e in range(num_part_time):
+        # Schedule employees for at most max_shifts
+        model.add_constraint(assignments[e, :].sum() <= max_shifts_constant)
+
+        # Schedule employees for at least min_shifts
+        model.add_constraint(assignments[e, :].sum() >= min_shifts_constant)
+
+    for e in range(num_full_time):
+        # Schedule full time employees for all their shifts
+        model.add_constraint(assignments[e, :].sum() == full_time_shifts_constant)
+
+    # Every shift needs shift_forecast employees working
+    # model.add_constraint(([assignments[:, s].sum() for s in range(num_shifts)] == shift_forecast_constant).all())
+
+    # shft_fcst = model.constant(shift_forecast)
+    model.add_constraint((assignments.sum(axis=0) == shift_forecast_constant).all())
+
+    managers_c = model.constant(
+        [employees.index(e) for e in employees if e[-3:] == "Mgr"]
+    )
+    trainees_c = model.constant(
+        [employees.index(e) for e in employees if e[-2:] == "Tr"]
+    )
+
+    if not allow_isolated_days_off:
+        negthree_c = model.constant(-3)
+        zero_c = model.constant(0)
+        # Adding many small constraints greatly improves feasibility
+        for e in range(num_part_time):
+            for s1 in range(len(shifts) - 2):
+                s2, s3 = s1 + 1, s1 + 2
+                model.add_constraint(
+                    negthree_c * assignments[e, s2]
+                    + assignments[e][s1] * assignments[e][s2]
+                    + assignments[e][s1] * assignments[e][s3]
+                    + assignments[e][s2] * assignments[e][s3]
+                    <= zero_c
+                )
+
+    for shift in range(len(shifts)):
+        model.add_constraint(assignments[managers_c][:, shift].sum() >= one_c)
+
+    # Don't exceed max_consecutive_shifts
+    for e in range(num_part_time):
+        for s in range(num_shifts - max_consecutive_shifts + 1):
+            s_window = s + max_consecutive_shifts + 1
+            model.add_constraint(
+                assignments[e][s : s_window + 1].sum() <= max_consecutive_shifts_c
+            )
+
+    # Trainee must work on shifts with trainer
+    trainers = []
+    for i in trainees_c.state():
+        trainer_name = employees[int(i)][:-3]
+        trainers.append(employees.index(trainer_name))
+    trainers_c = model.constant(trainers)
+
+    model.add_constraint((assignments[trainees_c] <= assignments[trainers_c]).all())
+
+    return model, assignments
+
+
+def run_nl(
+    model: Model,
+    assignments: BinaryVariable,
+    availability: dict[str, list[int]],
+    shifts: list[str],
+    min_shifts: int,
+    max_shifts: int,
+    shift_forecast: list[int],
+    allow_isolated_days_off: bool,
+    max_consecutive_shifts: int,
+    num_full_time: int,
+    time_limit: Optional[int] = None,
+    msgs: dict[str, tuple[str, str]] = MSGS,
+) -> Optional[defaultdict[str, list[str]]]:
+    """Solves the NL scheduling model and detects any errors.
+
+    Args:
+        model (Model): NL model to solve
+        assignments (BinaryVariable): decision variable for employee shifts
+        time_limit (int | None, optional): time limit for sampling. Defaults to None.
+    """
+    if not model.is_locked():
+        model.lock()
+
+    sampler = LeapHybridNLSampler()
+    sampler.sample(model, time_limit=time_limit)
+    errors = validate_nl_schedule(
+        assignments,
+        msgs,
+        availability,
+        shifts,
+        min_shifts,
+        max_shifts,
+        shift_forecast,
+        allow_isolated_days_off,
+        max_consecutive_shifts,
+        num_full_time,
+    )
+
+    # Return errors if any error message list is populated
+    for error_list in errors.values():
+        if len(error_list) > 0:
+            return errors
+
+    return None
+
+
+if __name__ == "__main__":
+    ...
