@@ -58,7 +58,7 @@ NUM_EMPLOYEES = {
     "value": 12,
 }
 
-# number of full time employees slider (value means default)
+# number of full-time employees slider (value means default)
 NUM_FULL_TIME = {
     "min": 0,
     "max": 9,

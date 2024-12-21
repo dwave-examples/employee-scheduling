@@ -59,23 +59,21 @@ class ModelParams:
         shifts (list[str]): List of shift labels.
         min_shifts (int): Min shifts per employee.
         max_shifts (int): Max shifts per employee.
-        shift_min (int): Min employees per shift.
-        shift_max (int): Max employees per shift.
-        requires_manager (bool): Whether a manager is required on every shift.
+        shift_forecast (list[int]): The forecasted employees per shift requirements.
         allow_isolated_days_off (bool): Whether isolated shifts off are allowed
             (pattern of on-off-on).
         max_consecutive_shifts (int): Max consecutive shifts for each employee.
+        num_full_time: The number of full-time employees.
     """
 
     availability: dict[str, list[int]]
     shifts: list[str]
     min_shifts: int
     max_shifts: int
-    shift_min: int
-    shift_max: int
-    requires_manager: bool
+    shift_forecast: list[int]
     allow_isolated_days_off: bool
     max_consecutive_shifts: int
+    num_full_time: int
 
 
 def get_random_string(length):
@@ -380,11 +378,10 @@ def validate_nl_schedule(
     shifts: list[str],
     min_shifts: int,
     max_shifts: int,
-    shift_min: int,
-    shift_max: int,
-    requires_manager: bool,
+    shift_forecast: list[int],
     allow_isolated_days_off: bool,
     max_consecutive_shifts: int,
+    num_full_time: int,
 ) -> defaultdict[str, list[str]]:
     """Detect any errors in a solved NL scheduling model.
 
@@ -438,11 +435,10 @@ def validate_nl_schedule(
 
     _validate_availability(result, availability, employees, shift_labels, errors, msgs)
     _validate_shifts_per_employee(result, employees, min_shifts, max_shifts, errors, msgs)
-    _validate_employees_per_shift(result, shift_min, shift_max, shift_labels, errors, msgs)
+    _validate_employees_per_shift(result, shift_forecast, shift_labels, errors, msgs)
     _validate_max_consecutive_shifts(result, max_consecutive_shifts, employees, shift_labels, errors, msgs)
     _validate_trainee_shifts(result, employees, shift_labels, errors, msgs)
-    if requires_manager:
-        _validate_requires_manager(result, employees, shift_labels, errors, msgs)
+    _validate_requires_manager(result, employees, shift_labels, errors, msgs)
     if not allow_isolated_days_off:
         _validate_isolated_days_off(result, employees, shift_labels, errors, msgs)
 
@@ -496,8 +492,7 @@ def _validate_shifts_per_employee(
 
 def _validate_employees_per_shift(
     results: np.ndarray,
-    shift_min: int,
-    shift_max: int,
+    shift_forecast: list[int],
     shift_labels: list[int],
     errors: defaultdict[str, list[str]],
     msgs: dict[str, tuple[str, str]],
@@ -510,9 +505,9 @@ def _validate_employees_per_shift(
 
     for s, day in enumerate(shift_labels):
         num_employees = results[:, s].sum()
-        if num_employees < shift_min:
+        if num_employees < shift_forecast[s]:
             errors[understaffed_key].append(understaffed_template.format(day=day))
-        elif num_employees > shift_max:
+        elif num_employees > shift_forecast[s]:
             errors[overstaffed_key].append(overstaffed_template.format(day=day))
     return errors
 
