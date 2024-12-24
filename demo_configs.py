@@ -37,6 +37,7 @@ UNAVAILABLE_ICON = "x"
 # Optional: None or an integer
 RANDOM_SEED = None
 
+USE_NL = False  # Uses NL if True, otherwise uses CQM
 
 #######################################
 # Sliders, buttons and option entries #

@@ -32,6 +32,7 @@ from demo_configs import (
     REQUESTED_SHIFT_ICON,
     SMALL_SCENARIO,
     UNAVAILABLE_ICON,
+    USE_NL,
 )
 from demo_interface import errors_list, generate_forecast_table
 
@@ -261,7 +262,6 @@ def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[str, list]:
         State({"type": "forecast", "index": ALL}, "value"),
         State({"type": "forecast", "index": ALL}, "placeholder"),
         State("availability-content", "children"),
-        State("solver-select", "value"),
     ],
     running=[
         # show cancel button and hide run button, and disable and animate results tab
@@ -284,7 +284,6 @@ def run_optimization(
     forecast: list[int],
     forecast_placeholder: list[int],
     sched_df: pd.DataFrame,
-    solver_type: Union[SolverType, int],
 ) -> tuple[pd.DataFrame, dict, list, list]:
     """Runs the optimization and updates UI accordingly.
 
@@ -301,7 +300,6 @@ def run_optimization(
         num_full_time: The number of full-time employees.
         forecast: The forecasted employees per shift requirements.
         sched_df: The schedule dataframe.
-        solver_type: The selected solver type.
 
     Returns:
         A tuple containing all outputs to be used when updating the HTML
@@ -315,7 +313,7 @@ def run_optimization(
     if run_click == 0 or ctx.triggered_id != "run-button":
         raise PreventUpdate
 
-    solver_type = SolverType(solver_type)
+    solver_type = SolverType.NL if USE_NL else SolverType.CQM
     shifts = list(sched_df["props"]["data"][0].keys())
     shifts.remove("Employee")
 

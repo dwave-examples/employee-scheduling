@@ -29,7 +29,6 @@ from demo_configs import (
     THUMBNAIL,
     UNAVAILABLE_ICON,
 )
-from src.demo_enums import SolverType
 from src.utils import COL_IDS
 
 
@@ -118,19 +117,11 @@ def generate_settings_form() -> html.Div:
         html.Div: A Div containing the settings for selecting the scenario, model, and solver.
     """
     example_scenario = generate_options(EXAMPLE_SCENARIO)
-    solver_options = [
-        {"label": solver_type.label, "value": solver_type.value} for solver_type in SolverType
-    ]
 
     return html.Div(
         className="settings",
         id="control-card",
         children=[
-            dropdown(
-                "Solver",
-                "solver-select",
-                solver_options,
-            ),
             dropdown(
                 "Presets (sets sliders below)",
                 "example-scenario-select",
