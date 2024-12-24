@@ -21,8 +21,8 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 from dash import dash_table
-from faker import Faker
 from dwave.optimization.symbols import BinaryVariable
+from faker import Faker
 
 from demo_configs import RANDOM_SEED, REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
 
@@ -38,6 +38,7 @@ SHIFTS = [
 DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 WEEKEND_IDS = ["1", "7", "8", "14"]
 FULL_TIME_SHIFTS = 10
+
 
 @dataclass
 class ModelParams:
@@ -161,13 +162,7 @@ def build_random_sched(num_employees, num_full_time):
     )
 
     data = pd.DataFrame(
-        np.concatenate(
-            (
-                *all_full_time,
-                all_part_time
-            )
-        ) if all_full_time
-        else all_part_time,
+        np.concatenate((*all_full_time, all_part_time)) if all_full_time else all_part_time,
         columns=COL_IDS,
     )
 
@@ -226,7 +221,6 @@ def get_cols():
         {"id": str(i + 1), "name": [month_display[0 if i < 7 else 1], DAYS[i % 7], c]}
         for i, c in enumerate(SHIFTS)
     ]
-
 
 
 def get_cell_styling(cols):
@@ -363,9 +357,12 @@ def availability_to_dict(availability_list):
 
     for row in availability_list:
         availability_dict[row["Employee"]] = [
-            0 if row[col_id] == UNAVAILABLE_ICON
-            else 2 if row[col_id] == REQUESTED_SHIFT_ICON
-            else 1 for col_id in COL_IDS
+            (
+                0
+                if row[col_id] == UNAVAILABLE_ICON
+                else 2 if row[col_id] == REQUESTED_SHIFT_ICON else 1
+            )
+            for col_id in COL_IDS
         ]
 
     return availability_dict
@@ -436,7 +433,9 @@ def validate_nl_schedule(
     _validate_availability(result, availability, employees, shift_labels, errors, msgs)
     _validate_shifts_per_employee(result, employees, min_shifts, max_shifts, errors, msgs)
     _validate_employees_per_shift(result, shift_forecast, shift_labels, errors, msgs)
-    _validate_max_consecutive_shifts(result, max_consecutive_shifts, employees, shift_labels, errors, msgs)
+    _validate_max_consecutive_shifts(
+        result, max_consecutive_shifts, employees, shift_labels, errors, msgs
+    )
     _validate_trainee_shifts(result, employees, shift_labels, errors, msgs)
     _validate_requires_manager(result, employees, shift_labels, errors, msgs)
     if not allow_isolated_days_off:
@@ -460,9 +459,7 @@ def _validate_availability(
     for e, employee in enumerate(employees):
         for s, day in enumerate(shift_labels):
             if results[e, s] > availability[employee][s]:
-                errors[msg_key].append(
-                    msg_template.format(employee=employee, day=day)
-                )
+                errors[msg_key].append(msg_template.format(employee=employee, day=day))
     return errors
 
 
@@ -482,9 +479,7 @@ def _validate_shifts_per_employee(
     for e, employee in enumerate(employees):
         num_shifts = results[e, :].sum()
         if num_shifts < min_shifts:
-            errors[insufficient_key].append(
-                insufficient_template.format(employee=employee)
-            )
+            errors[insufficient_key].append(insufficient_template.format(employee=employee))
         elif num_shifts > max_shifts:
             errors[overtime_key].append(overtime_template.format(employee=employee))
     return errors
@@ -523,9 +518,7 @@ def _validate_requires_manager(
     the `errors` dictionary with any errors found. Requires the `msgs` dict
     to have the key `'manager_issue'`."""
     key, template = msgs["manager_issue"]
-    employee_arr = np.asarray(
-        [employees.index(e) for e in employees if e[-3:] == "Mgr"]
-    )
+    employee_arr = np.asarray([employees.index(e) for e in employees if e[-3:] == "Mgr"])
     managers_per_shift = results[employee_arr].sum(axis=0)
     for shift, num_managers in enumerate(managers_per_shift):
         if num_managers == 0:
@@ -567,15 +560,13 @@ def _validate_max_consecutive_shifts(
     to have the key `'too_many_consecutive'`."""
     key, template = msgs["too_many_consecutive"]
     for e, employee in enumerate(employees):
-        consecutive_shift_arrays = (
-            [results[e, i : i + max_consecutive_shifts]
-             for i in range(results.shape[1] - max_consecutive_shifts)]
-        )
+        consecutive_shift_arrays = [
+            results[e, i : i + max_consecutive_shifts]
+            for i in range(results.shape[1] - max_consecutive_shifts)
+        ]
         for shift, shift_arr in enumerate(consecutive_shift_arrays):
             if shift_arr.sum() > max_consecutive_shifts:
-                errors[key].append(
-                    template.format(employee=employee, day=shift_labels[shift])
-                )
+                errors[key].append(template.format(employee=employee, day=shift_labels[shift]))
                 break
     return errors
 
@@ -592,9 +583,7 @@ def _validate_trainee_shifts(
     `msgs` dict to have the key `'trainee_issue'`."""
     key, template = msgs["trainee_issue"]
     trainees = {employees.index(e): e for e in employees if e[-2:] == "Tr"}
-    trainers = {
-        employees.index(e): e for e in employees if e + "-Tr" in trainees.values()
-    }
+    trainers = {employees.index(e): e for e in employees if e + "-Tr" in trainees.values()}
     for (trainee_i), (trainer_i) in zip(trainees.keys(), trainers.keys()):
         same_shifts = np.less_equal(results[trainee_i], results[trainer_i])
         for i, s in enumerate(same_shifts):

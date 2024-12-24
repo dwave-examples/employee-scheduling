@@ -27,7 +27,7 @@ class TestDemo(unittest.TestCase):
     def setUp(self):
         self.num_employees = 12
         self.sched_df = display_initial_schedule(self.num_employees, None)[0].data
-        self.shifts =list(self.sched_df[0].keys())
+        self.shifts = list(self.sched_df[0].keys())
         self.shifts.remove("Employee")
         self.availability = utils.availability_to_dict(self.sched_df)
         self.test_params = utils.ModelParams(
@@ -39,9 +39,9 @@ class TestDemo(unittest.TestCase):
             shift_max=16,
             requires_manager=True,
             allow_isolated_days_off=False,
-            max_consecutive_shifts=6
+            max_consecutive_shifts=6,
         )
-        
+
     # Check that initial schedule created is the right size
     def test_initial_sched(self):
         self.assertEqual(len(self.sched_df), self.num_employees)
@@ -50,15 +50,13 @@ class TestDemo(unittest.TestCase):
     def test_cqm(self):
         cqm = employee_scheduling.build_cqm(**asdict(self.test_params))
 
-        self.assertEqual(len(cqm.variables),
-                         self.num_employees * len(self.shifts))
+        self.assertEqual(len(cqm.variables), self.num_employees * len(self.shifts))
 
     # Check that NL assignments variable is the correct shape
     def test_nl(self):
         _, assignments = employee_scheduling.build_nl(**asdict(self.test_params))
 
-        self.assertEqual(assignments.shape(),
-                        (self.num_employees, len(self.shifts)))
+        self.assertEqual(assignments.shape(), (self.num_employees, len(self.shifts)))
 
     def test_samples_cqm(self):
         shifts = [str(i + 1) for i in range(5)]
@@ -83,7 +81,7 @@ class TestDemo(unittest.TestCase):
             shift_max=16,
             requires_manager=True,
             allow_isolated_days_off=False,
-            max_consecutive_shifts=6
+            max_consecutive_shifts=6,
         )
 
         cqm = employee_scheduling.build_cqm(**asdict(test_params))
@@ -179,7 +177,7 @@ class TestDemo(unittest.TestCase):
             shift_max=16,
             requires_manager=True,
             allow_isolated_days_off=False,
-            max_consecutive_shifts=6
+            max_consecutive_shifts=6,
         )
 
         model, assignments = employee_scheduling.build_nl(**asdict(test_params))
@@ -191,22 +189,22 @@ class TestDemo(unittest.TestCase):
         model.states.resize(2)
 
         feasible_state = [
-            [0, 0, 1, 1, 1], # A-Mgr
-            [1, 1, 0, 0, 0], # B-Mgr
-            [1, 1, 1, 1, 1], # C
-            [1, 1, 1, 1, 1], # D
-            [1, 1, 1, 1, 1], # E
-            [1, 1, 1, 1, 1]  # E-Tr
+            [0, 0, 1, 1, 1],  # A-Mgr
+            [1, 1, 0, 0, 0],  # B-Mgr
+            [1, 1, 1, 1, 1],  # C
+            [1, 1, 1, 1, 1],  # D
+            [1, 1, 1, 1, 1],  # E
+            [1, 1, 1, 1, 1],  # E-Tr
         ]
 
         # Infeasible: multiple managers scheduled for the same shift
         infeasible_state = [
-            [1, 1, 1, 1, 1], # A-Mgr
-            [1, 1, 1, 1, 1], # B-Mgr
-            [1, 1, 1, 1, 1], # C
-            [1, 1, 1, 1, 1], # D
-            [1, 1, 1, 1, 1], # E
-            [1, 1, 1, 1, 1]  # E-Tr
+            [1, 1, 1, 1, 1],  # A-Mgr
+            [1, 1, 1, 1, 1],  # B-Mgr
+            [1, 1, 1, 1, 1],  # C
+            [1, 1, 1, 1, 1],  # D
+            [1, 1, 1, 1, 1],  # E
+            [1, 1, 1, 1, 1],  # E-Tr
         ]
 
         # Assign feasible state to index 0
@@ -276,7 +274,7 @@ class TestDemo(unittest.TestCase):
 
     def test_build_from_state(self):
         employees = ["A-Mgr", "B-Mgr", "C", "D", "E", "E-Tr"]
-        shifts = [str(i+1) for i in range(14)]
+        shifts = [str(i + 1) for i in range(14)]
 
         # Make every employee available for every shift
         availability = {
@@ -288,19 +286,20 @@ class TestDemo(unittest.TestCase):
             "E-Tr": [1] * 14,
         }
 
-        state = asarray([
-            # Give managers alternating shifts
-            [i % 2 for i in range(14)],
-            [(i+1) % 2 for i in range(14)],
-            [1 for _ in range(14)],
-            [1 for _ in range(14)],
-            [1 for _ in range(14)],
-            [1 for _ in range(14)],
-        ])
+        state = asarray(
+            [
+                # Give managers alternating shifts
+                [i % 2 for i in range(14)],
+                [(i + 1) % 2 for i in range(14)],
+                [1 for _ in range(14)],
+                [1 for _ in range(14)],
+                [1 for _ in range(14)],
+                [1 for _ in range(14)],
+            ]
+        )
 
         disp_datatable = utils.display_schedule(
-            utils.build_schedule_from_state(state, employees, shifts),
-            availability
+            utils.build_schedule_from_state(state, employees, shifts), availability
         )
 
         self.assertIsInstance(disp_datatable, dash_table.DataTable)

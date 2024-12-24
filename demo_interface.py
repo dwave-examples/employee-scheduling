@@ -201,11 +201,20 @@ def generate_run_buttons() -> html.Div:
 
 def generate_forecast_table(forecast: list, scheduled: dict) -> html.Div:
     """Generate the forecasted vs scheduled table"""
-    forecast = {scheduled_key: forecast_value for scheduled_key, forecast_value in zip(scheduled.keys(), forecast)}
+    forecast = {
+        scheduled_key: forecast_value
+        for scheduled_key, forecast_value in zip(scheduled.keys(), forecast)
+    }
     return html.Div(
         className="schedule-forecast",
         children=[
-            html.Div([html.Label("Forecasted Need:"), html.Label("Scheduled Employees:"), html.Label("Difference:")]),
+            html.Div(
+                [
+                    html.Label("Forecasted Need:"),
+                    html.Label("Scheduled Employees:"),
+                    html.Label("Difference:"),
+                ]
+            ),
             dash_table.DataTable(
                 id="forecast-output",
                 columns=([{"id": p, "name": p} for p in forecast.keys()]),
@@ -242,7 +251,7 @@ def create_interface():
                     "num-full-time-select": NUM_FULL_TIME["value"],
                     "consecutive-shifts-select": MAX_CONSECUTIVE_SHIFTS["value"],
                     "shifts-per-employee-select": MIN_MAX_SHIFTS["value"],
-                }
+                },
             ),
             dcc.Store(id="submission_indicator"),
             # Header brand banner
@@ -304,21 +313,27 @@ def create_interface():
                                                             html.Div(
                                                                 className="schedule-forecast schedule-forecast-input",
                                                                 children=[
-                                                                    html.Label("Staffing Requirements:"),
+                                                                    html.Label(
+                                                                        "Staffing Requirements:"
+                                                                    ),
                                                                     html.Div(
                                                                         [
                                                                             dcc.Input(
-                                                                                id={"index": param, "type": "forecast"},
+                                                                                id={
+                                                                                    "index": param,
+                                                                                    "type": "forecast",
+                                                                                },
                                                                                 type="number",
                                                                                 debounce=True,
                                                                                 value=0,
                                                                                 min=0,
                                                                                 max=100,
                                                                                 required=True,
-                                                                            ) for param in COL_IDS
+                                                                            )
+                                                                            for param in COL_IDS
                                                                         ],
-                                                                        id="forecast-input"
-                                                                    )
+                                                                        id="forecast-input",
+                                                                    ),
                                                                 ],
                                                             ),
                                                         ],
@@ -326,20 +341,26 @@ def create_interface():
                                                     html.Div(
                                                         className="legend",
                                                         children=[
-                                                            html.Div([
-                                                                html.Div(
-                                                                    className="requested-shifts",
-                                                                    children=[REQUESTED_SHIFT_ICON],
-                                                                ),
-                                                                html.Label("Requested"),
-                                                            ]),
-                                                            html.Div([
-                                                                html.Div(
-                                                                    className="unavailable-shifts",
-                                                                    children=[UNAVAILABLE_ICON],
-                                                                ),
-                                                                html.Label("Unavailable"),
-                                                            ]),
+                                                            html.Div(
+                                                                [
+                                                                    html.Div(
+                                                                        className="requested-shifts",
+                                                                        children=[
+                                                                            REQUESTED_SHIFT_ICON
+                                                                        ],
+                                                                    ),
+                                                                    html.Label("Requested"),
+                                                                ]
+                                                            ),
+                                                            html.Div(
+                                                                [
+                                                                    html.Div(
+                                                                        className="unavailable-shifts",
+                                                                        children=[UNAVAILABLE_ICON],
+                                                                    ),
+                                                                    html.Label("Unavailable"),
+                                                                ]
+                                                            ),
                                                         ],
                                                     ),
                                                 ],
@@ -373,21 +394,33 @@ def create_interface():
                                                     html.Div(
                                                         className="legend",
                                                         children=[
-                                                            html.Div([
-                                                                html.Div(className="scheduled-shifts"),
-                                                                html.Label("Scheduled"),
-                                                            ]),
-                                                            html.Div([
-                                                                html.Div(
-                                                                    className="unscheduled-requested-shifts",
-                                                                    children=[REQUESTED_SHIFT_ICON],
-                                                                ),
-                                                                html.Label("Unscheduled requested"),
-                                                            ]),
-                                                            html.Div([
-                                                                html.Div(UNAVAILABLE_ICON),
-                                                                html.Label("Unavailable"),
-                                                            ]),
+                                                            html.Div(
+                                                                [
+                                                                    html.Div(
+                                                                        className="scheduled-shifts"
+                                                                    ),
+                                                                    html.Label("Scheduled"),
+                                                                ]
+                                                            ),
+                                                            html.Div(
+                                                                [
+                                                                    html.Div(
+                                                                        className="unscheduled-requested-shifts",
+                                                                        children=[
+                                                                            REQUESTED_SHIFT_ICON
+                                                                        ],
+                                                                    ),
+                                                                    html.Label(
+                                                                        "Unscheduled requested"
+                                                                    ),
+                                                                ]
+                                                            ),
+                                                            html.Div(
+                                                                [
+                                                                    html.Div(UNAVAILABLE_ICON),
+                                                                    html.Label("Unavailable"),
+                                                                ]
+                                                            ),
                                                         ],
                                                     ),
                                                 ],

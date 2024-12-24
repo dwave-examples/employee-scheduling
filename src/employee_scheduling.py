@@ -15,13 +15,12 @@ from collections import defaultdict
 from typing import Optional
 
 from dimod import Binary, BinaryQuadraticModel, ConstrainedQuadraticModel, quicksum
-from dwave.optimization.model import Model
 from dwave.optimization.mathematical import add
+from dwave.optimization.model import Model
 from dwave.optimization.symbols import BinaryVariable
 from dwave.system import LeapHybridCQMSampler, LeapHybridNLSampler
 
 from src.utils import DAYS, FULL_TIME_SHIFTS, SHIFTS, validate_nl_schedule
-
 
 MSGS = {
     "unavailable": ("Employees scheduled when unavailable", "{employee} on {day}"),
@@ -100,9 +99,7 @@ def build_cqm(  # params: ModelParams
     for employee, schedule in availability.items():
         for i, shift in enumerate(shifts):
             if schedule[i] == 0:
-                cqm.add_constraint(
-                    x[employee, shift] == 0, label=f"unavailable,{employee},{shift}"
-                )
+                cqm.add_constraint(x[employee, shift] == 0, label=f"unavailable,{employee},{shift}")
 
     for employee in employees_pt:
         # Schedule employees for at most max_shifts
@@ -312,23 +309,21 @@ def build_nl(  # params: ModelParams
 
     if num_full_time:
         # Schedule full-time employees for all their shifts
-        model.add_constraint((assignments[:num_full_time, :].sum(axis=1) == full_time_shifts_constant).all())
+        model.add_constraint(
+            (assignments[:num_full_time, :].sum(axis=1) == full_time_shifts_constant).all()
+        )
 
     # Schedule only forecast number of employees per day
     model.add_constraint((assignments.sum(axis=0) == shift_forecast_constant).all())
 
-    managers_c = model.constant(
-        [employees.index(e) for e in employees if e[-3:] == "Mgr"]
-    )
-    trainees_c = model.constant(
-        [employees.index(e) for e in employees if e[-2:] == "Tr"]
-    )
+    managers_c = model.constant([employees.index(e) for e in employees if e[-3:] == "Mgr"])
+    trainees_c = model.constant([employees.index(e) for e in employees if e[-2:] == "Tr"])
 
     if not allow_isolated_days_off:
         negthree_c = model.constant(-3)
         zero_c = model.constant(0)
         # Adding many small constraints greatly improves feasibility
-        for e in range(num_full_time, num_employees): # for part-time employees
+        for e in range(num_full_time, num_employees):  # for part-time employees
             for s1 in range(len(shifts) - 2):
                 s2, s3 = s1 + 1, s1 + 2
                 model.add_constraint(
@@ -346,9 +341,7 @@ def build_nl(  # params: ModelParams
     for e in range(num_full_time, num_employees):
         for s in range(num_shifts - max_consecutive_shifts + 1):
             s_window = s + max_consecutive_shifts + 1
-            model.add_constraint(
-                assignments[e][s : s_window + 1].sum() <= max_consecutive_shifts_c
-            )
+            model.add_constraint(assignments[e][s : s_window + 1].sum() <= max_consecutive_shifts_c)
 
     # Trainee must work on shifts with trainer
     trainers = []

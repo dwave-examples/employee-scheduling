@@ -13,8 +13,8 @@
 # limitations under the License.
 from __future__ import annotations
 
-from dataclasses import asdict
 import math
+from dataclasses import asdict
 from typing import Union
 
 import dash
@@ -22,7 +22,6 @@ import pandas as pd
 from dash import ALL, MATCH, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 
-from src.demo_enums import SolverType
 import src.employee_scheduling as employee_scheduling
 import src.utils as utils
 from demo_configs import (
@@ -35,6 +34,7 @@ from demo_configs import (
     USE_NL,
 )
 from demo_interface import errors_list, generate_forecast_table
+from src.demo_enums import SolverType
 
 
 @dash.callback(
@@ -212,10 +212,10 @@ def display_initial_schedule(
         {"display": "none"},
         count,
         count,
-        [num_employees]*len(count),
+        [num_employees] * len(count),
         new_full_time_max,
         full_time_marks,
-        num_full_time
+        num_full_time,
     )
 
 
@@ -321,9 +321,7 @@ def run_optimization(
     employees = list(availability.keys())
 
     forecast = [
-        val if isinstance(val, int)
-        else forecast_placeholder[i]
-        for i, val in enumerate(forecast)
+        val if isinstance(val, int) else forecast_placeholder[i] for i, val in enumerate(forecast)
     ]
 
     params = utils.ModelParams(
@@ -342,7 +340,7 @@ def run_optimization(
         errors = employee_scheduling.run_nl(model, assignments, **asdict(params))
         sched = utils.build_schedule_from_state(assignments.state(), employees, shifts)
 
-    else: # CQM
+    else:  # CQM
         cqm = employee_scheduling.build_cqm(**asdict(params))
 
         feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
