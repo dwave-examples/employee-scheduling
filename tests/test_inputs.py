@@ -26,20 +26,19 @@ class TestDemo(unittest.TestCase):
     # Initialize shared data for tests
     def setUp(self):
         self.num_employees = 12
-        self.sched_df = display_initial_schedule(self.num_employees, None)[0].data
+        self.sched_df = display_initial_schedule(self.num_employees, 6)[0].data
         self.shifts = list(self.sched_df[0].keys())
         self.shifts.remove("Employee")
         self.availability = utils.availability_to_dict(self.sched_df)
         self.test_params = utils.ModelParams(
             availability=self.availability,
             shifts=self.shifts,
-            min_shifts=1,
-            max_shifts=6,
-            shift_min=5,
-            shift_max=16,
-            requires_manager=True,
+            min_shifts=5,
+            max_shifts=10,
+            shift_forecast=[9, 8, 8, 8, 8, 8, 9, 9, 8, 8, 8, 8, 8, 9],
             allow_isolated_days_off=False,
             max_consecutive_shifts=6,
+            num_full_time=6
         )
 
     # Check that initial schedule created is the right size
@@ -77,11 +76,10 @@ class TestDemo(unittest.TestCase):
             shifts=shifts,
             min_shifts=1,
             max_shifts=6,
-            shift_min=5,
-            shift_max=16,
-            requires_manager=True,
+            shift_forecast=shift_forecast,
             allow_isolated_days_off=False,
             max_consecutive_shifts=6,
+            num_full_time=0
         )
 
         cqm = employee_scheduling.build_cqm(**asdict(test_params))
@@ -173,11 +171,10 @@ class TestDemo(unittest.TestCase):
             shifts=shifts,
             min_shifts=1,
             max_shifts=6,
-            shift_min=5,
-            shift_max=16,
-            requires_manager=True,
+            shift_forecast=[5]*5,
             allow_isolated_days_off=False,
             max_consecutive_shifts=6,
+            num_full_time=0
         )
 
         model, assignments = employee_scheduling.build_nl(**asdict(test_params))

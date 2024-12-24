@@ -391,7 +391,6 @@ def run_nl(
         shift_forecast,
         allow_isolated_days_off,
         max_consecutive_shifts,
-        num_full_time,
     )
 
     # Return errors if any error message list is populated
@@ -400,7 +399,3 @@ def run_nl(
             return errors
 
     return None
-
-
-if __name__ == "__main__":
-    ...

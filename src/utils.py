@@ -378,7 +378,6 @@ def validate_nl_schedule(
     shift_forecast: list[int],
     allow_isolated_days_off: bool,
     max_consecutive_shifts: int,
-    num_full_time: int,
 ) -> defaultdict[str, list[str]]:
     """Detect any errors in a solved NL scheduling model.
 
@@ -389,7 +388,6 @@ def validate_nl_schedule(
     Args:
         assignments (BinaryVariable): Assignments generated from sampling the
             NL model.
-        params (ModelParams): Model parameters.
         msgs (dict[str, tuple[str, str]]): Error message template dictionary.
             Must be formatted like:
             ```
@@ -398,6 +396,25 @@ def validate_nl_schedule(
                 ...
             }
             ```
+        availability (dict[str, list[int]]): Employee availability for each shift,
+            structured as follows:
+            ```
+            availability = {
+                'Employee Name': [
+                    0, # 0 if unavailable for shift at index i
+                    1, # 1 if available for shift at index i
+                    2, # 2 if shift at index i is preferred
+                    ...
+                ]
+            }
+            ```
+        shifts (list[str]): List of shift labels.
+        min_shifts (int): Min shifts per employee.
+        max_shifts (int): Max shifts per employee.
+        shift_forecast (list[int]): The forecasted employees per shift requirements.
+        allow_isolated_days_off (bool): Whether isolated shifts off are allowed
+            (pattern of on-off-on).
+        max_consecutive_shifts (int): Max consecutive shifts for each employee.
 
     Raises:
         ValueError: Raised if the `msgs` dictionary doesn't contain the required keys.
