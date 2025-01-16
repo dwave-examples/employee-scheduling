@@ -268,9 +268,6 @@ def build_nl(  # params: ModelParams
 
     # Create availability constant
     availability_list = [availability[employee] for employee in employees]
-    # Boost objective value of preferred shifts from 2 to 100
-    for i, sublist in enumerate(availability_list):
-        availability_list[i] = [a if a != 2 else 100 for a in sublist]
     availability_const = model.constant(availability_list)
 
     # Initialize model constants
@@ -283,7 +280,7 @@ def build_nl(  # params: ModelParams
 
     # OBJECTIVES:
     # Objective: give employees preferred schedules (val = 2)
-    obj = (assignments * availability_const).sum()
+    obj = -(assignments * availability_const).sum()
 
     # Objective: for infeasible solutions, focus on right number of shifts for employees
     target_shifts = model.constant((min_shifts + max_shifts) / 2)
@@ -295,7 +292,7 @@ def build_nl(  # params: ModelParams
     ]
     obj += add(*shift_difference_list_pt, *shift_difference_list_ft)
 
-    model.minimize(-obj)
+    model.minimize(obj)
 
     # CONSTRAINTS:
     # Only schedule employees when they're available
