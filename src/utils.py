@@ -15,10 +15,13 @@
 import datetime
 import random
 import string
+from collections import defaultdict
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 from dash import dash_table
+from dwave.optimization.symbols import BinaryVariable
 from faker import Faker
 
 from demo_configs import RANDOM_SEED, REQUESTED_SHIFT_ICON, UNAVAILABLE_ICON
@@ -35,6 +38,43 @@ SHIFTS = [
 DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 WEEKEND_IDS = ["1", "7", "8", "14"]
 FULL_TIME_SHIFTS = 10
+
+
+@dataclass
+class ModelParams:
+    """Convenience class for defining and passing model parameters.
+
+    Attributes:
+        availability (dict[str, list[int]]): Employee availability for each shift,
+            structured as follows:
+            ```
+            availability = {
+                'Employee Name': [
+                    0, # 0 if unavailable for shift at index i
+                    1, # 1 if available for shift at index i
+                    2, # 2 if shift at index i is preferred
+                    ...
+                ]
+            }
+            ```
+        shifts (list[str]): List of shift labels.
+        min_shifts (int): Min shifts per employee.
+        max_shifts (int): Max shifts per employee.
+        shift_forecast (list[int]): The forecasted employees per shift requirements.
+        allow_isolated_days_off (bool): Whether isolated shifts off are allowed
+            (pattern of on-off-on).
+        max_consecutive_shifts (int): Max consecutive shifts for each employee.
+        num_full_time: The number of full-time employees.
+    """
+
+    availability: dict[str, list[int]]
+    shifts: list[str]
+    min_shifts: int
+    max_shifts: int
+    shift_forecast: list[int]
+    allow_isolated_days_off: bool
+    max_consecutive_shifts: int
+    num_full_time: int
 
 
 def get_random_string(length):
@@ -122,13 +162,7 @@ def build_random_sched(num_employees, num_full_time):
     )
 
     data = pd.DataFrame(
-        np.concatenate(
-            (
-                *all_full_time,
-                all_part_time
-            )
-        ) if all_full_time
-        else all_part_time,
+        np.concatenate((*all_full_time, all_part_time)) if all_full_time else all_part_time,
         columns=COL_IDS,
     )
 
@@ -157,6 +191,21 @@ def build_schedule_from_sample(sample, employees):
             data.loc[data["Employee"] == row, col] = " "
         else:
             data.loc[data["Employee"] == row, col] = UNAVAILABLE_ICON
+
+    return data
+
+
+def build_schedule_from_state(state: np.ndarray, employees: list[str], shifts: list[str]):
+    """Builds a schedule from the state of a BinaryVariable."""
+    data = pd.DataFrame(columns=COL_IDS)
+    data.insert(0, "Employee", employees)
+
+    for e, employee in enumerate(employees):
+        for s, shift in enumerate(shifts):
+            if state[e, s] == 1.0:
+                data.loc[data["Employee"] == employee, shift] = " "
+            else:
+                data.loc[data["Employee"] == employee, shift] = UNAVAILABLE_ICON
 
     return data
 
@@ -308,9 +357,253 @@ def availability_to_dict(availability_list):
 
     for row in availability_list:
         availability_dict[row["Employee"]] = [
-            0 if row[col_id] == UNAVAILABLE_ICON
-            else 2 if row[col_id] == REQUESTED_SHIFT_ICON
-            else 1 for col_id in COL_IDS
+            (
+                0
+                if row[col_id] == UNAVAILABLE_ICON
+                else 2 if row[col_id] == REQUESTED_SHIFT_ICON else 1
+            )
+            for col_id in COL_IDS
         ]
 
     return availability_dict
+
+
+def validate_nl_schedule(
+    assignments: BinaryVariable,
+    msgs: dict[str, tuple[str, str]],
+    availability: dict[str, list[int]],
+    shifts: list[str],
+    min_shifts: int,
+    max_shifts: int,
+    shift_forecast: list[int],
+    allow_isolated_days_off: bool,
+    max_consecutive_shifts: int,
+) -> defaultdict[str, list[str]]:
+    """Detect any errors in a solved NL scheduling model.
+
+    Since NL models do not currently support constraint labels, this function
+    is required to detect any constraint violations and format them for display
+    in the user interface.
+
+    Args:
+        assignments (BinaryVariable): Assignments generated from sampling the
+            NL model.
+        msgs (dict[str, tuple[str, str]]): Error message template dictionary.
+            Must be formatted like:
+            ```
+            msgs = {
+                'error_type': ('Error message', 'message template with {replacement fields}'),
+                ...
+            }
+            ```
+        availability (dict[str, list[int]]): Employee availability for each shift,
+            structured as follows:
+            ```
+            availability = {
+                'Employee Name': [
+                    0, # 0 if unavailable for shift at index i
+                    1, # 1 if available for shift at index i
+                    2, # 2 if shift at index i is preferred
+                    ...
+                ]
+            }
+            ```
+        shifts (list[str]): List of shift labels.
+        min_shifts (int): Min shifts per employee.
+        max_shifts (int): Max shifts per employee.
+        shift_forecast (list[int]): The forecasted employees per shift requirements.
+        allow_isolated_days_off (bool): Whether isolated shifts off are allowed
+            (pattern of on-off-on).
+        max_consecutive_shifts (int): Max consecutive shifts for each employee.
+
+    Raises:
+        ValueError: Raised if the `msgs` dictionary doesn't contain the required keys.
+
+    Returns:
+        errors (defaultdict[str, list[str]]): Error descriptions and messages.
+    """
+    # Required keys to match existing error messages in employee_scheduling.py
+    required_msg_keys = [
+        "unavailable",
+        "overtime",
+        "insufficient",
+        "understaffed",
+        "overstaffed",
+        "isolated",
+        "manager_issue",
+        "too_many_consecutive",
+        "trainee_issue",
+    ]
+    for key in required_msg_keys:
+        if key not in msgs:
+            raise ValueError(f"`msgs` dictionary missing required key `{key}`")
+
+    # Pull solution state as ndarray, employees as list
+    result = assignments.state()
+    employees = list(availability.keys())
+
+    # Convert shifts to day/date labels
+    shift_labels = [f"{DAYS[i%7]} {SHIFTS[i]}" for i in range(len(shifts))]
+
+    errors = defaultdict(list)
+
+    _validate_availability(result, availability, employees, shift_labels, errors, msgs)
+    _validate_shifts_per_employee(result, employees, min_shifts, max_shifts, errors, msgs)
+    _validate_employees_per_shift(result, shift_forecast, shift_labels, errors, msgs)
+    _validate_max_consecutive_shifts(
+        result, max_consecutive_shifts, employees, shift_labels, errors, msgs
+    )
+    _validate_trainee_shifts(result, employees, shift_labels, errors, msgs)
+    _validate_requires_manager(result, employees, shift_labels, errors, msgs)
+    if not allow_isolated_days_off:
+        _validate_isolated_days_off(result, employees, shift_labels, errors, msgs)
+
+    return errors
+
+
+def _validate_availability(
+    results: np.ndarray,
+    availability: dict[str, list[int]],
+    employees: list[str],
+    shift_labels: list[int],
+    errors: defaultdict[str, list[str]],
+    msgs: dict[str, tuple[str, str]],
+) -> defaultdict[str, list[str]]:
+    """Validates employee availability for the solution and updates the `errors`
+    dictionary with any errors found. Requires the `msgs` dict to have the
+    key `'unavailable'`."""
+    msg_key, msg_template = msgs["unavailable"]
+    for e, employee in enumerate(employees):
+        for s, day in enumerate(shift_labels):
+            if results[e, s] > availability[employee][s]:
+                errors[msg_key].append(msg_template.format(employee=employee, day=day))
+    return errors
+
+
+def _validate_shifts_per_employee(
+    results: np.ndarray,
+    employees: list[str],
+    min_shifts: int,
+    max_shifts: int,
+    errors: defaultdict[str, list[str]],
+    msgs: dict[str, tuple[str, str]],
+) -> defaultdict[str, list[str]]:
+    """Validates the number of shifts per employee for the solution and updates
+    the `errors` dictionary with any errors found. Requires the `msgs` dict
+    to have the keys `'insufficient'` and `'overtime'`."""
+    insufficient_key, insufficient_template = msgs["insufficient"]
+    overtime_key, overtime_template = msgs["overtime"]
+    for e, employee in enumerate(employees):
+        num_shifts = results[e, :].sum()
+        if num_shifts < min_shifts:
+            errors[insufficient_key].append(insufficient_template.format(employee=employee))
+        elif num_shifts > max_shifts:
+            errors[overtime_key].append(overtime_template.format(employee=employee))
+    return errors
+
+
+def _validate_employees_per_shift(
+    results: np.ndarray,
+    shift_forecast: list[int],
+    shift_labels: list[int],
+    errors: defaultdict[str, list[str]],
+    msgs: dict[str, tuple[str, str]],
+) -> defaultdict[str, list[str]]:
+    """Validates the number of employees per shift for the solution and updates
+    the `errors` dictionary with any errors found. Requires the `msgs` dict
+    to have the keys `'understaffed'` and `'overstaffed'`."""
+    understaffed_key, understaffed_template = msgs["understaffed"]
+    overstaffed_key, overstaffed_template = msgs["overstaffed"]
+
+    for s, day in enumerate(shift_labels):
+        num_employees = results[:, s].sum()
+        if num_employees < shift_forecast[s]:
+            errors[understaffed_key].append(understaffed_template.format(day=day))
+        elif num_employees > shift_forecast[s]:
+            errors[overstaffed_key].append(overstaffed_template.format(day=day))
+    return errors
+
+
+def _validate_requires_manager(
+    results: np.ndarray,
+    employees: list[str],
+    shift_labels: list[str],
+    errors: defaultdict[str, list[str]],
+    msgs: dict[str, tuple[str, str]],
+) -> defaultdict[str, list[str]]:
+    """Validates the number of managers per shift for the solution and updates
+    the `errors` dictionary with any errors found. Requires the `msgs` dict
+    to have the key `'manager_issue'`."""
+    key, template = msgs["manager_issue"]
+    employee_arr = np.asarray([employees.index(e) for e in employees if e[-3:] == "Mgr"])
+    managers_per_shift = results[employee_arr].sum(axis=0)
+    for shift, num_managers in enumerate(managers_per_shift):
+        if num_managers == 0:
+            errors[key].append(template.format(day=shift_labels[shift]))
+    return errors
+
+
+def _validate_isolated_days_off(
+    results: np.ndarray,
+    employees: list[str],
+    shift_labels: list[str],
+    errors: defaultdict[str, list[str]],
+    msgs: dict[str, tuple[str, str]],
+) -> defaultdict[str, list[str]]:
+    """Validates the number of managers per shift for the solution and updates
+    the `errors` dictionary with any errors found. Requires the `msgs` dict
+    to have the key `'isolated'`."""
+    key, template = msgs["isolated"]
+    isolated_pattern = np.array([1, 0, 1])
+    for e, employee in enumerate(employees):
+        shift_triples = [results[e, i : i + 3] for i in range(results.shape[1] - 2)]
+        for s, shift_set in enumerate(shift_triples):
+            if np.equal(shift_set, isolated_pattern).all():
+                day = shift_labels[s + 1]
+                errors[key].append(template.format(employee=employee, day=day))
+    return errors
+
+
+def _validate_max_consecutive_shifts(
+    results: np.ndarray,
+    max_consecutive_shifts: int,
+    employees: list[str],
+    shift_labels: list[str],
+    errors: defaultdict[str, list[str]],
+    msgs: dict[str, tuple[str, str]],
+) -> defaultdict[str, list[str]]:
+    """Validates the max number of consecutive shifts for the solution and updates
+    the `errors` dictionary with any errors found. Requires the `msgs` dict
+    to have the key `'too_many_consecutive'`."""
+    key, template = msgs["too_many_consecutive"]
+    for e, employee in enumerate(employees):
+        consecutive_shift_arrays = [
+            results[e, i : i + max_consecutive_shifts]
+            for i in range(results.shape[1] - max_consecutive_shifts)
+        ]
+        for shift, shift_arr in enumerate(consecutive_shift_arrays):
+            if shift_arr.sum() > max_consecutive_shifts:
+                errors[key].append(template.format(employee=employee, day=shift_labels[shift]))
+                break
+    return errors
+
+
+def _validate_trainee_shifts(
+    results: np.ndarray,
+    employees: list[str],
+    shift_labels: list[str],
+    errors: defaultdict[str, list[str]],
+    msgs: dict[str, tuple[str, str]],
+) -> defaultdict[str, list[str]]:
+    """Validates that trainees are on-shift with their manager for the solution
+    and updates the `errors` dictionary with any errors found. Requires the
+    `msgs` dict to have the key `'trainee_issue'`."""
+    key, template = msgs["trainee_issue"]
+    trainees = {employees.index(e): e for e in employees if e[-2:] == "Tr"}
+    trainers = {employees.index(e): e for e in employees if e + "-Tr" in trainees.values()}
+    for (trainee_i), (trainer_i) in zip(trainees.keys(), trainers.keys()):
+        same_shifts = np.less_equal(results[trainee_i], results[trainer_i])
+        for i, s in enumerate(same_shifts):
+            if not s:
+                errors[key].append(template.format(day=shift_labels[i]))
+    return errors

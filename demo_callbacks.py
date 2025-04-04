@@ -14,6 +14,8 @@
 from __future__ import annotations
 
 import math
+from dataclasses import asdict
+from typing import Union
 
 import dash
 import pandas as pd
@@ -29,8 +31,10 @@ from demo_configs import (
     REQUESTED_SHIFT_ICON,
     SMALL_SCENARIO,
     UNAVAILABLE_ICON,
+    USE_NL,
 )
 from demo_interface import errors_list, generate_forecast_table
+from src.demo_enums import SolverType
 
 
 @dash.callback(
@@ -208,10 +212,10 @@ def display_initial_schedule(
         {"display": "none"},
         count,
         count,
-        [num_employees]*len(count),
+        [num_employees] * len(count),
         new_full_time_max,
         full_time_marks,
-        num_full_time
+        num_full_time,
     )
 
 
@@ -309,34 +313,41 @@ def run_optimization(
     if run_click == 0 or ctx.triggered_id != "run-button":
         raise PreventUpdate
 
+    solver_type = SolverType.NL if USE_NL else SolverType.CQM
     shifts = list(sched_df["props"]["data"][0].keys())
     shifts.remove("Employee")
 
     availability = utils.availability_to_dict(sched_df["props"]["data"])
     employees = list(availability.keys())
 
-    isolated_days_allowed = True if 0 in checklist else False
-
     forecast = [
-        val if isinstance(val, int)
-        else forecast_placeholder[i]
-        for i, val in enumerate(forecast)
+        val if isinstance(val, int) else forecast_placeholder[i] for i, val in enumerate(forecast)
     ]
 
-    cqm = employee_scheduling.build_cqm(
-        availability,
-        shifts,
-        *shifts_per_employee,
-        forecast,
-        isolated_days_allowed,
-        consecutive_shifts + 1,
-        num_full_time,
+    params = utils.ModelParams(
+        availability=availability,
+        shifts=shifts,
+        min_shifts=min(shifts_per_employee),
+        max_shifts=max(shifts_per_employee),
+        shift_forecast=forecast,
+        allow_isolated_days_off=0 in checklist,
+        max_consecutive_shifts=consecutive_shifts,
+        num_full_time=num_full_time,
     )
 
-    sampleset, errors = employee_scheduling.run_cqm(cqm)
-    sample = sampleset.first.sample
+    if solver_type is SolverType.NL:
+        model, assignments = employee_scheduling.build_nl(**asdict(params))
+        errors = employee_scheduling.run_nl(model, assignments, **asdict(params))
+        sched = utils.build_schedule_from_state(assignments.state(), employees, shifts)
 
-    sched = utils.build_schedule_from_sample(sample, employees)
+    else:  # CQM
+        cqm = employee_scheduling.build_cqm(**asdict(params))
+
+        feasible_sampleset, errors = employee_scheduling.run_cqm(cqm)
+        sample = feasible_sampleset.first.sample
+
+        sched = utils.build_schedule_from_sample(sample, employees)
+
     scheduled_count = sched.map(lambda cell: UNAVAILABLE_ICON not in cell).sum()[1:].to_dict()
 
     return (

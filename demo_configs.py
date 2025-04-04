@@ -37,6 +37,7 @@ UNAVAILABLE_ICON = "x"
 # Optional: None or an integer
 RANDOM_SEED = None
 
+USE_NL = False  # Uses NL if True, otherwise uses CQM
 
 #######################################
 # Sliders, buttons and option entries #
@@ -58,7 +59,7 @@ NUM_EMPLOYEES = {
     "value": 12,
 }
 
-# number of full time employees slider (value means default)
+# number of full-time employees slider (value means default)
 NUM_FULL_TIME = {
     "min": 0,
     "max": 9,
