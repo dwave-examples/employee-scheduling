@@ -40,6 +40,7 @@ MIN_MAX_SHIFTS = {
     "max": 14,
     "step": 1,
     "value": [5, 7],
+    "minRange": 1,
 }
 
 # number of employees slider (value means default)

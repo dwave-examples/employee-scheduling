@@ -32,14 +32,6 @@ h6 {
     margin-bottom: 0;
 }
 
-.details-collapse-wrapper:not(.collapsed) .details-to-collapse {
-    height: auto !important;
-}
-
-.details-collapse .collapse-arrow {
-    border-width: 2px;
-}
-
 .collapsed.log-column > div {
     width: 0;
 }
@@ -48,26 +40,66 @@ table {
     border: none;
 }
 
-.log-column {
-  display: none;
-  background-color: white;
-  z-index: 10;
+.collapsed.log-column > div {
+    width: 0;
 }
 
-.log-column > div > div {
-  padding: 1rem;
-  width: calc(var(--error-col-width) - 2rem);
+.log-column {
+  background-color: white;
+  z-index: 10;
+  position: absolute;
+  right: 0;
+  height: 100%;
+  display: flex;
 }
 
 .log-column > div {
   height: 100vh;
-  transition: width 0.6s ease-in-out;
+  transition: width 1s ease-in-out;
   overflow-y: auto;
   overflow-x: hidden;
+  width: calc(var(--error-col-width) - var(--error-col-btn-width));
+  background-color: white;
 }
 
-.log-column > div {
-  width: var(--error-col-width);
+.log-column > div > div {
+  padding: 1.5rem;
+  width: calc(var(--error-col-width) - var(--error-col-btn-width));
+  height: 100%;
+}
+
+.log-column-collapse,
+.log-column-collapse:hover,
+.log-column-collapse:focus {
+  background: var(--red-light);
+  border: none;
+  height: 100%;
+  border-radius: 0;
+  padding: 0 0.1rem 0 0;
+  transition: background-color 0.25s ease-in-out;
+  overflow: hidden;
+  display: block;
+}
+
+.log-column-collapse:hover {
+  background-color: var(--red-dark);
+}
+
+.log-column-collapse .collapse-arrow:before,
+.log-column-collapse .collapse-arrow:after {
+  background-color: white;
+}
+
+.log-column-collapse .collapse-arrow {
+  rotate: 180deg;
+}
+
+.collapsed .log-column-collapse .collapse-arrow {
+  rotate: 0deg;
+}
+
+.collapsed .log-column-collapse {
+  padding: 0 0 0 0.1rem;
 }
 
 .range-slider > div {
@@ -92,40 +124,14 @@ table {
     height: calc(100vh - var(--banner-height) - 9rem);
 }
 
+#schedule-content:focus-visible {
+    box-shadow: 0 0 0 2px var(--teal);
+}
+
 /* Specific targeting for the loading circle */
 .schedule-loading > div:last-child {
   top: 30vh !important;
   height: auto !important;
-}
-
-.log-column-collapse,
-.log-column-collapse:hover,
-.log-column-collapse:focus {
-  background: var(--red-light);
-  border: none;
-  height: 100%;
-  border-radius: 0;
-  padding: 0 0.25rem 0 0;
-  transition: background-color 0.25s ease-in-out;
-  overflow: hidden;
-  display: block;
-}
-
-.log-column-collapse .collapse-arrow {
-  border-color: white;
-  transform: rotate(315deg) skew(160deg, 160deg);
-}
-
-.log-column-collapse:hover {
-  background-color: var(--red-dark);
-}
-
-.collapsed .log-column-collapse {
-  padding: 0 0 0 0.25rem;
-}
-
-.collapsed .log-column-collapse .collapse-arrow {
-  transform: rotate(135deg) skew(165deg, 165deg);
 }
 
 .schedule {
@@ -182,7 +188,7 @@ table {
 }
 
 .unavailable-shifts {
-  background-color: var(--orange);
+  background-color: #C2570A;
   color: white;
 }
 
@@ -256,28 +262,33 @@ tr:not(:first-child) .dash-header.column-14 {
   visibility: visible !important;
 }
 
-.part-time-settings label {
+.accordion h3 {
     letter-spacing: normal;
     text-transform: uppercase;
     font-size: 0.825rem;
     font-weight: 600;
     cursor: pointer;
+    margin: 1rem 0 0.5rem;
 }
 
-.details-collapse.part-time-settings .collapse-arrow:before,
-.details-collapse.part-time-settings .collapse-arrow:after {
-    height: 0.2rem;
+.details-collapse.accordion .collapse-arrow {
+    height: 1rem;
+    width: 1.5rem;
+    margin-top: 0.8rem;
+}
+
+.collapsed .details-collapse.accordion .collapse-arrow {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.accordion .collapse-arrow:before,
+.accordion .collapse-arrow:after {
     width: 1rem;
 }
 
-.details-collapse.part-time-settings .collapse-arrow {
-    margin-top: 2rem;
-    height: 1rem;
-    margin-left: 0;
-}
-
-.collapsed .details-collapse.part-time-settings .collapse-arrow {
-    margin-top: 0;
+.details-collapse-wrapper {
+    margin-top: 1rem;
 }
 
 .part-time-collapse {
@@ -294,6 +305,21 @@ tr:not(:first-child) .dash-header.column-14 {
 
 .details-collapse-wrapper:not(.collapsed) .details-to-collapse.part-time-collapse {
     height: var(--part-time-settings-height) !important;
+}
+
+.accordion h6 {
+    margin: 0.7rem 0;
+    text-align: left;
+}
+
+.details-collapse-wrapper ul {
+    margin: 0;
+}
+
+.details-collapse-wrapper li {
+    font-family: var(--font-family);
+    color: var(--blue-darkest);
+    font-size: 0.875rem;
 }
 
 .schedule-forecast {

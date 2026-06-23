@@ -304,7 +304,7 @@ def update_ui_on_run(run_click: int, prev_classes: str) -> tuple[str, list]:
 def run_optimization(
     run_click: int,
     shifts_per_employee: list[int],
-    checklist: list[int],
+    isolated_days_allowed: bool,
     consecutive_shifts: int,
     num_full_time: int,
     forecast: list[int],
@@ -321,7 +321,7 @@ def run_optimization(
     Args:
         run_click: The (total) number of times the run button has been clicked.
         shifts_per_employee: The min and max shifts each part-time employee should be scheduled for.
-        checklist: Whether the checkbox ``Allow isolated days off`` is checked.
+        isolated_days_allowed: Whether the checkbox ``Allow isolated days off`` is checked.
         consecutive_shifts: The max consecutive shifts a part-time employee should be scheduled for.
         num_full_time: The number of full-time employees.
         forecast: The forecasted employees per shift requirements.
@@ -344,8 +344,6 @@ def run_optimization(
 
     availability = utils.availability_to_dict(sched_df["props"]["data"])
     employees = list(availability.keys())
-
-    isolated_days_allowed = True if 0 in checklist else False
 
     forecast = [
         val if isinstance(val, int)

@@ -28,7 +28,7 @@ Dash reads all css files contained in `/assets/` so no imports are necessary.
     --blue-darkest: #202239;
     --red-light: #F57677;
     --red-dark: #AA3A3C;
-    --orange: #FF7006;
+    --orange: #F37820;
     --teal-light: #06ECDC;
     --teal: #17BEBB;
     --teal-dark: #17BEBB;
@@ -47,4 +47,5 @@ Dash reads all css files contained in `/assets/` so no imports are necessary.
     /*** Add new variables here ***/
     --error-col-width: 26.25rem;
     --part-time-settings-height: 13.125rem;
+    --error-col-btn-width: 1.5rem;
 }

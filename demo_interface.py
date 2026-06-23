@@ -220,9 +220,9 @@ def generate_settings_form() -> html.Div:
                             "type": "collapse-trigger",
                             "index": 3,
                         },
-                        className="details-collapse part-time-settings",
+                        className="details-collapse accordion",
                         children=[
-                            html.Label("Advanced settings"),
+                            html.H3("Advanced options"),
                             html.Div(className="collapse-arrow"),
                         ],
                         **{"aria-expanded": "false"},
@@ -318,7 +318,8 @@ def errors_list(errors: dict) -> html.Div:
                             "type": "collapse-trigger",
                             "index": 4 + error_counter,
                         },
-                        className="details-collapse",
+                        title="Collapse error sidebar",
+                        className="details-collapse accordion",
                         children=[
                             html.H6(error_key),
                             html.Div(className="collapse-arrow"),
