@@ -71,7 +71,7 @@ table {
 .log-column-collapse,
 .log-column-collapse:hover,
 .log-column-collapse:focus {
-  background: var(--red-light);
+  background: var(--red-dark);
   border: none;
   height: 100%;
   border-radius: 0;
@@ -82,7 +82,7 @@ table {
 }
 
 .log-column-collapse:hover {
-  background-color: var(--red-dark);
+  background-color: var(--red-light);
 }
 
 .log-column-collapse .collapse-arrow:before,
@@ -118,14 +118,19 @@ table {
     padding-bottom: 1rem;
     height: calc(100vh - var(--banner-height) - 5rem);
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #schedule-content {
     height: calc(100vh - var(--banner-height) - 9rem);
 }
 
-#schedule-content:focus-visible {
+#schedule-content:focus-visible,
+#availability-content:focus-visible,
+#schedule-content table:focus-visible,
+#availability-content table:focus-visible {
     box-shadow: 0 0 0 2px var(--teal);
+    outline-color: var(--teal);
 }
 
 /* Specific targeting for the loading circle */
@@ -167,7 +172,7 @@ table {
   margin-bottom: 0.1rem;
 }
 
-.legend label {
+.legend h5 {
   margin: 0;
 }
 
@@ -308,8 +313,9 @@ tr:not(:first-child) .dash-header.column-14 {
 }
 
 .accordion h6 {
-    margin: 0.7rem 0;
+    margin: 0.2rem 0;
     text-align: left;
+    font-weight: 600;
 }
 
 .details-collapse-wrapper ul {
@@ -320,6 +326,10 @@ tr:not(:first-child) .dash-header.column-14 {
     font-family: var(--font-family);
     color: var(--blue-darkest);
     font-size: 0.875rem;
+}
+
+#errors .details-collapse-wrapper:not(.collapsed) .details-to-collapse {
+    height: auto;
 }
 
 .schedule-forecast {
@@ -341,10 +351,10 @@ tr:not(:first-child) .dash-header.column-14 {
     border-top: 2px solid var(--grey-dark);
 }
 
+.schedule-forecast h5,
 .schedule-forecast label {
-    margin-top: 1rem;
     font-size: 0.95rem;
-    margin: 0.35rem 0;
+    margin: 0.4rem 0;
 }
 
 .schedule-forecast tr:last-child,
@@ -385,4 +395,8 @@ input[type=number] {
 
 input[type="number"]:focus {
     display: inline-block !important;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-fill-width .cell table {
+    margin-bottom: 0;
 }

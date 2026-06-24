@@ -188,13 +188,13 @@ def run_cqm(cqm: ConstrainedQuadraticModel):
         msgs = {
             "unavailable": ("Employees scheduled when unavailable", "{employee} on {day}"),
             "overtime": ("Employees with scheduled overtime", "{employee}"),
-            "insufficient": ("Employees with not enough scheduled time", "{employee}"),
+            "insufficient": ("Not enough scheduled time", "{employee}"),
             "understaffed": ("Understaffed shifts", "{day} is understaffed"),
             "overstaffed": ("Overstaffed shifts", "{day} is overstaffed"),
             "isolated": ("Isolated shifts", "{day} is an isolated day off for {employee}"),
             "manager_issue": ("Shifts with no manager", "No manager scheduled on {day}"),
             "too_many_consecutive": (
-                "Employees with too many consecutive shifts",
+                "Too many consecutive shifts",
                 "{employee} starting with {day}",
             ),
             "trainee_issue": (
