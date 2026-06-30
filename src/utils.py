@@ -219,7 +219,7 @@ def display_availability(df):
                     "filter_query": f"{{{col_id}}} = {UNAVAILABLE_ICON}",
                     "column_id": col_id,
                 },
-                "backgroundColor": "#FF7006",  # orange
+                "backgroundColor": "#C2570A",  # orange
                 "color": "white",
             }
             for col_id in COL_IDS

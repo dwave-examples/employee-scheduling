@@ -14,12 +14,6 @@
 
 """This file stores input parameters for the app."""
 
-# THEME_COLOR is used for the button, text, and banner and should be dark
-# and pass accessibility checks with white: https://webaim.org/resources/contrastchecker/
-# THEME_COLOR_SECONDARY can be light or dark and is used for sliders, loading icon, and tabs
-THEME_COLOR = "#074C91"  # D-Wave dark blue default #074C91
-THEME_COLOR_SECONDARY = "#2A7DE1"  # D-Wave blue default #2A7DE1
-
 THUMBNAIL = "static/dwave_logo.svg"
 
 APP_TITLE = "Workforce Scheduling Demo"
@@ -33,10 +27,8 @@ scenario with a variety of employees and rules.
 REQUESTED_SHIFT_ICON = "✓"
 UNAVAILABLE_ICON = "x"
 
-
 # Optional: None or an integer
 RANDOM_SEED = None
-
 
 #######################################
 # Sliders, buttons and option entries #
@@ -48,6 +40,7 @@ MIN_MAX_SHIFTS = {
     "max": 14,
     "step": 1,
     "value": [5, 7],
+    "minRange": 1,
 }
 
 # number of employees slider (value means default)
@@ -73,9 +66,6 @@ MAX_CONSECUTIVE_SHIFTS = {
     "step": 1,
     "value": 5,
 }
-
-# example scenario labels (must have 4, first is custom scenario)
-EXAMPLE_SCENARIO = ["Custom", "Small", "Medium", "Large"]
 
 # default scenarios (don't change order of items)
 SMALL_SCENARIO = {

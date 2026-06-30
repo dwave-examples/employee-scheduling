@@ -1,60 +1,35 @@
 /*
-This file is forked from apps/dash-clinical-analytics/assets/clinical-analytics.css
-under the following license
+Copyright 2026 D-Wave
 
-MIT License
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-Copyright (c) 2019 Plotly
+    http://www.apache.org/licenses/LICENSE-2.0
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-Modifications are licensed under
-
-Apache License, Version 2.0
-(see ./LICENSE for details)
-
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
+.tab-content-wrapper {
+    padding: 1rem 3rem 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    overflow-x: auto;
+}
+
 h6 {
-    font-size: 1.7rem;
+    font-size: 1rem;
     font-weight: 400;
 }
 
 .details-collapse-wrapper {
     margin-bottom: 0;
-}
-
-.details-collapse-wrapper:not(.collapsed) .details-to-collapse {
-    height: auto !important;
-}
-
-.details-collapse .collapse-arrow {
-    border-width: 2px;
-}
-
-.columns-main {
-    height: calc(100vh - var(--banner-height));
-}
-
-.right-column {
-    flex-grow: 1;
-    min-width: 40rem;
 }
 
 .collapsed.log-column > div {
@@ -65,31 +40,66 @@ table {
     border: none;
 }
 
-.tab-content {
-    padding: 2rem 2rem 0;
-    overflow-x: auto;
+.collapsed.log-column > div {
+    width: 0;
 }
 
 .log-column {
-  display: none;
   background-color: white;
   z-index: 10;
+  position: absolute;
+  right: 0;
+  height: 100%;
+  display: flex;
+}
+
+.log-column > div {
+  height: 100vh;
+  transition: width 1s ease-in-out;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: calc(var(--error-col-width) - var(--error-col-btn-width));
+  background-color: white;
 }
 
 .log-column > div > div {
-  padding: 2rem;
-  width: calc(var(--error-col-width) - 4rem);
+  padding: 1.5rem;
+  width: calc(var(--error-col-width) - var(--error-col-btn-width));
+  height: 100%;
 }
 
-.log-column > div {
-  height: calc(100vh - 5.5rem);
-  transition: width 0.6s ease-in-out;
-  overflow-y: auto;
-  overflow-x: hidden;
+.log-column-collapse,
+.log-column-collapse:hover,
+.log-column-collapse:focus {
+  background: var(--red-dark);
+  border: none;
+  height: 100%;
+  border-radius: 0;
+  padding: 0 0.1rem 0 0;
+  transition: background-color 0.25s ease-in-out;
+  overflow: hidden;
+  display: block;
 }
 
-.log-column > div {
-  width: var(--error-col-width);
+.log-column-collapse:hover {
+  background-color: var(--red-light);
+}
+
+.log-column-collapse .collapse-arrow:before,
+.log-column-collapse .collapse-arrow:after {
+  background-color: white;
+}
+
+.log-column-collapse .collapse-arrow {
+  rotate: 180deg;
+}
+
+.collapsed .log-column-collapse .collapse-arrow {
+  rotate: 0deg;
+}
+
+.collapsed .log-column-collapse {
+  padding: 0 0 0 0.1rem;
 }
 
 .range-slider > div {
@@ -105,43 +115,28 @@ table {
 
 #availability-content,
 #schedule-content {
-    padding-bottom: 2rem;
+    padding-bottom: 1rem;
+    height: calc(100vh - var(--banner-height) - 5rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#schedule-content {
+    height: calc(100vh - var(--banner-height) - 9rem);
+}
+
+#schedule-content:focus-visible,
+#availability-content:focus-visible,
+#schedule-content table:focus-visible,
+#availability-content table:focus-visible {
+    box-shadow: 0 0 0 2px var(--teal);
+    outline-color: var(--teal);
 }
 
 /* Specific targeting for the loading circle */
 .schedule-loading > div:last-child {
   top: 30vh !important;
   height: auto !important;
-}
-
-.log-column-collapse,
-.log-column-collapse:hover,
-.log-column-collapse:focus {
-  background: #dd7e8e;
-  border: none;
-  height: 100%;
-  border-radius: 0;
-  padding: 0 0.5rem 0 0;
-  transition: background-color 0.25s ease-in-out;
-  overflow: hidden;
-  display: block;
-}
-
-.log-column-collapse .collapse-arrow {
-  border-color: white;
-  transform: rotate(315deg) skew(160deg, 160deg);
-}
-
-.log-column-collapse:hover {
-  background-color: #c14e61;
-}
-
-.collapsed .log-column-collapse {
-  padding: 0 0 0 0.5rem;
-}
-
-.collapsed .log-column-collapse .collapse-arrow {
-  transform: rotate(135deg) skew(165deg, 165deg);
 }
 
 .schedule {
@@ -153,30 +148,31 @@ table {
 }
 
 .legend {
-  margin: 4.3rem 0 0 1rem;
+  margin: 2rem 0 0 1rem;
 }
 
 .legend > div {
   display: flex;
   align-content: start;
   align-items: center;
-  min-width: 18rem;
+  min-width: 11.25rem;
 }
 
 .legend > div div {
-  width: 4.5rem;
-  height: 3rem;
-  margin-right: 0.6rem;
+  width: 2.5rem;
+  height: 2rem;
+  margin-right: 0.25rem;
   text-align: center;
-  font-size: 1.8rem;
+  font-size: 1.125rem;
+  font-weight: 600;
   border: 1px solid var(--grey-light);
 }
 
 .legend > div > * {
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.1rem;
 }
 
-.legend label {
+.legend h5 {
   margin: 0;
 }
 
@@ -197,26 +193,29 @@ table {
 }
 
 .unavailable-shifts {
-  background-color: var(--orange);
+  background-color: #C2570A;
   color: white;
 }
 
 td[data-dash-column="Employee"] {
-  padding-left: 1.2rem !important;
-  padding-right: 1.2rem !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
   border-right: 2px solid var(--grey-medium) !important;
+  font-size: 1rem;
+  line-height: 1rem;
 }
 
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td:not([data-dash-column="Employee"]) div {
-  font-size: 1.8rem;
+  font-size: 1.125rem;
   vertical-align: baseline;
+  font-weight: 600;
 }
 
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th.dash-header {
   background-color: white;
   color: var(--grey-dark);
   font-weight: bold;
-  font-size: 1.5rem;
+  font-size: 1rem;
 }
 
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(1) th:nth-child(2) {
@@ -229,15 +228,15 @@ td[data-dash-column="Employee"] {
 
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(1) th {
   border: none !important;
-  padding-top: 1.5rem;
-  padding-bottom: 0.6rem;
-  font-size: 1.8rem;
+  padding-top: 1rem;
+  padding-bottom: 0.5rem;
+  font-size: 1.125rem;
   font-weight: 400;
 }
 
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(2) th {
   font-weight: 400;
-  font-size: 1.2rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   text-align: left !important;
   border-bottom: none !important;
@@ -247,7 +246,7 @@ td[data-dash-column="Employee"] {
 
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(3) th:not(:first-child) {
   text-align: left !important;
-  font-size: 1.8rem;
+  font-size: 1.125rem;
 }
 
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(3) th {
@@ -268,30 +267,39 @@ tr:not(:first-child) .dash-header.column-14 {
   visibility: visible !important;
 }
 
-.part-time-settings label {
-    color: var(--theme);
+.accordion h3 {
     letter-spacing: normal;
     text-transform: uppercase;
-    font-size: 1.3rem;
+    font-size: 0.825rem;
     font-weight: 600;
     cursor: pointer;
+    margin: 1rem 0 0.5rem;
 }
 
-.details-collapse.part-time-settings .collapse-arrow {
-    margin-top: 2rem;
-    border-width: 3px;
+.details-collapse.accordion .collapse-arrow {
     height: 1rem;
+    width: 1.5rem;
+    margin-top: 0.8rem;
+}
+
+.collapsed .details-collapse.accordion .collapse-arrow {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.accordion .collapse-arrow:before,
+.accordion .collapse-arrow:after {
     width: 1rem;
 }
 
-.collapsed .details-collapse.part-time-settings .collapse-arrow {
-    margin-top: 1.8rem;
+.details-collapse-wrapper {
+    margin-top: 1rem;
 }
 
 .part-time-collapse {
     background: white;
-    padding: 0 1rem 1rem;
-    border: 1px solid var(--grey-light);
+    padding: 0 0.75rem 0.75rem;
+    border-radius: 20px;
 }
 
 .details-collapse-wrapper.collapsed .part-time-collapse {
@@ -304,9 +312,30 @@ tr:not(:first-child) .dash-header.column-14 {
     height: var(--part-time-settings-height) !important;
 }
 
+.accordion h6 {
+    margin: 0.2rem 0;
+    text-align: left;
+    font-weight: 600;
+}
+
+.details-collapse-wrapper ul {
+    margin: 0;
+}
+
+.details-collapse-wrapper li {
+    font-family: var(--font-family);
+    color: var(--blue-darkest);
+    font-size: 0.875rem;
+}
+
+#errors .details-collapse-wrapper:not(.collapsed) .details-to-collapse {
+    height: auto;
+}
+
 .schedule-forecast {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     position: sticky;
     bottom: 0;
     background-color: white;
@@ -322,14 +351,10 @@ tr:not(:first-child) .dash-header.column-14 {
     border-top: 2px solid var(--grey-dark);
 }
 
+.schedule-forecast h5,
 .schedule-forecast label {
-    margin: 0.4rem 0.3rem 0.8rem;
-    font-weight: 500;
-    font-size: 1.5rem;
-}
-
-.schedule-forecast-input label {
-    margin-top: 1.6rem;
+    font-size: 0.95rem;
+    margin: 0.4rem 0;
 }
 
 .schedule-forecast tr:last-child,
@@ -338,12 +363,12 @@ tr:not(:first-child) .dash-header.column-14 {
 }
 
 #forecast-input, #forecast-output {
-    width: 63rem;
+    width: 40rem;
     flex-shrink: 0;
 }
 
 #forecast-output td {
-    width: 4.5rem;
+    width: 3rem;
 }
 
 #forecast-input .dash-header,
@@ -353,8 +378,8 @@ tr:not(:first-child) .dash-header.column-14 {
 }
 
 .dash-input {
-    width: 3.9rem;
-    margin: 1rem 0.3rem;
+    width: 2.5rem;
+    margin: 0.75rem 0.175rem;
 }
 
 /* This and the following rule hide the up/down arrows for the text box */
@@ -370,4 +395,8 @@ input[type=number] {
 
 input[type="number"]:focus {
     display: inline-block !important;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-fill-width .cell table {
+    margin-bottom: 0;
 }
